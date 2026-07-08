@@ -1,0 +1,10 @@
+node_modules/
+dist/
+
+# Large binary intermediates — regenerable / not used by the running site.
+# (kept on disk as deliverables; layers rebuild via scripts/delayer.py)
+claude-export/
+claude-export.zip
+assets/layers/
+hand-sponge.png
+*.psd

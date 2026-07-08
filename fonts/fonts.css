@@ -1,0 +1,91 @@
+/* ============================================================
+   Madame — self-hosted brand fonts
+   ------------------------------------------------------------
+   Neulis Sans + Neulis Cursive are Adobe-synced fonts, so they
+   can't be fetched automatically. Drop the font files into THIS
+   /fonts folder using the exact names below and they load with
+   zero other changes. Until then, the site falls back to a close
+   system stack (defined in styles.css) so everything still works.
+
+   Accepted formats per file (first one found wins): .woff2 .woff .otf .ttf
+   ============================================================ */
+
+/* ---------- Poppins: bundled geometric fallback (OFL, free to self-host) ----
+   Makes the site look right BEFORE Neulis is added. Neulis still wins when its
+   files are present, because it's listed first in --font-sans. ------------- */
+@font-face { font-family:"Poppins"; font-weight:400; font-display:swap;
+  src:url("Poppins-Regular.ttf") format("truetype"); }
+@font-face { font-family:"Poppins"; font-weight:500; font-display:swap;
+  src:url("Poppins-Medium.ttf") format("truetype"); }
+@font-face { font-family:"Poppins"; font-weight:600; font-display:swap;
+  src:url("Poppins-Medium.ttf") format("truetype"); }
+@font-face { font-family:"Poppins"; font-weight:700; font-display:swap;
+  src:url("Poppins-Bold.ttf") format("truetype"); }
+@font-face { font-family:"Poppins"; font-weight:800; font-display:swap;
+  src:url("Poppins-Bold.ttf") format("truetype"); }
+
+/* ---------- Neulis Sans ---------- */
+@font-face {
+  font-family: "Neulis Sans";
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  src: url("NeulisSans-Regular.woff2") format("woff2"),
+       url("NeulisSans-Regular.woff")  format("woff"),
+       url("NeulisSans-Regular.otf")   format("opentype"),
+       url("NeulisSans-Regular.ttf")   format("truetype");
+}
+@font-face {
+  font-family: "Neulis Sans";
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+  src: url("NeulisSans-Medium.woff2") format("woff2"),
+       url("NeulisSans-Medium.woff")  format("woff"),
+       url("NeulisSans-Medium.otf")   format("opentype"),
+       url("NeulisSans-Medium.ttf")   format("truetype");
+}
+@font-face {
+  font-family: "Neulis Sans";
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+  src: url("NeulisSans-SemiBold.woff2") format("woff2"),
+       url("NeulisSans-SemiBold.woff")  format("woff"),
+       url("NeulisSans-SemiBold.otf")   format("opentype"),
+       url("NeulisSans-SemiBold.ttf")   format("truetype");
+}
+@font-face {
+  font-family: "Neulis Sans";
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  src: url("NeulisSans-Bold.woff2") format("woff2"),
+       url("NeulisSans-Bold.woff")  format("woff"),
+       url("NeulisSans-Bold.otf")   format("opentype"),
+       url("NeulisSans-Bold.ttf")   format("truetype");
+}
+@font-face {
+  font-family: "Neulis Sans";
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+  src: url("NeulisSans-ExtraBold.woff2") format("woff2"),
+       url("NeulisSans-ExtraBold.woff")  format("woff"),
+       url("NeulisSans-ExtraBold.otf")   format("opentype"),
+       url("NeulisSans-ExtraBold.ttf")   format("truetype");
+}
+
+/* ---------- Neulis Cursive (the script accent letters) ---------- */
+@font-face {
+  font-family: "Neulis Cursive";
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+  src: url("NeulisCursive-Regular.woff2") format("woff2"),
+       url("NeulisCursive-Regular.woff")  format("woff"),
+       url("NeulisCursive-Regular.otf")   format("opentype"),
+       url("NeulisCursive-Regular.ttf")   format("truetype"),
+       url("NeulisCursive.woff2")         format("woff2"),
+       url("NeulisCursive.otf")           format("opentype");
+}

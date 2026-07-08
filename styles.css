@@ -1,0 +1,408 @@
+/* ===========================================================
+   MADAME — shared styles for all screens
+   Layered, delayered-from-PSD hero + live text on top.
+   =========================================================== */
+
+:root {
+  /* Brand palette (sampled from brand colors.pdf) */
+  --pink:        #D93A92;   /* bright pink — buttons, accents   */
+  --pink-soft:   #ED9CC3;   /* light pink                       */
+  --cream:       #EDE3C7;   /* canvas background                */
+  --blue:        #045BA7;   /* headings, forms, hover state     */
+  --ink:         #0c2a4a;
+
+  /* Type — Neulis with graceful fallbacks until the files load */
+  --font-sans:   "Neulis Sans", "Poppins", "Avenir Next", "Segoe UI", system-ui, -apple-system, Helvetica, Arial, sans-serif;
+  --font-script: "Neulis Cursive", "Segoe Script", "Bradley Hand", "Brush Script MT", cursive;
+
+  /* The PSD canvas aspect ratio (3900 x 1816) */
+  --art-w: 3900;
+  --art-h: 1816;
+}
+
+* { box-sizing: border-box; }
+
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  background: var(--cream);
+  color: var(--blue);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  display: grid;
+  place-items: center;
+  min-height: 100svh;
+  overflow-x: hidden;
+}
+
+/* ---------- The stage: holds the delayered layers ---------- */
+.stage {
+  position: relative;
+  width: min(100vw, calc(100svh * (var(--art-w) / var(--art-h))));
+  aspect-ratio: var(--art-w) / var(--art-h);
+  overflow: hidden;
+  background: var(--cream);
+  isolation: isolate;
+
+  /* swirl is the SAME artwork + position on every page (PSD Layer 7) */
+  --swirl-l: 4.744%;
+  --swirl-t: -22.467%;
+  --swirl-w: 100.256%;
+  /* which slice of the swirl is pulled IN FRONT of the forearm (the weave) */
+  --front-band: linear-gradient(to bottom,
+                  transparent 40%, #000 46%, #000 70%, transparent 76%);
+}
+
+.layer {
+  position: absolute;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* z0 — cream canvas, full bleed */
+.layer-cream {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+
+/* z1 — soft warm glow (only on pages that have it). The PSD glow is a pink
+   blob meant for a blend mode; screen + low opacity turns it into soft light. */
+.layer-glow {
+  left: var(--glow-l); top: var(--glow-t); width: var(--glow-w);
+  height: auto; z-index: 1;
+  mix-blend-mode: screen;
+  opacity: .55;
+}
+
+/* z2 — the swirl, full, BEHIND the hand */
+.layer-swirl {
+  left: var(--swirl-l); top: var(--swirl-t); width: var(--swirl-w);
+  height: auto; z-index: 2;
+}
+
+/* z3 — the HAND, the one animated layer, at its exact PSD coordinates */
+.layer-hand {
+  left:  var(--hand-l);
+  top:   var(--hand-t);
+  width: var(--hand-w);
+  height: auto;
+  z-index: 3;
+  transform: translate3d(0, 0, 0);
+  transition: transform .45s cubic-bezier(.22,.61,.36,1);
+  will-change: transform;
+}
+
+/* z4 — the SAME swirl again, masked to the crossing band so one strand
+   weaves IN FRONT of the forearm. Same src + position as .layer-swirl,
+   so the two passes coincide exactly (no double swirl). */
+.layer-swirl-front {
+  left: var(--swirl-l); top: var(--swirl-t); width: var(--swirl-w);
+  height: auto; z-index: 4;
+  -webkit-mask-image: var(--front-band);
+          mask-image: var(--front-band);
+  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+}
+
+/* =========================================================
+   Hand animation — driven by JS custom props --px / --py
+   (pointer parallax) plus a faint idle float so it reads as
+   a separate object, never a flat part of the background.
+   ========================================================= */
+.stage[data-hand="on"] .layer-hand {
+  transform: translate3d(calc(var(--px, 0) * 26px),
+                         calc(var(--py, 0) * 20px), 0)
+             rotate(calc(var(--px, 0) * 1.1deg));
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .layer-hand { animation: handFloat 7s ease-in-out infinite; }
+  /* idle float is layered under the JS transform via a wrapper-free
+     keyframe that only nudges when pointer is idle */
+}
+@keyframes handFloat {
+  0%,100% { translate: 0 0; }
+  50%     { translate: 0 -1.1%; }
+}
+
+/* =========================================================
+   Foreground content (logo, headline, forms, buttons)
+   ========================================================= */
+.content {
+  position: absolute;
+  z-index: 30;
+  left:  var(--cleft, 5.5%);
+  top:   var(--ctop, 16%);          /* % of stage height */
+  width: var(--cw, 48%);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--cgap, clamp(.55rem, 1.5vw, 1.2rem));
+}
+
+/* logo top-left */
+.logo {
+  position: absolute;
+  top: clamp(1rem, 4.5%, 2.6rem);
+  left: clamp(1rem, 4.2%, 3rem);
+  z-index: 40;
+  display: inline-flex;
+  align-items: center;
+  gap: .4em;
+  text-decoration: none;
+  color: var(--blue);
+  font-weight: 800;
+  font-size: clamp(1.1rem, 2.2vw, 1.75rem);
+  letter-spacing: -.02em;
+}
+.logo-wave { height: .52em; width: auto; display: block; color: var(--blue); }
+.logo-word { font-weight: 800; }
+
+/* top-right pill (appears on later steps) */
+.topcta {
+  position: absolute;
+  top: clamp(1rem, 4.3%, 2.4rem);
+  right: clamp(1rem, 4.2%, 3rem);
+  z-index: 40;
+}
+
+/* ---------- Headlines ---------- */
+.headline {
+  font-family: var(--font-sans);
+  font-weight: 800;
+  color: var(--blue);
+  line-height: 1.02;
+  letter-spacing: -.02em;
+  font-size: clamp(2rem, 5.4vw, 5.6rem);
+  margin: 0;
+}
+.headline .script {
+  font-family: var(--font-script);
+  font-weight: 400;
+  font-style: normal;
+  letter-spacing: 0;
+  padding: 0 .04em;
+}
+
+/* a word that carries a hand-drawn accent (underline / circle) */
+.mark { position: relative; white-space: nowrap; display: inline-block; }
+.mark > svg {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  overflow: visible;
+  pointer-events: none;
+}
+.mark.underline > svg { bottom: -.18em; width: 108%; height: .4em; }
+.mark.circle    > svg { top: 50%; translate: 0 -50%; left: 50%; width: 132%; height: 168%;
+                        transform: translate(-50%, -50%); }
+
+/* the draw-on stroke */
+.accent { fill: none; stroke: var(--pink); stroke-width: 7;
+          stroke-linecap: round; stroke-linejoin: round; }
+.accent.blue { stroke: var(--blue); }
+
+.subhead {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  color: var(--blue);
+  font-size: clamp(.95rem, 1.8vw, 1.6rem);
+  margin: 0;
+  max-width: 28ch;
+}
+
+/* ---------- Buttons ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5em;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  border: 0;
+  border-radius: 999px;
+  background: var(--pink);
+  color: #fff;
+  padding: .62em 1.5em;
+  font-size: clamp(.8rem, 1.4vw, 1.15rem);
+  line-height: 1;
+  width: fit-content;
+  transition: background-color .3s ease, transform .2s ease, box-shadow .3s ease;
+  box-shadow: 0 6px 18px -8px rgba(217,58,146,.7);
+}
+.btn:hover, .btn:focus-visible {
+  background: var(--blue);                 /* pink -> blue on hover */
+  box-shadow: 0 8px 22px -8px rgba(4,91,167,.75);
+  transform: translateY(-1px);
+  outline: none;
+}
+.btn.small { padding: .5em 1.1em; font-size: clamp(.72rem,1.1vw,.95rem); }
+.btn.ghost { background: var(--blue); }
+.btn.ghost:hover { background: var(--pink); }
+
+.eyebrow {                                  /* little pill above a headline */
+  display: inline-flex; align-items: center;
+  background: var(--pink); color: #fff;
+  font-weight: 600; font-size: clamp(.7rem,1.1vw,.95rem);
+  padding: .42em 1.05em; border-radius: 999px; width: fit-content;
+  transition: background-color .3s ease;
+}
+.eyebrow:hover { background: var(--blue); }
+
+/* ---------- Form-ish blocks (static, visual only) ---------- */
+.panel {
+  background: var(--blue);
+  color: #fff;
+  border-radius: 18px;
+  padding: clamp(1rem, 2vw, 1.8rem);
+  width: min(100%, 40ch);
+  box-shadow: 0 20px 40px -24px rgba(4,91,167,.6);
+}
+.panel h3 { margin: 0 0 .15em; font-size: clamp(.95rem,1.6vw,1.3rem); font-weight: 700; }
+.panel p  { margin: 0 0 1em; font-size: clamp(.72rem,1.15vw,.92rem); opacity: .9; }
+.panel .fields { display: grid; grid-template-columns: 1fr 1fr; gap: .7rem; }
+.field {
+  background: #fff; border-radius: 12px; min-height: clamp(4.5rem, 9vw, 8rem);
+  display: grid; place-items: center; color: var(--blue);
+  font-size: .8rem; opacity: .95;
+}
+.field.line {
+  min-height: 0; padding: .8em 1em; justify-content: start; color: var(--blue);
+}
+.outline-box {                              /* big empty blue-outlined box (steps 3-5) */
+  border: 5px solid var(--blue);
+  border-radius: 16px;
+  width: 100%;
+  aspect-ratio: 12 / 5;
+  display: grid; place-items: center;
+  color: var(--blue); opacity: .85;
+  font-size: clamp(.8rem,1.3vw,1rem);
+  background: rgba(255,255,255,.12);
+}
+
+/* =========================================================
+   Copy entrance — every text element rises + fades in the
+   same way, lightly staggered via --d.
+   ========================================================= */
+.anim { opacity: 0; transform: translateY(16px); }
+.is-ready .anim {
+  animation: rise .8s cubic-bezier(.2,.7,.2,1) forwards;
+  animation-delay: var(--d, 0s);
+}
+@keyframes rise {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* draw-on accents fire a beat after the titles have arrived */
+.accent { stroke-dasharray: var(--len, 400); stroke-dashoffset: var(--len, 400); }
+.is-ready .accent {
+  animation: draw 1s ease forwards;
+  animation-delay: var(--draw-delay, 1.25s);
+}
+@keyframes draw { to { stroke-dashoffset: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .anim { opacity: 1; transform: none; animation: none !important; }
+  .accent { stroke-dashoffset: 0; animation: none !important; }
+  .layer-hand { animation: none !important; }
+}
+
+/* ---------- small screens: stack a touch tighter ---------- */
+@media (max-width: 760px) {
+  .content { max-width: 92%; }
+  .panel, .outline-box { width: min(100%, 92%); }
+}
+
+/* =========================================================
+   LANDING HERO — full-viewport composition (per design spec)
+   cream cover background · main swirl anchored right + vertically
+   centred with the top cropped · hand on top · top swirl crossing
+   in front. Both swirls are semi-transparent so the cream's grain
+   shows through ("grainy" look).
+   ========================================================= */
+.stage--hero {
+  width: 100vw;
+  height: 100svh;
+  aspect-ratio: auto;                 /* override the fixed-ratio stage */
+  overflow: hidden;
+  background: url("assets/cream.webp") center / cover no-repeat;
+  /* --sw = main-swirl WIDTH; also drives top-swirl alignment. It's derived
+     from height (112svh ÷ swirl aspect 0.713) so the swirl is ALWAYS ~112% of
+     the viewport tall — its top is guaranteed to sit off-screen (cropped). */
+  --sw: calc(112svh * 1.4025);
+}
+
+.stage--hero .swirl-main,
+.stage--hero .swirl-top {
+  position: absolute;
+  height: auto;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* main swirl: right:0, vertically centred, top cropped (via --sw floor) */
+.stage--hero .swirl-main {
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: var(--sw);
+  opacity: .78;                       /* semi-opaque: cream grain shows through */
+  z-index: 1;
+}
+
+/* the hand sits on top of the main swirl. Sized + lowered so the bare-skin
+   wrist (bottom ~17% of the asset) falls below the fold — only the glove
+   shows, matching the design. Visible glove = (100-top)/height ≈ 0.81 < 0.83. */
+.stage--hero .layer-hand {
+  left: auto;
+  right: 2vw;
+  top: 24svh;
+  width: auto;
+  height: 94svh;
+  z-index: 2;
+}
+
+/* front-weave: full-stage layer masked to the HAND silhouette, so the top
+   swirl inside only shows OVER the glove. That kills the "stitched" seam —
+   off the hand there's no second swirl to double up with the main one, and at
+   the hand's edges the strand lines up with the main swirl continuing behind. */
+.stage--hero .front-weave {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  -webkit-mask-image: url("assets/hand-landing.webp");
+          mask-image: url("assets/hand-landing.webp");
+  -webkit-mask-repeat: no-repeat;  mask-repeat: no-repeat;
+  -webkit-mask-position: right 2vw top 24svh;  mask-position: right 2vw top 24svh;
+  -webkit-mask-size: auto 94svh;   mask-size: auto 94svh;   /* == the hand's box */
+}
+
+/* top swirl: the SAME stroke as the main swirl's middle strand, aligned so it
+   overlays that strand exactly (measured: 0.5875x width, +31.27% / +44.97%
+   into the main-swirl box) — now clipped to the hand by .front-weave. */
+.stage--hero .swirl-top {
+  position: absolute;
+  height: auto;
+  width: calc(0.5875 * var(--sw));
+  right: calc(0.0998 * var(--sw));
+  top: 50%;
+  transform: translateY(calc(-0.0359 * var(--sw)));
+  opacity: .82;
+}
+
+/* keep foreground copy above the weave */
+.stage--hero .content,
+.stage--hero .logo { z-index: 5; }
+
+@media (max-width: 760px) {
+  .stage--hero { --sw: 150vw; }        /* keeps top-swirl aligned to main on mobile */
+  /* negative bottom drops the bare-skin wrist off-screen — glove only */
+  .stage--hero .layer-hand { height: 70svh; top: auto; bottom: -12svh; }
+}

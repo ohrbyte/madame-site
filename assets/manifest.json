@@ -1,0 +1,128 @@
+{
+  "landing": {
+    "canvas": [
+      3900,
+      1816
+    ],
+    "bg": "assets/landing-bg.webp",
+    "hand": {
+      "file": "assets/landing-hand.webp",
+      "left": 694,
+      "top": -363,
+      "width": 3900,
+      "height": 3000
+    },
+    "front": {
+      "file": "assets/landing-front.webp",
+      "left": 185,
+      "top": -408,
+      "width": 3910,
+      "height": 2787
+    }
+  },
+  "step2": {
+    "canvas": [
+      3900,
+      1816
+    ],
+    "bg": "assets/step2-bg.webp",
+    "hand": {
+      "file": "assets/step2-hand.webp",
+      "left": 1950,
+      "top": 216,
+      "width": 1865,
+      "height": 2495
+    },
+    "front": {
+      "file": "assets/step2-front.webp",
+      "left": 185,
+      "top": -408,
+      "width": 3910,
+      "height": 2787
+    }
+  },
+  "step3": {
+    "canvas": [
+      3900,
+      1816
+    ],
+    "bg": "assets/step3-bg.webp",
+    "hand": {
+      "file": "assets/step3-hand.webp",
+      "left": 2030,
+      "top": 105,
+      "width": 2111,
+      "height": 2826
+    },
+    "front": {
+      "file": "assets/step3-front.webp",
+      "left": 185,
+      "top": -408,
+      "width": 3910,
+      "height": 2787
+    }
+  },
+  "step4": {
+    "canvas": [
+      3900,
+      1816
+    ],
+    "bg": "assets/step4-bg.webp",
+    "hand": {
+      "file": "assets/step4-hand.webp",
+      "left": 1946,
+      "top": 119,
+      "width": 1492,
+      "height": 2992
+    },
+    "front": {
+      "file": "assets/step4-front.webp",
+      "left": 185,
+      "top": -408,
+      "width": 3910,
+      "height": 2787
+    }
+  },
+  "step5": {
+    "canvas": [
+      3900,
+      1816
+    ],
+    "bg": "assets/step5-bg.webp",
+    "hand": {
+      "file": "assets/step5-hand.webp",
+      "left": 2104,
+      "top": 80,
+      "width": 1360,
+      "height": 2547
+    },
+    "front": {
+      "file": "assets/step5-front.webp",
+      "left": 185,
+      "top": -408,
+      "width": 3910,
+      "height": 2787
+    }
+  },
+  "step6": {
+    "canvas": [
+      3900,
+      1816
+    ],
+    "bg": "assets/step6-bg.webp",
+    "hand": {
+      "file": "assets/step6-hand.webp",
+      "left": 1996,
+      "top": 169,
+      "width": 2140,
+      "height": 3426
+    },
+    "front": {
+      "file": "assets/step6-front.webp",
+      "left": 185,
+      "top": -408,
+      "width": 3910,
+      "height": 2787
+    }
+  }
+}

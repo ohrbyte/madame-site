@@ -1,0 +1,20 @@
+{
+  "name": "madame-site",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Tailwind-powered static site with live reload (no JS framework).",
+  "scripts": {
+    "build:css": "tailwindcss -i ./src/input.css -o ./dist/styles.css --minify",
+    "watch:css": "tailwindcss -i ./src/input.css -o ./dist/styles.css --watch",
+    "serve": "browser-sync start --server --index index.html --files \"index.html\" \"dist/styles.css\" \"*.svg\" --no-notify --no-open",
+    "dev": "concurrently -k -n CSS,SERVE -c cyan,magenta \"npm:watch:css\" \"npm:serve\"",
+    "build": "npm run build:css"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.0.0",
+    "browser-sync": "^3.0.0",
+    "concurrently": "^9.0.0",
+    "sharp": "^0.35.2",
+    "tailwindcss": "^4.0.0"
+  }
+}
