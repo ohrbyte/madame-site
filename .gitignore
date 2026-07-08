@@ -8,3 +8,7 @@ claude-export.zip
 assets/layers/
 hand-sponge.png
 *.psd
+
+# stray/probe files and the delivery bundle
+*.tmp
+madame-history.bundle
