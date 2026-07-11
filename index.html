@@ -9,19 +9,21 @@
 </head>
 <body>
 <main class="stage stage--hero" data-page="index">
-  <!-- main swirl: behind, right-anchored, vertically centred, top cropped, grainy -->
-  <img class="swirl-main" src="assets/main-swirl.svg" alt="" aria-hidden="true">
-  <!-- the hand sits on top of the swirl (the one animated layer) -->
+  <!-- One swirl, drawn twice: the real grainy PSD ribbon (assets/swirl.webp),
+       once BEHIND the hand and again IN FRONT (clipped to the glove) at the
+       identical position, so a single strand weaves over the wrist. -->
+  <img class="layer layer-glow" src="assets/landing-glow.webp" alt="" aria-hidden="true">
+  <img class="swirl swirl-back" src="assets/swirl.webp" alt="" aria-hidden="true">
   <img class="layer layer-hand" src="assets/hand-landing.webp" alt="Gloved hand squeezing a soapy sponge">
-  <!-- top swirl: the same strand pulled in front — masked to the hand so it
-       only shows over the glove and flows seamlessly into the main swirl -->
-  <div class="front-weave" aria-hidden="true">
-    <img class="swirl-top" src="assets/top-swirl.svg" alt="">
-  </div>
+  <img class="swirl swirl-front" src="assets/swirl.webp" alt="" aria-hidden="true">
 
-  <a class="logo anim" style="--d:0s" href="index.html" aria-label="Madame home"><svg class="logo-wave" viewBox="0 0 34 16" aria-hidden="true"><path d="M1 11 C 3 3, 7 3, 9 8 C 11 13, 15 13, 17 8 C 19 3, 23 3, 25 8 C 27 12, 31 11, 33 6" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="logo-word">madame</span></a>
+  <a class="logo anim" style="--d:0s" href="index.html" aria-label="Madame home"><img class="logo-mark" src="assets/madame-logo.png" alt="Madame"></a>
 
-  <div class="content" style="--ctop:50%;--cw:46%;">
+  <div class="content" style="--ctop:54.6%;--cw:40%;--cleft:12.3%;">
     <span class="eyebrow anim" style="--d:.05s">Click to hire</span>
-    <h1 class="headline anim" style="--d:.15s">Choose a <span class="mark underline"><span class="script">l</span>ady<svg viewBox="0 0 200 22" preserveAspectRatio="none"><path class="accent" style="--len:240" d="M5 14 C 55 5, 150 5, 196 12"/></svg></span><br>like a <span class="script">l</span>ady.</h1>
-  
+    <h1 class="headline anim" style="--d:.15s">Choose a <span class="mark underline"><span class="script">lady</span><svg viewBox="0 0 200 22" preserveAspectRatio="none"><path class="accent" style="--len:240" d="M5 14 C 55 5, 150 5, 196 12"/></svg></span><br>like a <span class="script">lady</span>.</h1>
+  </div>
+</main>
+<script src="app.js"></script>
+</body>
+</html>

@@ -7,12 +7,15 @@
    ============================================================ */
 
 @theme {
-  --color-canvas: #EDE3C7;   /* brand cream, usable as bg-canvas */
+  --color-canvas: #EDE3C7;
+  /* brand cream, usable as bg-canvas */
 }
 
 /* Tailwind preflight caps images at max-width:100%; our layered art is
    intentionally larger than its box, so opt those out. */
-.stage img { max-width: none; }
+.stage img {
+  max-width: none;
+}
 
 /* ---------- Brand fonts (self-hosted) ---------- */
 /* ============================================================
@@ -30,16 +33,40 @@
 /* ---------- Poppins: bundled geometric fallback (OFL, free to self-host) ----
    Makes the site look right BEFORE Neulis is added. Neulis still wins when its
    files are present, because it's listed first in --font-sans. ------------- */
-@font-face { font-family:"Poppins"; font-weight:400; font-display:swap;
-  src:url("../fonts/Poppins-Regular.ttf") format("truetype"); }
-@font-face { font-family:"Poppins"; font-weight:500; font-display:swap;
-  src:url("../fonts/Poppins-Medium.ttf") format("truetype"); }
-@font-face { font-family:"Poppins"; font-weight:600; font-display:swap;
-  src:url("../fonts/Poppins-Medium.ttf") format("truetype"); }
-@font-face { font-family:"Poppins"; font-weight:700; font-display:swap;
-  src:url("../fonts/Poppins-Bold.ttf") format("truetype"); }
-@font-face { font-family:"Poppins"; font-weight:800; font-display:swap;
-  src:url("../fonts/Poppins-Bold.ttf") format("truetype"); }
+@font-face {
+  font-family: "Poppins";
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/Poppins-Regular.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Poppins";
+  font-weight: 500;
+  font-display: swap;
+  src: url("../fonts/Poppins-Medium.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Poppins";
+  font-weight: 600;
+  font-display: swap;
+  src: url("../fonts/Poppins-Medium.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Poppins";
+  font-weight: 700;
+  font-display: swap;
+  src: url("../fonts/Poppins-Bold.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Poppins";
+  font-weight: 800;
+  font-display: swap;
+  src: url("../fonts/Poppins-Bold.ttf") format("truetype");
+}
 
 /* ---------- Neulis Sans ---------- */
 @font-face {
@@ -48,49 +75,53 @@
   font-style: normal;
   font-display: swap;
   src: url("../fonts/NeulisSans-Regular.woff2") format("woff2"),
-       url("../fonts/NeulisSans-Regular.woff")  format("woff"),
-       url("../fonts/NeulisSans-Regular.otf")   format("opentype"),
-       url("../fonts/NeulisSans-Regular.ttf")   format("truetype");
+    url("../fonts/NeulisSans-Regular.woff") format("woff"),
+    url("../fonts/NeulisSans-Regular.otf") format("opentype"),
+    url("../fonts/NeulisSans-Regular.ttf") format("truetype");
 }
+
 @font-face {
   font-family: "Neulis Sans";
   font-weight: 500;
   font-style: normal;
   font-display: swap;
   src: url("../fonts/NeulisSans-Medium.woff2") format("woff2"),
-       url("../fonts/NeulisSans-Medium.woff")  format("woff"),
-       url("../fonts/NeulisSans-Medium.otf")   format("opentype"),
-       url("../fonts/NeulisSans-Medium.ttf")   format("truetype");
+    url("../fonts/NeulisSans-Medium.woff") format("woff"),
+    url("../fonts/NeulisSans-Medium.otf") format("opentype"),
+    url("../fonts/NeulisSans-Medium.ttf") format("truetype");
 }
+
 @font-face {
   font-family: "Neulis Sans";
   font-weight: 600;
   font-style: normal;
   font-display: swap;
   src: url("../fonts/NeulisSans-SemiBold.woff2") format("woff2"),
-       url("../fonts/NeulisSans-SemiBold.woff")  format("woff"),
-       url("../fonts/NeulisSans-SemiBold.otf")   format("opentype"),
-       url("../fonts/NeulisSans-SemiBold.ttf")   format("truetype");
+    url("../fonts/NeulisSans-SemiBold.woff") format("woff"),
+    url("../fonts/NeulisSans-SemiBold.otf") format("opentype"),
+    url("../fonts/NeulisSans-SemiBold.ttf") format("truetype");
 }
+
 @font-face {
   font-family: "Neulis Sans";
   font-weight: 700;
   font-style: normal;
   font-display: swap;
   src: url("../fonts/NeulisSans-Bold.woff2") format("woff2"),
-       url("../fonts/NeulisSans-Bold.woff")  format("woff"),
-       url("../fonts/NeulisSans-Bold.otf")   format("opentype"),
-       url("../fonts/NeulisSans-Bold.ttf")   format("truetype");
+    url("../fonts/NeulisSans-Bold.woff") format("woff"),
+    url("../fonts/NeulisSans-Bold.otf") format("opentype"),
+    url("../fonts/NeulisSans-Bold.ttf") format("truetype");
 }
+
 @font-face {
   font-family: "Neulis Sans";
   font-weight: 800;
   font-style: normal;
   font-display: swap;
   src: url("../fonts/NeulisSans-ExtraBold.woff2") format("woff2"),
-       url("../fonts/NeulisSans-ExtraBold.woff")  format("woff"),
-       url("../fonts/NeulisSans-ExtraBold.otf")   format("opentype"),
-       url("../fonts/NeulisSans-ExtraBold.ttf")   format("truetype");
+    url("../fonts/NeulisSans-ExtraBold.woff") format("woff"),
+    url("../fonts/NeulisSans-ExtraBold.otf") format("opentype"),
+    url("../fonts/NeulisSans-ExtraBold.ttf") format("truetype");
 }
 
 /* ---------- Neulis Cursive (the script accent letters) ---------- */
@@ -100,11 +131,11 @@
   font-style: normal;
   font-display: swap;
   src: url("../fonts/NeulisCursive-Regular.woff2") format("woff2"),
-       url("../fonts/NeulisCursive-Regular.woff")  format("woff"),
-       url("../fonts/NeulisCursive-Regular.otf")   format("opentype"),
-       url("../fonts/NeulisCursive-Regular.ttf")   format("truetype"),
-       url("../fonts/NeulisCursive.woff2")         format("woff2"),
-       url("../fonts/NeulisCursive.otf")           format("opentype");
+    url("../fonts/NeulisCursive-Regular.woff") format("woff"),
+    url("../fonts/NeulisCursive-Regular.otf") format("opentype"),
+    url("../fonts/NeulisCursive-Regular.ttf") format("truetype"),
+    url("../fonts/NeulisCursive.woff2") format("woff2"),
+    url("../fonts/NeulisCursive.otf") format("opentype");
 }
 
 
@@ -116,14 +147,18 @@
 
 :root {
   /* Brand palette (sampled from brand colors.pdf) */
-  --pink:        #D93A92;   /* bright pink — buttons, accents   */
-  --pink-soft:   #ED9CC3;   /* light pink                       */
-  --cream:       #EDE3C7;   /* canvas background                */
-  --blue:        #045BA7;   /* headings, forms, hover state     */
-  --ink:         #0c2a4a;
+  --pink: #D93A92;
+  /* bright pink — buttons, accents   */
+  --pink-soft: #ED9CC3;
+  /* light pink                       */
+  --cream: #EDE3C7;
+  /* canvas background                */
+  --blue: #045BA7;
+  /* headings, forms, hover state     */
+  --ink: #0c2a4a;
 
   /* Type — Neulis with graceful fallbacks until the files load */
-  --font-sans:   "Neulis Sans", "Poppins", "Avenir Next", "Segoe UI", system-ui, -apple-system, Helvetica, Arial, sans-serif;
+  --font-sans: "Neulis Sans", "Poppins", "Avenir Next", "Segoe UI", system-ui, -apple-system, Helvetica, Arial, sans-serif;
   --font-script: "Neulis Cursive", "Segoe Script", "Bradley Hand", "Brush Script MT", cursive;
 
   /* The PSD canvas aspect ratio (3900 x 1816) */
@@ -131,9 +166,14 @@
   --art-h: 1816;
 }
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
-html, body { height: 100%; }
+html,
+body {
+  height: 100%;
+}
 
 body {
   margin: 0;
@@ -163,7 +203,7 @@ body {
   --swirl-w: 100.256%;
   /* which slice of the swirl is pulled IN FRONT of the forearm (the weave) */
   --front-band: linear-gradient(to bottom,
-                  transparent 40%, #000 46%, #000 70%, transparent 76%);
+      transparent 40%, #000 46%, #000 70%, transparent 76%);
 }
 
 .layer {
@@ -185,27 +225,33 @@ body {
 /* z1 — soft warm glow (only on pages that have it). The PSD glow is a pink
    blob meant for a blend mode; screen + low opacity turns it into soft light. */
 .layer-glow {
-  left: var(--glow-l); top: var(--glow-t); width: var(--glow-w);
-  height: auto; z-index: 1;
+  left: var(--glow-l);
+  top: var(--glow-t);
+  width: var(--glow-w);
+  height: auto;
+  z-index: 1;
   mix-blend-mode: screen;
   opacity: .55;
 }
 
 /* z2 — the swirl, full, BEHIND the hand */
 .layer-swirl {
-  left: var(--swirl-l); top: var(--swirl-t); width: var(--swirl-w);
-  height: auto; z-index: 2;
+  left: var(--swirl-l);
+  top: var(--swirl-t);
+  width: var(--swirl-w);
+  height: auto;
+  z-index: 2;
 }
 
 /* z3 — the HAND, the one animated layer, at its exact PSD coordinates */
 .layer-hand {
-  left:  var(--hand-l);
-  top:   var(--hand-t);
+  left: var(--hand-l);
+  top: var(--hand-t);
   width: var(--hand-w);
   height: auto;
   z-index: 3;
   transform: translate3d(0, 0, 0);
-  transition: transform .45s cubic-bezier(.22,.61,.36,1);
+  transition: transform .45s cubic-bezier(.22, .61, .36, 1);
   will-change: transform;
 }
 
@@ -213,11 +259,15 @@ body {
    weaves IN FRONT of the forearm. Same src + position as .layer-swirl,
    so the two passes coincide exactly (no double swirl). */
 .layer-swirl-front {
-  left: var(--swirl-l); top: var(--swirl-t); width: var(--swirl-w);
-  height: auto; z-index: 4;
+  left: var(--swirl-l);
+  top: var(--swirl-t);
+  width: var(--swirl-w);
+  height: auto;
+  z-index: 4;
   -webkit-mask-image: var(--front-band);
-          mask-image: var(--front-band);
-  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+  mask-image: var(--front-band);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
 }
 
 /* =========================================================
@@ -227,17 +277,28 @@ body {
    ========================================================= */
 .stage[data-hand="on"] .layer-hand {
   transform: translate3d(calc(var(--px, 0) * 26px),
-                         calc(var(--py, 0) * 20px), 0)
-             rotate(calc(var(--px, 0) * 1.1deg));
+      calc(var(--py, 0) * 20px), 0) rotate(calc(var(--px, 0) * 1.1deg));
 }
+
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
-  .layer-hand { animation: handFloat 7s ease-in-out infinite; }
+  .layer-hand {
+    animation: handFloat 7s ease-in-out infinite;
+  }
+
   /* idle float is layered under the JS transform via a wrapper-free
      keyframe that only nudges when pointer is idle */
 }
+
 @keyframes handFloat {
-  0%,100% { translate: 0 0; }
-  50%     { translate: 0 -1.1%; }
+
+  0%,
+  100% {
+    translate: 0 0;
+  }
+
+  50% {
+    translate: 0 -1.1%;
+  }
 }
 
 /* =========================================================
@@ -246,8 +307,9 @@ body {
 .content {
   position: absolute;
   z-index: 30;
-  left:  var(--cleft, 5.5%);
-  top:   var(--ctop, 16%);          /* % of stage height */
+  left: var(--cleft, 5.5%);
+  top: var(--ctop, 16%);
+  /* % of stage height */
   width: var(--cw, 48%);
   display: flex;
   flex-direction: column;
@@ -258,26 +320,25 @@ body {
 /* logo top-left */
 .logo {
   position: absolute;
-  top: clamp(1rem, 4.5%, 2.6rem);
-  left: clamp(1rem, 4.2%, 3rem);
+  top: max(1.1rem, 7.5%);
+  left: max(1.25rem, 5.8%);
   z-index: 40;
   display: inline-flex;
-  align-items: center;
-  gap: .4em;
   text-decoration: none;
-  color: var(--blue);
-  font-weight: 800;
-  font-size: clamp(1.1rem, 2.2vw, 1.75rem);
-  letter-spacing: -.02em;
 }
-.logo-wave { height: .52em; width: auto; display: block; color: var(--blue); }
-.logo-word { font-weight: 800; }
+
+/* the wordmark is the real design asset (assets/madame-logo.png) */
+.logo-mark {
+  display: block;
+  width: clamp(7.5rem, 10.5vw, 12rem);
+  height: auto;
+}
 
 /* top-right pill (appears on later steps) */
 .topcta {
   position: absolute;
-  top: clamp(1rem, 4.3%, 2.4rem);
-  right: clamp(1rem, 4.2%, 3rem);
+  top: max(1.1rem, 5%);
+  right: max(1.25rem, 2.6%);
   z-index: 40;
 }
 
@@ -286,11 +347,12 @@ body {
   font-family: var(--font-sans);
   font-weight: 800;
   color: var(--blue);
-  line-height: 1.02;
+  line-height: 1.04;
   letter-spacing: -.02em;
-  font-size: clamp(2rem, 5.4vw, 5.6rem);
+  font-size: clamp(1.7rem, 4.3vw, 4.6rem);
   margin: 0;
 }
+
 .headline .script {
   font-family: var(--font-script);
   font-weight: 400;
@@ -300,22 +362,47 @@ body {
 }
 
 /* a word that carries a hand-drawn accent (underline / circle) */
-.mark { position: relative; white-space: nowrap; display: inline-block; }
-.mark > svg {
+.mark {
+  position: relative;
+  white-space: nowrap;
+  display: inline-block;
+}
+
+.mark>svg {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
   overflow: visible;
   pointer-events: none;
 }
-.mark.underline > svg { bottom: -.18em; width: 108%; height: .4em; }
-.mark.circle    > svg { top: 50%; translate: 0 -50%; left: 50%; width: 132%; height: 168%;
-                        transform: translate(-50%, -50%); }
+
+.mark.underline>svg {
+  bottom: -.18em;
+  width: 108%;
+  height: .4em;
+}
+
+.mark.circle>svg {
+  top: 50%;
+  translate: 0 -50%;
+  left: 50%;
+  width: 132%;
+  height: 168%;
+  transform: translate(-50%, -50%);
+}
 
 /* the draw-on stroke */
-.accent { fill: none; stroke: var(--pink); stroke-width: 7;
-          stroke-linecap: round; stroke-linejoin: round; }
-.accent.blue { stroke: var(--blue); }
+.accent {
+  fill: none;
+  stroke: var(--pink);
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.accent.blue {
+  stroke: var(--blue);
+}
 
 .subhead {
   font-family: var(--font-sans);
@@ -345,26 +432,48 @@ body {
   line-height: 1;
   width: fit-content;
   transition: background-color .3s ease, transform .2s ease, box-shadow .3s ease;
-  box-shadow: 0 6px 18px -8px rgba(217,58,146,.7);
+  box-shadow: 0 6px 18px -8px rgba(217, 58, 146, .7);
 }
-.btn:hover, .btn:focus-visible {
-  background: var(--blue);                 /* pink -> blue on hover */
-  box-shadow: 0 8px 22px -8px rgba(4,91,167,.75);
+
+.btn:hover,
+.btn:focus-visible {
+  background: var(--blue);
+  /* pink -> blue on hover */
+  box-shadow: 0 8px 22px -8px rgba(4, 91, 167, .75);
   transform: translateY(-1px);
   outline: none;
 }
-.btn.small { padding: .5em 1.1em; font-size: clamp(.72rem,1.1vw,.95rem); }
-.btn.ghost { background: var(--blue); }
-.btn.ghost:hover { background: var(--pink); }
 
-.eyebrow {                                  /* little pill above a headline */
-  display: inline-flex; align-items: center;
-  background: var(--pink); color: #fff;
-  font-weight: 600; font-size: clamp(.7rem,1.1vw,.95rem);
-  padding: .42em 1.05em; border-radius: 999px; width: fit-content;
+.btn.small {
+  padding: .5em 1.1em;
+  font-size: clamp(.72rem, 1.1vw, .95rem);
+}
+
+.btn.ghost {
+  background: var(--blue);
+}
+
+.btn.ghost:hover {
+  background: var(--pink);
+}
+
+.eyebrow {
+  /* little pill above a headline */
+  display: inline-flex;
+  align-items: center;
+  background: var(--pink);
+  color: #fff;
+  font-weight: 600;
+  font-size: clamp(.7rem, 1.1vw, .95rem);
+  padding: .42em 1.05em;
+  border-radius: 999px;
+  width: fit-content;
   transition: background-color .3s ease;
 }
-.eyebrow:hover { background: var(--blue); }
+
+.eyebrow:hover {
+  background: var(--blue);
+}
 
 /* ---------- Form-ish blocks (static, visual only) ---------- */
 .panel {
@@ -373,61 +482,124 @@ body {
   border-radius: 18px;
   padding: clamp(1rem, 2vw, 1.8rem);
   width: min(100%, 40ch);
-  box-shadow: 0 20px 40px -24px rgba(4,91,167,.6);
+  box-shadow: 0 20px 40px -24px rgba(4, 91, 167, .6);
 }
-.panel h3 { margin: 0 0 .15em; font-size: clamp(.95rem,1.6vw,1.3rem); font-weight: 700; }
-.panel p  { margin: 0 0 1em; font-size: clamp(.72rem,1.15vw,.92rem); opacity: .9; }
-.panel .fields { display: grid; grid-template-columns: 1fr 1fr; gap: .7rem; }
+
+.panel h3 {
+  margin: 0 0 .15em;
+  font-size: clamp(.95rem, 1.6vw, 1.3rem);
+  font-weight: 700;
+}
+
+.panel p {
+  margin: 0 0 1em;
+  font-size: clamp(.72rem, 1.15vw, .92rem);
+  opacity: .9;
+}
+
+.panel .fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .7rem;
+}
+
 .field {
-  background: #fff; border-radius: 12px; min-height: clamp(4.5rem, 9vw, 8rem);
-  display: grid; place-items: center; color: var(--blue);
-  font-size: .8rem; opacity: .95;
+  background: #fff;
+  border-radius: 12px;
+  min-height: clamp(4.5rem, 9vw, 8rem);
+  display: grid;
+  place-items: center;
+  color: var(--blue);
+  font-size: .8rem;
+  opacity: .95;
 }
+
 .field.line {
-  min-height: 0; padding: .8em 1em; justify-content: start; color: var(--blue);
+  min-height: 0;
+  padding: .8em 1em;
+  justify-content: start;
+  color: var(--blue);
 }
-.outline-box {                              /* big empty blue-outlined box (steps 3-5) */
+
+.outline-box {
+  /* big empty blue-outlined box (steps 3-5) */
   border: 5px solid var(--blue);
   border-radius: 16px;
   width: 100%;
   aspect-ratio: 12 / 5;
-  display: grid; place-items: center;
-  color: var(--blue); opacity: .85;
-  font-size: clamp(.8rem,1.3vw,1rem);
-  background: rgba(255,255,255,.12);
+  display: grid;
+  place-items: center;
+  color: var(--blue);
+  opacity: .85;
+  font-size: clamp(.8rem, 1.3vw, 1rem);
+  background: rgba(255, 255, 255, .12);
 }
 
 /* =========================================================
    Copy entrance — every text element rises + fades in the
    same way, lightly staggered via --d.
    ========================================================= */
-.anim { opacity: 0; transform: translateY(16px); }
+.anim {
+  opacity: 0;
+  transform: translateY(16px);
+}
+
 .is-ready .anim {
-  animation: rise .8s cubic-bezier(.2,.7,.2,1) forwards;
+  animation: rise .8s cubic-bezier(.2, .7, .2, 1) forwards;
   animation-delay: var(--d, 0s);
 }
+
 @keyframes rise {
-  to { opacity: 1; transform: translateY(0); }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* draw-on accents fire a beat after the titles have arrived */
-.accent { stroke-dasharray: var(--len, 400); stroke-dashoffset: var(--len, 400); }
+.accent {
+  stroke-dasharray: var(--len, 400);
+  stroke-dashoffset: var(--len, 400);
+}
+
 .is-ready .accent {
   animation: draw 1s ease forwards;
   animation-delay: var(--draw-delay, 1.25s);
 }
-@keyframes draw { to { stroke-dashoffset: 0; } }
+
+@keyframes draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
 
 @media (prefers-reduced-motion: reduce) {
-  .anim { opacity: 1; transform: none; animation: none !important; }
-  .accent { stroke-dashoffset: 0; animation: none !important; }
-  .layer-hand { animation: none !important; }
+  .anim {
+    opacity: 1;
+    transform: none;
+    animation: none !important;
+  }
+
+  .accent {
+    stroke-dashoffset: 0;
+    animation: none !important;
+  }
+
+  .layer-hand {
+    animation: none !important;
+  }
 }
 
 /* ---------- small screens: stack a touch tighter ---------- */
 @media (max-width: 760px) {
-  .content { max-width: 92%; }
-  .panel, .outline-box { width: min(100%, 92%); }
+  .content {
+    max-width: 92%;
+  }
+
+  .panel,
+  .outline-box {
+    width: min(100%, 92%);
+  }
 }
 
 /* =========================================================
@@ -440,80 +612,102 @@ body {
 .stage--hero {
   width: 100vw;
   height: 100svh;
-  aspect-ratio: auto;                 /* override the fixed-ratio stage */
+  aspect-ratio: auto;
+  /* override the fixed-ratio stage */
   overflow: hidden;
   background: url("../assets/cream.webp") center / cover no-repeat;
-  /* --sw = main-swirl WIDTH; also drives top-swirl alignment. It's derived
-     from height (112svh ÷ swirl aspect 0.713) so the swirl is ALWAYS ~112% of
-     the viewport tall — its top is guaranteed to sit off-screen (cropped). */
-  --sw: calc(112svh * 1.4025);
+
+  /* --- Swirl placement (the real PSD ribbon, assets/swirl.webp, aspect ≈1.403) ---
+     Drawn twice at IDENTICAL placement — once BEHIND the hand (its loops fall
+     over the cream on the left; the strands behind the glove are hidden by it)
+     and once again IN FRONT, masked to a horizontal band so only the single
+     lower strand weaves over the wrist. Tune these to move/scale it. */
+  --sw: calc(153.8svh * 1.403);
+  /* swirl WIDTH; height ≈ 154svh. Registered to the design by mask overlap
+     (scripts/_fit_swirl.mjs + _swirlcheck.mjs): width ≈ 216% of viewport height,
+     centre at 54%, left edge ≈ 5vw — the ribbon is a UNIFORM scale of the design's. */
+  --swirl-left: 5vw;
+  /* left edge */
+  --swirl-cy: 54%;
+  /* vertical centre of the swirl */
+  /* the slice of the swirl pulled in front of the wrist (fraction of its height) */
+  --front-band: linear-gradient(to bottom,
+      transparent 53%, #000 56%, #000 66%, transparent 69%);
 }
 
-.stage--hero .swirl-main,
-.stage--hero .swirl-top {
+/* both swirl passes share identical placement, so they coincide as one ribbon */
+.stage--hero .swirl {
   position: absolute;
+  left: var(--swirl-left);
+  top: var(--swirl-cy);
+  transform: translateY(-50%);
+  width: var(--sw);
   height: auto;
   pointer-events: none;
   user-select: none;
 }
 
-/* main swirl: right:0, vertically centred, top cropped (via --sw floor) */
-.stage--hero .swirl-main {
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: var(--sw);
-  opacity: .78;                       /* semi-opaque: cream grain shows through */
+.stage--hero .swirl-back {
   z-index: 1;
+  opacity: .9;
 }
 
-/* the hand sits on top of the main swirl. Sized + lowered so the bare-skin
-   wrist (bottom ~17% of the asset) falls below the fold — only the glove
-   shows, matching the design. Visible glove = (100-top)/height ≈ 0.81 < 0.83. */
+/* behind the hand */
+
+/* front pass: same swirl, masked to the wrist band so a single strand weaves
+   in front of the forearm. Elsewhere the band coincides with the back pass
+   (same asset, same place) so it reads as one continuous ribbon — never doubled. */
+.stage--hero .swirl-front {
+  z-index: 3;
+  opacity: .9;
+  -webkit-mask-image: var(--front-band);
+  mask-image: var(--front-band);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+/* the hand sits between the two swirl passes. Size + position are REGISTERED to
+   the design via the coral sponge landmark (scripts/_fit_hand.mjs): the sponge
+   top-left lands at ~50%/6.5% of the canvas and the sponge spans ~25% of width,
+   which requires the asset at ~148svh tall, running off the bottom-right corner
+   just like the design's forearm. */
 .stage--hero .layer-hand {
   left: auto;
-  right: 2vw;
-  top: 24svh;
+  right: -17.3vw;
+  top: 0.8svh;
   width: auto;
-  height: 94svh;
+  height: 148.4svh;
   z-index: 2;
 }
 
-/* front-weave: full-stage layer masked to the HAND silhouette, so the top
-   swirl inside only shows OVER the glove. That kills the "stitched" seam —
-   off the hand there's no second swirl to double up with the main one, and at
-   the hand's edges the strand lines up with the main swirl continuing behind. */
-.stage--hero .front-weave {
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-  pointer-events: none;
-  -webkit-mask-image: url("../assets/hand-landing.webp");
-          mask-image: url("../assets/hand-landing.webp");
-  -webkit-mask-repeat: no-repeat;  mask-repeat: no-repeat;
-  -webkit-mask-position: right 2vw top 24svh;  mask-position: right 2vw top 24svh;
-  -webkit-mask-size: auto 94svh;   mask-size: auto 94svh;   /* == the hand's box */
-}
-
-/* top swirl: the SAME stroke as the main swirl's middle strand, aligned so it
-   overlays that strand exactly (measured: 0.5875x width, +31.27% / +44.97%
-   into the main-swirl box) — now clipped to the hand by .front-weave. */
-.stage--hero .swirl-top {
-  position: absolute;
+/* warm glow behind the sponge (upper-right), lifts the cream toward near-white */
+.stage--hero .layer-glow {
+  left: auto;
+  right: 0;
+  top: 4svh;
+  width: 46vw;
   height: auto;
-  width: calc(0.5875 * var(--sw));
-  right: calc(0.0998 * var(--sw));
-  top: 50%;
-  transform: translateY(calc(-0.0359 * var(--sw)));
-  opacity: .82;
+  z-index: 1;
+  mix-blend-mode: screen;
+  opacity: .7;
 }
 
 /* keep foreground copy above the weave */
 .stage--hero .content,
-.stage--hero .logo { z-index: 5; }
+.stage--hero .logo {
+  z-index: 5;
+}
 
 @media (max-width: 760px) {
-  .stage--hero { --sw: 150vw; }        /* keeps top-swirl aligned to main on mobile */
+  .stage--hero {
+    --sw: 150vw;
+  }
+
+  /* keeps top-swirl aligned to main on mobile */
   /* negative bottom drops the bare-skin wrist off-screen — glove only */
-  .stage--hero .layer-hand { height: 70svh; top: auto; bottom: -12svh; }
+  .stage--hero .layer-hand {
+    height: 70svh;
+    top: auto;
+    bottom: -12svh;
+  }
 }
