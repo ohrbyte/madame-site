@@ -65,3 +65,10 @@ body[data-page="step-5"] .paylist .choice {
 body[data-page="step-5"] .paylist .choice small {
   display: block;
 }
+
+/* recurring only — when the series bills (inserted by booking.js) */
+body[data-page="step-5"] .paynote {
+  margin: 0 0 .9rem;
+  font-size: clamp(.68rem, .95vw, .82rem);
+  opacity: .75;
+}

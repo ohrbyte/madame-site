@@ -8,7 +8,8 @@
    single-page reference implementation this is ported from, so the state that
    used to live in one in-memory object rides in sessionStorage between pages:
 
-     sessionStorage.madame_flow   { date, hours, slot, address, booking }
+     sessionStorage.madame_flow   { date, hours, slot, frequency_weeks,
+                                    address, estimate, booking }
      localStorage.public_client_token   the client JWT (owned by api.js)
      localStorage.madame_bookings       bookings made on THIS device — the
                                         public API has no list endpoint, so
@@ -71,6 +72,16 @@
     const [y, m, d] = dateKey.split("-").map(Number);
     const dt = new Date(Date.UTC(y, m - 1, d, 12));
     return new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "numeric", month: "short" }).format(dt);
+  }
+
+  function weekdayName(dateKey) {
+    const [y, m, d] = dateKey.split("-").map(Number);
+    return new Intl.DateTimeFormat("en-GB", { weekday: "long" }).format(new Date(Date.UTC(y, m - 1, d, 12)));
+  }
+
+  // Cadence in prose: 1 → "every week", 2 → "every 2 weeks".
+  function freqPhrase(weeks) {
+    return weeks === 1 ? "every week" : `every ${weeks} weeks`;
   }
 
   function formatErr(e) {
@@ -467,11 +478,41 @@
     const hoursValue = $("[data-hours-value]", panel);
     const minus = $(".hours-step--minus", panel);
     const plus = $(".hours-step--plus", panel);
+    const freqBox = $(".freq", panel);
     const grid = $(".timegrid", panel);
     const continueBtn = $(".btn", panel);
     const status = $(".formnote", panel);
 
     heading.textContent = designDate(state.date);
+
+    // How often — 0 keeps the flow one-time, anything else books a series
+    // repeating on the picked day's weekday. Every 3 weeks exists on the phone
+    // line but not here; four cells is what the card wears well.
+    const FREQ_CHOICES = [
+      { weeks: 0, label: "Just once" },
+      { weeks: 1, label: "Every week" },
+      { weeks: 2, label: "Every 2 weeks" },
+      { weeks: 4, label: "Every 4 weeks" },
+    ];
+    let frequency = state.frequency_weeks || 0;
+
+    function renderFreq() {
+      freqBox.innerHTML = "";
+      FREQ_CHOICES.forEach((f) => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "choice";
+        b.textContent = f.label;
+        if (f.weeks === frequency) { b.classList.add("is-on"); b.setAttribute("aria-pressed", "true"); }
+        b.addEventListener("click", () => {
+          frequency = f.weeks;
+          flow.patch({ frequency_weeks: frequency });
+          renderFreq();
+        });
+        freqBox.appendChild(b);
+      });
+    }
+    renderFreq();
 
     let rules = { min_hours: 3, max_hours: 12 };
     let hours = state.hours || 0;
@@ -552,6 +593,16 @@
     const confirmBtn = $(".btn", panel);
     const payList = $(".paylist", panel);
     const stripeBox = $(".stripe-box", panel);
+    const freq = state.frequency_weeks || 0;
+
+    if (freq > 0) {
+      // A series never charges at confirm — each visit is billed to the chosen
+      // card as its date approaches. Say so where the card is picked.
+      const payNote = document.createElement("p");
+      payNote.className = "paynote";
+      payNote.textContent = "Nothing is charged today — each visit is billed to this card around the time of the clean.";
+      stripeBox.after(payNote);
+    }
 
     let stripe = null;
     let elements = null;
@@ -572,10 +623,11 @@
       const est = await api.estimate({ date: state.date, start_time: state.slot.start_time, hours: state.hours });
       review.innerHTML = "";
       reviewRow("When", `${designDate(state.date)}, ${state.slot.start_formatted || state.slot.start_time}`);
+      if (freq > 0) reviewRow("Repeats", freq === 1 ? `Every ${weekdayName(state.date)}` : `Every ${freq} weeks on ${weekdayName(state.date)}s`);
       reviewRow("Where", formatAddress(state.address) || "Your saved address");
       reviewRow("What", `Home clean · ${est.hours || state.hours} hours (${money(est.rate_per_hour)}/hr)`);
       if (est.taxi_fee > 0) reviewRow("Travel fee", money(est.taxi_fee));
-      reviewRow("Total", money(est.total_amount), "review-total");
+      reviewRow(freq > 0 ? "Total per visit" : "Total", money(est.total_amount), "review-total");
       flow.patch({ estimate: est });
       estimateOk = true;
     }
@@ -650,7 +702,16 @@
       const pmId = typeof result.setupIntent.payment_method === "string"
         ? result.setupIntent.payment_method
         : result.setupIntent.payment_method && result.setupIntent.payment_method.id;
-      await api.addPaymentMethod(pmId);
+      const saved = await api.addPaymentMethod(pmId);
+      // The SetupIntent is consumed now. If booking still fails (say the
+      // recurring dup-guard), a retry must reuse the saved card — confirming
+      // the spent intent again would error on every attempt after this.
+      selectedPm = pmId;
+      if (saved && saved.payment_method_id) {
+        methods.push(saved);
+        stripeBox.hidden = true;
+        renderMethods();
+      }
       return pmId;
     }
 
@@ -660,34 +721,58 @@
         try {
           note(status, "");
           const pmId = await ensurePaymentMethod();
-          const result = await api.book({
-            date: state.date,
-            start_time: state.slot.start_time,
-            hours: state.hours,
-            payment_method_id: pmId,
-            language: "English",
-          });
-          let final = result;
-          if (result && result.requires_action) {
-            await ensureStripe();
-            const { error, paymentIntent } = await stripe.confirmCardPayment(
-              result.payment_intent_client_secret, undefined, { handleActions: true });
-            if (error) throw new Error(error.message);
-            // Manual capture: the charge is authorised now, captured on completion.
-            if (paymentIntent && paymentIntent.status !== "requires_capture") {
-              throw new Error(`Unexpected payment status: ${paymentIntent.status}`);
+          let record;
+          if (freq > 0) {
+            // A series: no charge now, so no 3DS dance — the chosen card is
+            // stored on the series and billed per visit.
+            const r = await api.bookRecurring({
+              date: state.date,
+              start_time: state.slot.start_time,
+              hours: state.hours,
+              frequency_weeks: freq,
+              language: "English",
+              payment_method_id: pmId,
+            });
+            record = {
+              id: r.first_booking_id || r.id,
+              date: r.start_date || state.date,
+              start: state.slot.start_formatted || state.slot.start_time,
+              hours: state.hours,
+              amount: (flow.read().estimate || {}).total_amount,
+              address: formatAddress(state.address),
+              recurring: r.frequency_weeks || freq,
+              created: Date.now(),
+            };
+          } else {
+            const result = await api.book({
+              date: state.date,
+              start_time: state.slot.start_time,
+              hours: state.hours,
+              payment_method_id: pmId,
+              language: "English",
+            });
+            let final = result;
+            if (result && result.requires_action) {
+              await ensureStripe();
+              const { error, paymentIntent } = await stripe.confirmCardPayment(
+                result.payment_intent_client_secret, undefined, { handleActions: true });
+              if (error) throw new Error(error.message);
+              // Manual capture: the charge is authorised now, captured on completion.
+              if (paymentIntent && paymentIntent.status !== "requires_capture") {
+                throw new Error(`Unexpected payment status: ${paymentIntent.status}`);
+              }
+              final = await api.confirmPayment(result.booking_id);
             }
-            final = await api.confirmPayment(result.booking_id);
+            record = {
+              id: final.id || result.booking_id,
+              date: state.date,
+              start: state.slot.start_formatted || state.slot.start_time,
+              hours: state.hours,
+              amount: (flow.read().estimate || {}).total_amount,
+              address: formatAddress(state.address),
+              created: Date.now(),
+            };
           }
-          const record = {
-            id: final.id || result.booking_id,
-            date: state.date,
-            start: state.slot.start_formatted || state.slot.start_time,
-            hours: state.hours,
-            amount: (flow.read().estimate || {}).total_amount,
-            address: formatAddress(state.address),
-            created: Date.now(),
-          };
           try {
             const records = JSON.parse(localStorage.getItem(RECORDS_KEY) || "[]");
             records.unshift(record);
@@ -714,7 +799,9 @@
     const state = flow.read();
     const sub = $(".subhead");
     if (state.booking && sub) {
-      sub.innerHTML = `Your booking is confirmed. We've sent the details to your phone — your cleaner will be there <strong>${designDate(state.booking.date)}</strong> at <strong>${state.booking.start}</strong>.`;
+      sub.innerHTML = state.booking.recurring
+        ? `Your regular clean is booked — <strong>${freqPhrase(state.booking.recurring)}</strong>, starting <strong>${designDate(state.booking.date)}</strong> at <strong>${state.booking.start}</strong>. We've sent the details to your phone.`
+        : `Your booking is confirmed. We've sent the details to your phone — your cleaner will be there <strong>${designDate(state.booking.date)}</strong> at <strong>${state.booking.start}</strong>.`;
     }
     // The flow is done; a fresh "Book another lady" starts clean (the JWT and
     // the device's booking records live in localStorage and survive this).
@@ -747,7 +834,7 @@
       when.innerHTML = `<strong>${shortDate(r.date)}</strong> · ${r.start}`;
       const what = document.createElement("span");
       what.className = "booking-what";
-      what.textContent = `Home clean · ${r.hours}h${r.amount ? ` · ${money(r.amount)}` : ""}`;
+      what.textContent = `Home clean · ${r.hours}h${r.amount ? ` · ${money(r.amount)}` : ""}${r.recurring ? ` · ${freqPhrase(r.recurring)}` : ""}`;
       li.append(when, what);
       list.appendChild(li);
     });

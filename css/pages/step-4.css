@@ -28,6 +28,15 @@ body[data-page="step-4"] .timegrid {
 
 /* ---- wired additions (booking.js) ------------------------------------- */
 
+/* how often — the same pick-one cells as everything else; "Just once"
+   keeps the flow one-time, the rest make it a recurring series */
+body[data-page="step-4"] .freq {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: .45rem;
+  margin: 0 0 1.1rem;
+}
+
 /* the hours stepper — the duration drives which slots exist, so it sits
    between the day (above) and the times it produces (below) */
 body[data-page="step-4"] .hours {
