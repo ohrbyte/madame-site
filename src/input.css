@@ -885,7 +885,7 @@ body>.botbar>* {
      gap between hand and swirl is preserved no matter where you put --art-right.
      (The swirl used to be anchored by `left`, which is why the two could drift
      apart and had to be re-tuned separately.) */
-  --art-right: -25.3cqw;
+  --art-right: -23.3cqw;
   /* <-- EDIT THIS to move hand + swirl together */
   --hand-right: var(--art-right);
   --swirl-nudge: 16.3cqw;
