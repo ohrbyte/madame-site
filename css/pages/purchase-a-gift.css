@@ -41,3 +41,11 @@ body[data-page="purchase-a-gift"] form[data-stage="done"] .formnote,
 body[data-page="purchase-a-gift"] form[data-stage="done"] .btn {
   display: none;
 }
+
+/* Turnstile widget — only present when the backend has a site key */
+body[data-page="purchase-a-gift"] .turnstile-box {
+  margin: .2rem 0 .6rem;
+}
+body[data-page="purchase-a-gift"] form[data-stage="done"] .turnstile-box {
+  display: none;
+}

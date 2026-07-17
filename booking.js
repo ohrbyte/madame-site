@@ -770,6 +770,7 @@
     let stripe = null;
     let card = null;
     let chosenHours = 0;
+    let turnstileToken = null;
 
     const HOUR_CHOICES = [2, 4, 6, 10];
 
@@ -802,6 +803,21 @@
       card.mount(cardBox);
     }
 
+    // The backend rejects purchases without a Turnstile token whenever it has
+    // keys configured, so the widget must render exactly when config says so.
+    function mountTurnstile() {
+      const box = $("#turnstile", form);
+      if (!box || !config.turnstile_site_key) return;
+      if (!window.turnstile) return setTimeout(mountTurnstile, 200);
+      box.hidden = false;
+      window.turnstile.render(box, {
+        sitekey: config.turnstile_site_key,
+        callback: (t) => { turnstileToken = t; },
+        "error-callback": () => { turnstileToken = null; },
+        "expired-callback": () => { turnstileToken = null; },
+      });
+    }
+
     async function purchase() {
       const recipientName = $("#gift-to", form).value.trim();
       const recipientPhone = $("#gift-phone", form).value;
@@ -810,6 +826,7 @@
       if (!chosenHours) return note(status, "Pick an amount first.", true);
       if (!recipientName || digits(recipientPhone).length < 10) return note(status, "We need their name and a full phone number.", true);
       if (digits(buyerPhone).length < 10) return note(status, "We need your phone number too — it goes on the gift.", true);
+      if (config.turnstile_site_key && !turnstileToken) return note(status, "One tick left — the security check above the button.", true);
 
       await busy(payBtn, "Sending…", async () => {
         try {
@@ -822,6 +839,7 @@
             hours: chosenHours,
             buyer_name: buyerName || undefined,
             buyer_phone: digits(buyerPhone),
+            turnstile_token: turnstileToken || undefined,
           };
           let res = await api.giftPurchase({ ...payload, payment_method_id: pm.paymentMethod.id });
           if (res && res.requires_action) {
@@ -836,6 +854,11 @@
           if (p) p.innerHTML = `We've texted <strong>${recipientName}</strong> a ${chosenHours}-hour clean (${money(res && res.amount != null ? res.amount : chosenHours * config.hourly_rate)}). You do look thoughtful.`;
         } catch (err) {
           note(status, formatErr(err), true);
+          // A Turnstile token is single-use — the failed attempt consumed it.
+          if (window.turnstile && config.turnstile_site_key) {
+            window.turnstile.reset();
+            turnstileToken = null;
+          }
         }
       });
     }
@@ -846,6 +869,7 @@
       config = c;
       chosenHours = HOUR_CHOICES[1];
       renderAmounts();
+      mountTurnstile();
       await mountCard();
     }).catch((err) => note(status, formatErr(err), true));
   }

@@ -15,6 +15,9 @@
   <script>document.documentElement.classList.add("js")</script>
   <!-- Stripe.js — gift payment. -->
   <script src="https://js.stripe.com/v3/"></script>
+  <!-- Cloudflare Turnstile — bot guard on the purchase. Rendered explicitly by
+       booking.js, and only when the backend's config carries a site key. -->
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
 </head>
 
 <body data-page="purchase-a-gift">
@@ -78,6 +81,9 @@
           <div class="stripe-box stripe-box--card" id="gift-card"></div>
         </div>
       </div>
+
+      <!-- Turnstile mounts here when configured; stays hidden (empty) otherwise. -->
+      <div class="turnstile-box" id="turnstile" hidden></div>
 
       <p class="formnote" hidden></p>
 
