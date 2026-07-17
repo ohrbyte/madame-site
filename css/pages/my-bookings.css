@@ -47,3 +47,11 @@ body[data-page="my-bookings"] .booking-edit {
   font-weight: 600;
   --ink-underline: var(--pink-soft);
 }
+
+/* ---- wired additions (booking.js) ------------------------------------- */
+
+/* the nothing-here-yet state: one quiet full-width line */
+body[data-page="my-bookings"] .booking--empty {
+  grid-template-columns: 1fr;
+  opacity: .85;
+}

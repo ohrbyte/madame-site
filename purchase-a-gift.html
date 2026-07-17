@@ -7,12 +7,14 @@
   <title>Madame — Purchase a gift</title>
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>M</text></svg>">
-  <link rel="stylesheet" href="dist/styles.css">
-  <link rel="stylesheet" href="css/pages/purchase-a-gift.css">
+  <link rel="stylesheet" href="dist/styles.css?v=2">
+  <link rel="stylesheet" href="css/pages/purchase-a-gift.css?v=2">
   <!-- Marks JS as available BEFORE first paint, so the entrance animation
        can hide the copy. Without this the page would render blank if app.js
        ever failed to load. Must stay inline and in <head>. -->
   <script>document.documentElement.classList.add("js")</script>
+  <!-- Stripe.js — gift payment. -->
+  <script src="https://js.stripe.com/v3/"></script>
 </head>
 
 <body data-page="purchase-a-gift">
@@ -23,7 +25,7 @@
   </main>
 
   <header class="topbar">
-    <a class="logo anim" style="--d:0s" href="index.html" aria-label="Madame home"><img class="logo-mark"
+    <a class="logo anim" style="--d:0s" href="./" aria-label="Madame home"><img class="logo-mark"
         src="assets/madame-logo.png" alt="Madame"></a>
   </header>
 
@@ -35,8 +37,12 @@
           <path class="accent" style="--len:210;stroke-width:4.7" d="M2 7 L90 7 L198 19" />
         </svg></span>.</h1>
 
-    <!-- Styled, not wired: real controls, no submit handler yet. -->
-    <form class="panel anim" style="--d:.3s" action="#" onsubmit="return false">
+    <!-- Wired (booking.js): the amounts are hours priced at the backend's
+         hourly rate (GET /public/giftcards/config — the server enforces the
+         real price), the gift rides to the recipient by TEXT so it wants
+         phones not emails, and the card well is a Stripe card Element. The
+         markup amounts are the no-JS fallback. -->
+    <form class="panel anim" style="--d:.3s" action="#">
       <h2>Choose an amount</h2>
       <p>They pick the day. You look thoughtful.</p>
 
@@ -47,22 +53,41 @@
         <button type="button" class="choice">£200</button>
       </div>
 
-      <div class="fields">
+      <div class="fields fields--2">
         <div class="field">
           <label for="gift-to">Who's it for?</label>
           <input id="gift-to" name="gift-to" type="text" placeholder="Their name" autocomplete="name">
         </div>
         <div class="field">
-          <label for="gift-email">Their email</label>
-          <input id="gift-email" name="gift-email" type="email" placeholder="name@example.com" autocomplete="email">
+          <label for="gift-phone">Their phone</label>
+          <input id="gift-phone" name="gift-phone" type="tel" placeholder="(845) 555-1234" autocomplete="tel">
+        </div>
+        <div class="field">
+          <label for="buyer-name">Your name</label>
+          <input id="buyer-name" name="buyer-name" type="text" placeholder="So they know who to thank" autocomplete="name">
+        </div>
+        <div class="field">
+          <label for="buyer-phone">Your phone</label>
+          <input id="buyer-phone" name="buyer-phone" type="tel" placeholder="(845) 555-5678" autocomplete="tel">
         </div>
       </div>
 
-      <button class="btn" type="submit">Continue to payment</button>
+      <div class="fields">
+        <div class="field">
+          <label for="gift-card">Card details</label>
+          <div class="stripe-box stripe-box--card" id="gift-card"></div>
+        </div>
+      </div>
+
+      <p class="formnote" hidden></p>
+
+      <button class="btn" type="submit">Send the gift</button>
     </form>
   </div>
 
-  <script src="app.js"></script>
+  <script src="api.js?v=2"></script>
+  <script src="app.js?v=2"></script>
+  <script src="booking.js?v=2"></script>
 </body>
 
 </html>

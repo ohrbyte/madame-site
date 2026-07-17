@@ -7,8 +7,8 @@
   <title>Madame — My bookings</title>
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>M</text></svg>">
-  <link rel="stylesheet" href="dist/styles.css">
-  <link rel="stylesheet" href="css/pages/my-bookings.css">
+  <link rel="stylesheet" href="dist/styles.css?v=2">
+  <link rel="stylesheet" href="css/pages/my-bookings.css?v=2">
   <!-- Marks JS as available BEFORE first paint, so the entrance animation
        can hide the copy. Without this the page would render blank if app.js
        ever failed to load. Must stay inline and in <head>. -->
@@ -23,7 +23,7 @@
   </main>
 
   <header class="topbar">
-    <a class="logo anim" style="--d:0s" href="index.html" aria-label="Madame home"><img class="logo-mark"
+    <a class="logo anim" style="--d:0s" href="./" aria-label="Madame home"><img class="logo-mark"
         src="assets/madame-logo.png" alt="Madame"></a>
   </header>
 
@@ -35,24 +35,29 @@
 
     <div class="panel anim" style="--d:.3s">
       <h2>Upcoming</h2>
-      <!-- Styled, not wired: static sample rows standing in for real data. -->
+      <!-- Wired (booking.js) — with a caveat: the public API has no
+           list-bookings endpoint, so this shows the bookings made on THIS
+           device (localStorage), newest first. The rows below are the no-JS
+           fallback and get replaced on load. -->
       <ul class="bookings">
         <li class="booking">
           <span class="booking-when"><strong>Thu 23 Jul</strong> · 10:00</span>
           <span class="booking-what">Deep clean · 2 bed</span>
-          <a class="booking-edit inkline" href="step-3.html">Reschedule</a>
+          <a class="booking-edit inkline" href="day">Reschedule</a>
         </li>
         <li class="booking">
           <span class="booking-when"><strong>Thu 6 Aug</strong> · 10:00</span>
           <span class="booking-what">Regular clean · 2 bed</span>
-          <a class="booking-edit inkline" href="step-3.html">Reschedule</a>
+          <a class="booking-edit inkline" href="day">Reschedule</a>
         </li>
       </ul>
-      <a class="btn" href="step-1.html">Book another clean</a>
+      <a class="btn" href="sign-in">Book another clean</a>
     </div>
   </div>
 
-  <script src="app.js"></script>
+  <script src="api.js?v=2"></script>
+  <script src="app.js?v=2"></script>
+  <script src="booking.js?v=2"></script>
 </body>
 
 </html>

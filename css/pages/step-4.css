@@ -25,3 +25,28 @@ body[data-page="step-4"] .timegrid {
   gap: .45rem;
   margin: 0 0 1.1rem;
 }
+
+/* ---- wired additions (booking.js) ------------------------------------- */
+
+/* the hours stepper — the duration drives which slots exist, so it sits
+   between the day (above) and the times it produces (below) */
+body[data-page="step-4"] .hours {
+  display: flex;
+  align-items: center;
+  gap: .7rem;
+  margin: 0 0 1rem;
+}
+
+body[data-page="step-4"] .hours .hours-step {
+  width: 2.1em;
+  aspect-ratio: 1;
+  padding: 0;
+  font-size: clamp(.8rem, 1.1vw, 1rem);
+}
+
+body[data-page="step-4"] .hours-value {
+  font-weight: 700;
+  font-size: clamp(.8rem, 1.15vw, 1rem);
+  min-width: 6ch;
+  text-align: center;
+}

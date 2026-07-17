@@ -7,8 +7,8 @@
   <title>Madame — Clean in a click</title>
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>M</text></svg>">
-  <link rel="stylesheet" href="dist/styles.css">
-  <link rel="stylesheet" href="css/pages/step-2.css">
+  <link rel="stylesheet" href="dist/styles.css?v=2">
+  <link rel="stylesheet" href="css/pages/step-2.css?v=2">
   <!-- Marks JS as available BEFORE first paint, so the entrance animation
        can hide the copy. Without this the page would render blank if app.js
        ever failed to load. Must stay inline and in <head>. -->
@@ -23,7 +23,7 @@
   </main>
 
   <header class="topbar">
-    <a class="logo anim" style="--d:0s" href="index.html" aria-label="Madame home"><img class="logo-mark"
+    <a class="logo anim" style="--d:0s" href="./" aria-label="Madame home"><img class="logo-mark"
         src="assets/madame-logo.png" alt="Madame"></a>
   </header>
 
@@ -61,7 +61,7 @@
       <div class="addr">
         <label class="visually-hidden" for="addr">Address</label>
         <input class="addr-field" id="addr" name="addr" type="text" autocomplete="street-address"
-          value="14 Ackroyd Road, London">
+          placeholder="14 Smith St, Monroe, NY 10950">
         <!-- Live map, per the design's "Google maps" box. app.js swaps the
              center= as you type (data-map-src names the field that drives it).
 
@@ -81,16 +81,20 @@
              cap is the API restriction plus a billing quota. -->
         <img class="addr-map" alt="Map of the address entered above" loading="lazy"
           referrerpolicy="no-referrer-when-downgrade" data-map-src="#addr" data-map-param="center"
-          src="https://maps.googleapis.com/maps/api/staticmap?center=14+Ackroyd+Road,London&zoom=17&size=640x460&scale=2&key=AIzaSyDtSx1fzr1XvYfXTSaTWuIxxIFORV5Ed8k">
+          src="https://maps.googleapis.com/maps/api/staticmap?center=Monroe,NY+10950&zoom=13&size=640x460&scale=2&key=AIzaSyDtSx1fzr1XvYfXTSaTWuIxxIFORV5Ed8k">
       </div>
+
+      <p class="formnote" hidden></p>
     </form>
 
     <!-- Outside the panel, per the design: the card is the task, the button is
          the way on from it. -->
-    <a class="btn anim" style="--d:.4s" href="step-3.html">Book Now</a>
+    <a class="btn anim" style="--d:.4s" href="day">Book Now</a>
   </div>
 
-  <script src="app.js"></script>
+  <script src="api.js?v=2"></script>
+  <script src="app.js?v=2"></script>
+  <script src="booking.js?v=2"></script>
 </body>
 
 </html>

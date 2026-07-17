@@ -7,8 +7,8 @@
   <title>Madame — Ready to roll</title>
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>M</text></svg>">
-  <link rel="stylesheet" href="dist/styles.css">
-  <link rel="stylesheet" href="css/pages/step-1.css">
+  <link rel="stylesheet" href="dist/styles.css?v=2">
+  <link rel="stylesheet" href="css/pages/step-1.css?v=2">
   <!-- Marks JS as available BEFORE first paint, so the entrance animation
        can hide the copy. Without this the page would render blank if app.js
        ever failed to load. Must stay inline and in <head>. -->
@@ -26,7 +26,7 @@
   </main>
 
   <header class="topbar">
-    <a class="logo anim" style="--d:0s" href="index.html" aria-label="Madame home"><img class="logo-mark"
+    <a class="logo anim" style="--d:0s" href="./" aria-label="Madame home"><img class="logo-mark"
         src="assets/madame-logo.png" alt="Madame"></a>
   </header>
 
@@ -46,7 +46,7 @@
          the emailed link), which would leave step-2.html unreachable in a
          click-through. So the form GETs its way there: pressing Enter in the
          field walks the flow, with no button and no JS. -->
-    <form class="panel panel--center anim" style="--d:.28s" action="step-2.html" method="get" data-sent="false">
+    <form class="panel panel--center anim" style="--d:.28s" action="address" method="get" data-sent="false">
       <p class="panel-lede">Sign in or create an account to get started.</p>
 
       <!-- A real toggle with NO JavaScript: two radios drive everything via
@@ -70,14 +70,35 @@
         <input class="authfield authfield--phone" id="signin-phone" name="phone" type="tel" autocomplete="tel">
         <label class="visually-hidden" for="signin-email">Email address</label>
         <input class="authfield authfield--email" id="signin-email" name="email" type="email" autocomplete="email">
+        <!-- The two wired-in stages: the SMS code (after a phone submit) and
+             the name (a brand-new client registering). booking.js swaps them
+             in with the hidden attribute; each shares the same grid cell so
+             the card never jumps. -->
+        <label class="visually-hidden" for="signin-code">Verification code</label>
+        <input class="authfield authfield--code" id="signin-code" name="code" type="text" inputmode="numeric"
+          autocomplete="one-time-code" maxlength="6" hidden>
+        <label class="visually-hidden" for="signin-name">Your name</label>
+        <input class="authfield authfield--name" id="signin-name" name="name" type="text" autocomplete="name" hidden>
       </div>
+
+      <p class="formnote" hidden></p>
 
       <p class="authnote">We sent a login link to —<br>Check your inbox and click the link to sign in.</p>
       <a class="authalt" href="#">Use a different email</a>
+
+      <!-- The design has no visible button — Enter is the submit. But a form
+           with SEVERAL text fields and NO submit button never implicitly
+           submits in any browser; this invisible default button is what makes
+           Enter work. Not display:none-via-[hidden]: some browsers drop a
+           hidden default button from implicit submission too, so it wears
+           .visually-hidden instead. -->
+      <button class="visually-hidden" type="submit" tabindex="-1" aria-hidden="true">Continue</button>
     </form>
   </div>
 
-  <script src="app.js"></script>
+  <script src="api.js?v=2"></script>
+  <script src="app.js?v=2"></script>
+  <script src="booking.js?v=2"></script>
 </body>
 
 </html>

@@ -7,8 +7,8 @@
   <title>Madame — Which day works</title>
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>M</text></svg>">
-  <link rel="stylesheet" href="dist/styles.css">
-  <link rel="stylesheet" href="css/pages/step-3.css">
+  <link rel="stylesheet" href="dist/styles.css?v=2">
+  <link rel="stylesheet" href="css/pages/step-3.css?v=2">
   <!-- Marks JS as available BEFORE first paint, so the entrance animation
        can hide the copy. Without this the page would render blank if app.js
        ever failed to load. Must stay inline and in <head>. -->
@@ -23,7 +23,7 @@
   </main>
 
   <header class="topbar">
-    <a class="logo anim" style="--d:0s" href="index.html" aria-label="Madame home"><img class="logo-mark"
+    <a class="logo anim" style="--d:0s" href="./" aria-label="Madame home"><img class="logo-mark"
         src="assets/madame-logo.png" alt="Madame"></a>
   </header>
 
@@ -40,7 +40,16 @@
     <!-- Styled, not wired: the days are real buttons, but nothing is selected in
          JS yet — one is marked is-on to show the picked state. -->
     <div class="panel anim" style="--d:.28s">
-      <h2>July 2026</h2>
+      <!-- The month is real now (booking.js): the label follows the pager, and
+           the day grid below is regenerated per month — the markup-shipped July
+           is the no-JS fallback and gets replaced on load. -->
+      <div class="cal-head">
+        <h2>July 2026</h2>
+        <div class="cal-nav">
+          <button class="choice cal-nav-prev" type="button" aria-label="Previous month">&#8249;</button>
+          <button class="choice cal-nav-next" type="button" aria-label="Next month">&#8250;</button>
+        </div>
+      </div>
 
       <div class="cal">
         <div class="cal-dow" aria-hidden="true">
@@ -83,11 +92,16 @@
         </div>
       </div>
 
-      <a class="btn" href="step-4.html">Continue</a>
+      <p class="formnote" hidden></p>
+
+      <a class="btn" href="time">Continue</a>
     </div>
   </div>
 
-  <script src="app.js"></script>
+  <script src="api.js?v=2"></script>
+  <script src="app.js?v=2"></script>
+  <script src="booking-availability.js?v=2"></script>
+  <script src="booking.js?v=2"></script>
 </body>
 
 </html>

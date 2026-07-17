@@ -7,8 +7,8 @@
   <title>Madame — All set</title>
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>M</text></svg>">
-  <link rel="stylesheet" href="dist/styles.css">
-  <link rel="stylesheet" href="css/pages/step-6.css">
+  <link rel="stylesheet" href="dist/styles.css?v=2">
+  <link rel="stylesheet" href="css/pages/step-6.css?v=2">
   <!-- Marks JS as available BEFORE first paint, so the entrance animation
        can hide the copy. Without this the page would render blank if app.js
        ever failed to load. Must stay inline and in <head>. -->
@@ -23,7 +23,7 @@
   </main>
 
   <header class="topbar">
-    <a class="logo anim" style="--d:0s" href="index.html" aria-label="Madame home"><img class="logo-mark"
+    <a class="logo anim" style="--d:0s" href="./" aria-label="Madame home"><img class="logo-mark"
         src="assets/madame-logo.png" alt="Madame"></a>
   </header>
 
@@ -42,12 +42,14 @@
       phone — your cleaner will be there Friday at 11:00.</p>
 
     <div class="actions anim" style="--d:.42s">
-      <a class="btn" href="my-bookings.html">See my bookings</a>
-      <a class="btn ghost" href="step-1.html">Book another lady</a>
+      <a class="btn" href="my-bookings">See my bookings</a>
+      <a class="btn ghost" href="sign-in">Book another lady</a>
     </div>
   </div>
 
-  <script src="app.js"></script>
+  <script src="api.js?v=2"></script>
+  <script src="app.js?v=2"></script>
+  <script src="booking.js?v=2"></script>
 </body>
 
 </html>

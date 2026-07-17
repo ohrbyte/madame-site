@@ -7,12 +7,15 @@
   <title>Madame — Ready to book</title>
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>M</text></svg>">
-  <link rel="stylesheet" href="dist/styles.css">
-  <link rel="stylesheet" href="css/pages/step-5.css">
+  <link rel="stylesheet" href="dist/styles.css?v=2">
+  <link rel="stylesheet" href="css/pages/step-5.css?v=2">
   <!-- Marks JS as available BEFORE first paint, so the entrance animation
        can hide the copy. Without this the page would render blank if app.js
        ever failed to load. Must stay inline and in <head>. -->
   <script>document.documentElement.classList.add("js")</script>
+  <!-- Stripe.js — the payment step. Loaded in <head> per Stripe's guidance so
+       fraud signals cover the whole visit. -->
+  <script src="https://js.stripe.com/v3/"></script>
 </head>
 
 <body data-page="step-5">
@@ -23,7 +26,7 @@
   </main>
 
   <header class="topbar">
-    <a class="logo anim" style="--d:0s" href="index.html" aria-label="Madame home"><img class="logo-mark"
+    <a class="logo anim" style="--d:0s" href="./" aria-label="Madame home"><img class="logo-mark"
         src="assets/madame-logo.png" alt="Madame"></a>
   </header>
 
@@ -34,7 +37,10 @@
           <path class="accent blue" style="--len:240;--draw-delay:1.55s" d="M6 21 C 60 14, 150 14, 195 18" />
         </svg></span>?</h1>
 
-    <!-- Styled, not wired: the summary is static markup standing in for real data. -->
+    <!-- Wired (booking.js): the summary renders the backend's estimate — the
+         site never computes money — and the payment rows are the client's
+         saved cards plus "add a card", which mounts a Stripe Payment Element
+         into the cream well below. The markup rows are the no-JS fallback. -->
     <div class="panel anim" style="--d:.28s">
       <h2>Review &amp; confirm</h2>
 
@@ -49,11 +55,19 @@
         <dd class="review-total">£72.00</dd>
       </dl>
 
-      <a class="btn" href="step-6.html">Confirm booking</a>
+      <h3 class="pay-title">How would you like to pay?</h3>
+      <div class="paylist" role="group" aria-label="Choose a payment method"></div>
+      <div class="stripe-box" hidden></div>
+
+      <p class="formnote" hidden></p>
+
+      <a class="btn" href="all-set">Confirm booking</a>
     </div>
   </div>
 
-  <script src="app.js"></script>
+  <script src="api.js?v=2"></script>
+  <script src="app.js?v=2"></script>
+  <script src="booking.js?v=2"></script>
 </body>
 
 </html>

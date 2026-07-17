@@ -19,3 +19,25 @@ body[data-page="purchase-a-gift"] .amounts {
   gap: .5rem;
   margin: 0 0 1.1rem;
 }
+
+/* ---- wired additions (booking.js) ------------------------------------- */
+
+/* price over hours in each amount cell */
+body[data-page="purchase-a-gift"] .amounts .choice {
+  padding: .5em .2em;
+  gap: .05em;
+}
+
+/* the card well is a field like the others — its label comes from .field,
+   so it drops the component's own bottom margin */
+body[data-page="purchase-a-gift"] .stripe-box--card {
+  margin: 0;
+}
+
+/* after the gift goes out the panel keeps only the good news */
+body[data-page="purchase-a-gift"] form[data-stage="done"] .amounts,
+body[data-page="purchase-a-gift"] form[data-stage="done"] .fields,
+body[data-page="purchase-a-gift"] form[data-stage="done"] .formnote,
+body[data-page="purchase-a-gift"] form[data-stage="done"] .btn {
+  display: none;
+}

@@ -1166,6 +1166,65 @@ a:focus-visible>.inkline--rest::after {
 }
 
 /* =========================================================
+   WIRED-FLOW COMPONENTS — the pieces the live booking flow needs that the
+   mockups didn't have. Same materials as everything else: cream wells on the
+   blue card, pink for "this one" and for "this went wrong".
+   ========================================================= */
+
+/* The status line under a panel's controls. Quiet when it's information
+   ("Checking who's free…"), pink and bolder when it's an error. [hidden]
+   keeps it out of the layout entirely between messages. */
+.formnote {
+  margin: .1em 0 .9em;
+  font-size: clamp(.68rem, .95vw, .8rem);
+  line-height: 1.45;
+  color: #fff;
+  opacity: .85;
+}
+
+.formnote--err {
+  color: var(--pink-soft);
+  opacity: 1;
+  font-weight: 600;
+}
+
+.formnote[hidden] {
+  display: none;
+}
+
+/* An action that is underway holds still and refuses a second press —
+   booking.js sets aria-busy on the control (or the whole form) while the API
+   call runs, so the state is announced, not just painted. */
+.btn[aria-busy="true"],
+[aria-busy="true"] .btn {
+  opacity: .55;
+  pointer-events: none;
+}
+
+/* Two-line choice cells: a price over its hours, a saved card over its
+   expiry. The small line stays quiet so the cell still reads at a glance. */
+.choice small {
+  font-size: .78em;
+  font-weight: 500;
+  opacity: .75;
+}
+
+/* Where a Stripe element mounts. It is an iframe, so it can't wear the
+   panel's CSS — the well is cream like every other input (the element's own
+   colours come from Stripe's appearance API, set in booking.js), and the
+   padding is the room the iframe's field chrome needs. */
+.stripe-box {
+  background: var(--cream);
+  border-radius: 12px;
+  padding: .8em;
+  margin: 0 0 1.1rem;
+}
+
+.stripe-box[hidden] {
+  display: none;
+}
+
+/* =========================================================
    DOC — a long-form reading page (terms, and anything like it).
    The poster pages are exactly one screen; a terms page is not. So here the
    artwork stops being a grid item and becomes a fixed BACKDROP, which lets the

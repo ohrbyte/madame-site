@@ -42,3 +42,26 @@ body[data-page="step-5"] .review-total {
   font-weight: 700;
   font-size: 1.15em;
 }
+
+/* ---- wired additions (booking.js) ------------------------------------- */
+
+body[data-page="step-5"] .pay-title {
+  margin: 0 0 .5em;
+}
+
+/* saved cards + "add a card" — the same pick-one-of-many cells as the
+   calendar and the time grid, two up so four cards stay compact */
+body[data-page="step-5"] .paylist {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .45rem;
+  margin: 0 0 .9rem;
+}
+
+body[data-page="step-5"] .paylist .choice {
+  padding: .6em .4em;
+}
+
+body[data-page="step-5"] .paylist .choice small {
+  display: block;
+}

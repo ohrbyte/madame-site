@@ -52,3 +52,32 @@ body[data-page="step-3"] .cal-grid .choice {
   font-size: clamp(.6rem, .85vw, .76rem);
   border-radius: 8px;
 }
+
+/* ---- wired additions (booking.js) ------------------------------------- */
+
+/* the month header row: the label on the left, the pager on the right —
+   the pager cells are the same .choice the days use, shrunk to the row */
+body[data-page="step-3"] .cal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .6rem;
+  margin: 0 0 .35rem;
+}
+
+body[data-page="step-3"] .cal-head h2 {
+  margin: 0;
+}
+
+body[data-page="step-3"] .cal-nav {
+  display: flex;
+  gap: .3rem;
+}
+
+body[data-page="step-3"] .cal-nav .choice {
+  width: 2em;
+  aspect-ratio: 1;
+  padding: 0;
+  border-radius: 8px;
+  font-size: clamp(.7rem, .95vw, .85rem);
+}

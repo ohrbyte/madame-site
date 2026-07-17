@@ -7,8 +7,8 @@
   <title>Madame — What about the time</title>
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>M</text></svg>">
-  <link rel="stylesheet" href="dist/styles.css">
-  <link rel="stylesheet" href="css/pages/step-4.css">
+  <link rel="stylesheet" href="dist/styles.css?v=2">
+  <link rel="stylesheet" href="css/pages/step-4.css?v=2">
   <!-- Marks JS as available BEFORE first paint, so the entrance animation
        can hide the copy. Without this the page would render blank if app.js
        ever failed to load. Must stay inline and in <head>. -->
@@ -23,7 +23,7 @@
   </main>
 
   <header class="topbar">
-    <a class="logo anim" style="--d:0s" href="index.html" aria-label="Madame home"><img class="logo-mark"
+    <a class="logo anim" style="--d:0s" href="./" aria-label="Madame home"><img class="logo-mark"
         src="assets/madame-logo.png" alt="Madame"></a>
   </header>
 
@@ -40,8 +40,18 @@
 
     <!-- Styled, not wired: real buttons, one marked is-on to show the picked state. -->
     <div class="panel anim" style="--d:.28s">
+      <!-- Wired (booking.js): the heading is the day picked on step 3, the
+           stepper sets how long the clean runs (bounds from /bookings/rules),
+           and the grid below is the API's real availability for that day and
+           duration. The markup-shipped times are the no-JS fallback. -->
       <h2>Friday 17 July</h2>
-      <p>Your cleaner needs about three hours.</p>
+      <p data-hours-line>How many hours do you need?</p>
+
+      <div class="hours" role="group" aria-label="Choose how many hours">
+        <button class="choice hours-step hours-step--minus" type="button" aria-label="One hour less">&minus;</button>
+        <span class="hours-value" data-hours-value>3 hours</span>
+        <button class="choice hours-step hours-step--plus" type="button" aria-label="One hour more">+</button>
+      </div>
 
       <div class="timegrid" role="group" aria-label="Choose a start time">
         <button class="choice" type="button" disabled>08:00</button>
@@ -55,11 +65,15 @@
         <button class="choice" type="button" disabled>16:00</button>
       </div>
 
-      <a class="btn" href="step-5.html">Continue</a>
+      <p class="formnote" hidden></p>
+
+      <a class="btn" href="review">Continue</a>
     </div>
   </div>
 
-  <script src="app.js"></script>
+  <script src="api.js?v=2"></script>
+  <script src="app.js?v=2"></script>
+  <script src="booking.js?v=2"></script>
 </body>
 
 </html>
