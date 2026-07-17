@@ -930,23 +930,53 @@ body>.botbar>* {
   /* strand thickness (swirl-%) */
   --strand-run: 0.2225;
   /* strand rise/run in the asset's own aspect */
-  --strand-slop: 0.15;
+  --strand-slop: 0.7;
   /* extra width so the mask edges land in the transparent GAPS between strands,
      never on the ribbon itself (landing on it = the hard straight cut) */
 
+  /* ============================================================
+     ↓↓↓  HAND DIALS — tweak these until it looks right  ↓↓↓
+     All are ADDED ON TOP of the auto-fit above. All 0 = use the computed fit.
+     Nothing else needs touching.
+     ============================================================ */
+
+  --stripe-down: -1;
+  /* slide the stripe DOWN (+) or UP (-).   try: 1, 2, -1, -2   (1 ≈ 1% of stripe travel) */
+
+  --stripe-grow: 0;
+  /* make the stripe TALLER (+) or SHORTER (-) — grabs more/less ribbon.  try: 1, 2, -1 */
+
+  --stripe-lean: 0deg;
+  /* extra TILT. (+) lifts the right end, (-) drops it.  try: 1deg, -1deg, 2deg */
+
+  --stripe-soft: 0.4;
+  /* edge softness. 0 = razor sharp, 1-2 = feathered */
+
+  /* ↑↑↑  that's it — everything below is the math  ↑↑↑ */
+
   /* tilt depends ONLY on the stretch — the vertical size cancels out of the ratio */
   --weave-tilt: atan(var(--strand-run) / var(--swirl-stretch));
-  --weave-angle: calc(180deg - var(--weave-tilt));
+  --weave-angle: calc(180deg - var(--weave-tilt) - var(--stripe-lean));
   /* gradient-line length, unitless (in cqh): |W*sin| + |H*cos| */
   --weave-len: calc(var(--sw-n) * sin(var(--weave-tilt)) + var(--swirl-h-n) * cos(var(--weave-tilt)));
   /* strand centre + half-thickness, projected onto the tilted gradient axis */
-  --weave-mid: calc(50 + (var(--strand-mid) - 50) / 100 * var(--swirl-h-n) * cos(var(--weave-tilt)) / var(--weave-len) * 100);
-  --weave-half: calc((var(--strand-thick) + var(--strand-slop)) / 100 * var(--swirl-h-n) * cos(var(--weave-tilt)) / var(--weave-len) * 100 / 2);
+  --weave-mid: calc(50 + (var(--strand-mid) - 50) / 100 * var(--swirl-h-n) * cos(var(--weave-tilt)) / var(--weave-len) * 100 + var(--stripe-down));
+  --weave-half: calc((var(--strand-thick) + var(--strand-slop)) / 100 * var(--swirl-h-n) * cos(var(--weave-tilt)) / var(--weave-len) * 100 / 2 + var(--stripe-grow));
   --front-band: linear-gradient(var(--weave-angle),
-      transparent calc((var(--weave-mid) - var(--weave-half) - 0.4) * 1%),
+      transparent calc((var(--weave-mid) - var(--weave-half) - var(--stripe-soft)) * 1%),
       #000 calc((var(--weave-mid) - var(--weave-half)) * 1%),
       #000 calc((var(--weave-mid) + var(--weave-half)) * 1%),
-      transparent calc((var(--weave-mid) + var(--weave-half) + 0.4) * 1%));
+      transparent calc((var(--weave-mid) + var(--weave-half) + var(--stripe-soft)) * 1%));
+}
+
+/* ============================================================
+   SEE THE STRIPE — add class="show-stripe" to <body> and the front pass turns
+   green. Whatever is GREEN is the bit of ribbon being promoted in front of the
+   hand. That's the fastest way to tell if a stray sliver is the stripe catching
+   ribbon you didn't mean. Remove the class when done.
+   ============================================================ */
+body.show-stripe .stage--hero .swirl-front {
+  filter: hue-rotate(125deg) saturate(4);
 }
 
 /* both swirl passes share identical placement, so they coincide as one ribbon */
@@ -983,7 +1013,15 @@ body>.botbar>* {
 .stage--hero .swirl-front {
   z-index: 3;
   opacity: 1;
-  /* opaque so the crossing strand reads solid over the suds, like the design */
+  /* TWO masks, intersected:
+       --front-band picks the STRAND (which horizontal slice of the ribbon)
+       --front-span picks WHERE ALONG IT the ribbon is allowed to come forward
+     Without the span the band ran the ribbon's full width, so it also landed on
+     the sponge + suds — the pink sliver. The reference does show a sliver there,
+     but it reads as an accident, so the ribbon now only crosses in FRONT over the
+     wrist/forearm and stays BEHIND everywhere left of it. The span fades in rather
+     than cutting, so there's no hard edge announcing the transition — and because
+     it's keyed to the swirl's own x, the sliver can't come back when dials move. */
   -webkit-mask-image: var(--front-band);
   mask-image: var(--front-band);
   -webkit-mask-repeat: no-repeat;
