@@ -1,35 +1,83 @@
 <!doctype html>
 <html lang="en">
+
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Madame — Ready to roll</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>M</text></svg>">
-<link rel="stylesheet" href="dist/styles.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Madame — Ready to roll</title>
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>M</text></svg>">
+  <link rel="stylesheet" href="dist/styles.css">
+  <link rel="stylesheet" href="css/pages/step-1.css">
+  <!-- Marks JS as available BEFORE first paint, so the entrance animation
+       can hide the copy. Without this the page would render blank if app.js
+       ever failed to load. Must stay inline and in <head>. -->
+  <script>document.documentElement.classList.add("js")</script>
 </head>
-<body>
-<main class="stage" style="--hand-l:17.795%;--hand-t:-19.989%;--hand-w:100.000%;--glow-l:69.103%;--glow-t:12.115%;--glow-w:29.026%;" data-page="step-1">
-  <img class="layer layer-cream" src="assets/cream.webp" alt="" aria-hidden="true">
-  <img class="layer layer-glow" src="assets/landing-glow.webp" alt="" aria-hidden="true">
-  <img class="layer layer-swirl" src="assets/swirl.webp" alt="" aria-hidden="true">
-  <img class="layer layer-hand"  src="assets/landing-hand.webp" alt="Gloved hand squeezing a soapy sponge">
-  <img class="layer layer-swirl-front" src="assets/swirl.webp" alt="" aria-hidden="true">
 
-  <a class="logo anim" style="--d:0s" href="index.html" aria-label="Madame home"><svg class="logo-wave" viewBox="0 0 34 16" aria-hidden="true"><path d="M1 11 C 3 3, 7 3, 9 8 C 11 13, 15 13, 17 8 C 19 3, 23 3, 25 8 C 27 12, 31 11, 33 6" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="logo-word">madame</span></a>
-  
+<body data-page="step-1">
+  <!-- No glow: this hand sits further left than the landing's, so the PSD's glow
+       blob is no longer hidden behind the sponge and reads as a hard pink halo on
+       the right. Steps 2-6 dropped it for the same reason. -->
+  <main class="stage">
+    <img class="swirl swirl-back" src="assets/swirl.webp" alt="" aria-hidden="true">
+    <img class="layer layer-hand" src="assets/landing-hand.webp" alt="Gloved hand squeezing a soapy sponge">
+    <img class="swirl swirl-front" src="assets/swirl.webp" alt="" aria-hidden="true">
+  </main>
 
-  <div class="content" style="--ctop:18%;--cw:50%;">
+  <header class="topbar">
+    <a class="logo anim" style="--d:0s" href="index.html" aria-label="Madame home"><img class="logo-mark"
+        src="assets/madame-logo.png" alt="Madame"></a>
+  </header>
 
-    <h1 class="headline anim" style="--d:.1s">Ready to <span class="mark underline"><span class="script">r</span>oll<svg viewBox="0 0 200 26" preserveAspectRatio="none"><path class="accent" style="--len:240" d="M5 11 C 55 3, 150 3, 196 9"/><path class="accent blue" style="--len:240;--draw-delay:1.55s" d="M6 21 C 60 14, 150 14, 195 18"/></svg></span>?</h1>
-    <div class="panel anim" style="--d:.28s">
-      <h3>Sign in to get started</h3>
-      <p>Create an account or log in to book your first clean.</p>
-      <div class="field line">Phone number</div>
-      <div style="height:.7rem"></div>
-      <a class="btn" style="background:#fff;color:var(--blue)" href="step-2.html">Continue</a>
-    </div>
+  <div class="content content--fill">
+    <!-- ONE pink stroke, per the design. This used to also draw a blue stroke
+         underneath it, which the design doesn't have. -->
+    <h1 class="headline anim" style="--d:.1s">Ready to <span class="mark underline"><span
+          class="script">r</span>oll<svg viewBox="0 0 200 26" preserveAspectRatio="none">
+          <path class="accent" style="--len:240" d="M5 11 C 55 3, 150 3, 196 9" />
+        </svg></span>?</h1>
+
+    <!-- Styled, not wired: no link is actually sent. The design shows the
+         post-submit confirmation, so it is built here and gated on data-sent —
+         flip that attribute to see the sent state.
+
+         The design has no Continue button (you'd really arrive at step 2 from
+         the emailed link), which would leave step-2.html unreachable in a
+         click-through. So the form GETs its way there: pressing Enter in the
+         field walks the flow, with no button and no JS. -->
+    <form class="panel panel--center anim" style="--d:.28s" action="step-2.html" method="get" data-sent="false">
+      <p class="panel-lede">Sign in or create an account to get started.</p>
+
+      <!-- A real toggle with NO JavaScript: two radios drive everything via
+           :has() below. Radios (not buttons) because this is one choice out of
+           two, which is exactly what a radio group means — so arrow keys, labels
+           and screen readers all work for free, and it still works if app.js
+           never loads. The radios themselves are hidden; the labels are the UI. -->
+      <div class="authswap" role="radiogroup" aria-label="Sign in with">
+        <input class="visually-hidden" type="radio" name="mode" id="mode-phone" data-focuses="#signin-phone" checked>
+        <label class="authswap-opt" for="mode-phone">Phone</label>
+        <input class="visually-hidden" type="radio" name="mode" id="mode-email" data-focuses="#signin-email">
+        <label class="authswap-opt" for="mode-email">Email</label>
+      </div>
+
+      <!-- Both fields exist and are stacked; the inactive one is visibility:hidden
+           so it leaves the tab order rather than lurking in it. Two inputs rather
+           than one, because the type is the point: tel gets a phone keypad, email
+           gets an email keyboard. That can't be swapped in CSS. -->
+      <div class="authfields">
+        <label class="visually-hidden" for="signin-phone">Phone number</label>
+        <input class="authfield authfield--phone" id="signin-phone" name="phone" type="tel" autocomplete="tel">
+        <label class="visually-hidden" for="signin-email">Email address</label>
+        <input class="authfield authfield--email" id="signin-email" name="email" type="email" autocomplete="email">
+      </div>
+
+      <p class="authnote">We sent a login link to —<br>Check your inbox and click the link to sign in.</p>
+      <a class="authalt" href="#">Use a different email</a>
+    </form>
   </div>
-</main>
-<script src="app.js"></script>
+
+  <script src="app.js"></script>
 </body>
+
 </html>

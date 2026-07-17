@@ -1,30 +1,93 @@
 <!doctype html>
 <html lang="en">
+
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Madame — Which day works</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>M</text></svg>">
-<link rel="stylesheet" href="dist/styles.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Madame — Which day works</title>
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>M</text></svg>">
+  <link rel="stylesheet" href="dist/styles.css">
+  <link rel="stylesheet" href="css/pages/step-3.css">
+  <!-- Marks JS as available BEFORE first paint, so the entrance animation
+       can hide the copy. Without this the page would render blank if app.js
+       ever failed to load. Must stay inline and in <head>. -->
+  <script>document.documentElement.classList.add("js")</script>
 </head>
-<body>
-<main class="stage" style="--hand-l:52.051%;--hand-t:5.782%;--hand-w:54.128%;" data-page="step-3">
-  <img class="layer layer-cream" src="assets/cream.webp" alt="" aria-hidden="true">
-  
-  <img class="layer layer-swirl" src="assets/swirl.webp" alt="" aria-hidden="true">
-  <img class="layer layer-hand"  src="assets/step3-hand.webp" alt="Gloved hand holding a spray bottle">
-  <img class="layer layer-swirl-front" src="assets/swirl.webp" alt="" aria-hidden="true">
 
-  <a class="logo anim" style="--d:0s" href="index.html" aria-label="Madame home"><svg class="logo-wave" viewBox="0 0 34 16" aria-hidden="true"><path d="M1 11 C 3 3, 7 3, 9 8 C 11 13, 15 13, 17 8 C 19 3, 23 3, 25 8 C 27 12, 31 11, 33 6" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="logo-word">madame</span></a>
-  
+<body data-page="step-3">
+  <main class="stage">
+    <img class="swirl swirl-back" src="assets/swirl.webp" alt="" aria-hidden="true">
+    <img class="layer layer-hand" src="assets/step3-hand.webp" alt="Gloved hand holding a spray bottle">
+    <img class="swirl swirl-front" src="assets/swirl.webp" alt="" aria-hidden="true">
+  </main>
 
-  <div class="content" style="--ctop:14%;--cw:50%;">
+  <header class="topbar">
+    <a class="logo anim" style="--d:0s" href="index.html" aria-label="Madame home"><img class="logo-mark"
+        src="assets/madame-logo.png" alt="Madame"></a>
+  </header>
 
-    <h1 class="headline anim" style="--d:.1s">which day <span class="mark underline"><span class="script">w</span>orks<svg viewBox="0 0 200 22" preserveAspectRatio="none"><path class="accent" style="--len:240" d="M5 14 C 55 5, 150 5, 196 12"/></svg></span>?</h1>
-    <div class="outline-box anim" style="--d:.28s">calendar</div>
-    <a class="btn anim" style="--d:.4s" href="step-4.html">Continue</a>
+  <div class="content content--fill">
+    <!-- The cursive letters are the "h" of which and the "r" of works — the
+         customer circled exactly those in red in Design/instructions.docx.
+         Everything else is Neulis Sans. This is per-letter and not guessable:
+         follow the design file, don't infer it from the word. -->
+    <h1 class="headline anim" style="--d:.1s">whic<span class="script">h</span> day <span
+        class="mark underline">wo<span class="script">r</span>ks<svg viewBox="0 0 200 22" preserveAspectRatio="none">
+          <path class="accent" style="--len:240" d="M5 14 C 55 5, 150 5, 196 12" />
+        </svg></span>?</h1>
+
+    <!-- Styled, not wired: the days are real buttons, but nothing is selected in
+         JS yet — one is marked is-on to show the picked state. -->
+    <div class="panel anim" style="--d:.28s">
+      <h2>July 2026</h2>
+
+      <div class="cal">
+        <div class="cal-dow" aria-hidden="true">
+          <span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span>
+        </div>
+        <div class="cal-grid" role="group" aria-label="Choose a day in July 2026">
+          <button class="choice" type="button" disabled>29</button>
+          <button class="choice" type="button" disabled>30</button>
+          <button class="choice" type="button">1</button>
+          <button class="choice" type="button">2</button>
+          <button class="choice" type="button">3</button>
+          <button class="choice" type="button">4</button>
+          <button class="choice" type="button">5</button>
+          <button class="choice" type="button">6</button>
+          <button class="choice" type="button">7</button>
+          <button class="choice" type="button">8</button>
+          <button class="choice" type="button">9</button>
+          <button class="choice" type="button">10</button>
+          <button class="choice" type="button">11</button>
+          <button class="choice" type="button">12</button>
+          <button class="choice" type="button">13</button>
+          <button class="choice" type="button">14</button>
+          <button class="choice" type="button">15</button>
+          <button class="choice" type="button">16</button>
+          <button class="choice is-on" type="button" aria-pressed="true">17</button>
+          <button class="choice" type="button">18</button>
+          <button class="choice" type="button">19</button>
+          <button class="choice" type="button">20</button>
+          <button class="choice" type="button">21</button>
+          <button class="choice" type="button">22</button>
+          <button class="choice" type="button">23</button>
+          <button class="choice" type="button">24</button>
+          <button class="choice" type="button">25</button>
+          <button class="choice" type="button">26</button>
+          <button class="choice" type="button">27</button>
+          <button class="choice" type="button">28</button>
+          <button class="choice" type="button">29</button>
+          <button class="choice" type="button">30</button>
+          <button class="choice" type="button">31</button>
+        </div>
+      </div>
+
+      <a class="btn" href="step-4.html">Continue</a>
+    </div>
   </div>
-</main>
-<script src="app.js"></script>
+
+  <script src="app.js"></script>
 </body>
+
 </html>

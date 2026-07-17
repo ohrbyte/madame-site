@@ -4,6 +4,51 @@
   if (document.readyState !== "loading") ready();
   else document.addEventListener("DOMContentLoaded", ready);
 
+  /* Choosing an option puts the cursor in the field it reveals, so you can just
+     keep typing instead of hunting for the box you asked for.
+     Generic on purpose: any control that swaps something in can say which field
+     it hands over to, via data-focuses="#id". The swap itself is pure CSS, so
+     this is an enhancement — without it the toggle still works, it just doesn't
+     move the cursor for you. */
+  document.querySelectorAll("[data-focuses]").forEach((el) => {
+    el.addEventListener("change", () => {
+      if (el.checked === false) return;
+      const target = document.querySelector(el.dataset.focuses);
+      if (target) target.focus();
+    });
+  });
+
+  /* Live map preview (step 2). The element already carries a full Maps URL — we
+     only ever swap one query parameter — so the API key stays in the markup and
+     this stays a dumb string edit.
+       data-map-src   : selector for the field that drives it
+       data-map-param : which parameter carries the place (Static uses `center`,
+                        the Embed API used `q`)
+     Debounced, because every change is a fresh image request: typing an address
+     should cost one request when you stop, not one per keystroke. Progressive —
+     with no JS the map just shows whatever the markup shipped with. */
+  document.querySelectorAll("[data-map-src]").forEach((el) => {
+    const field = document.querySelector(el.dataset.mapSrc);
+    if (!field) return;
+    const param = el.dataset.mapParam || "center";
+    const url = new URL(el.src);
+    let timer = null;
+    const update = () => {
+      const q = field.value.trim();
+      if (!q || q === url.searchParams.get(param)) return;
+      url.searchParams.set(param, q);
+      el.src = url.toString();
+    };
+    field.addEventListener("input", () => {
+      clearTimeout(timer);
+      timer = setTimeout(update, 700);
+    });
+    field.addEventListener("change", () => {
+      clearTimeout(timer);
+      update();
+    });
+  });
+
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const canHover = window.matchMedia("(hover: hover)").matches;
   if (reduce || !canHover) return;

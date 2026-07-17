@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Madame — Terms &amp; Conditions</title>
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>M</text></svg>">
+  <link rel="stylesheet" href="dist/styles.css">
+  <link rel="stylesheet" href="css/pages/terms.css">
+  <!-- Marks JS as available BEFORE first paint, so the entrance animation
+       can hide the copy. Without this the page would render blank if app.js
+       ever failed to load. Must stay inline and in <head>. -->
+  <script>document.documentElement.classList.add("js")</script>
+</head>
+
+<body data-page="terms">
+  <!-- Info pages: swirl only. See about.html for why there's no hand, no front
+       pass and no glow. Here the presence of .doc also pins the stage as a fixed
+       backdrop so this copy can scroll over it (see the DOC block in input.css). -->
+  <main class="stage">
+    <img class="swirl swirl-back" src="assets/swirl.webp" alt="" aria-hidden="true">
+  </main>
+
+  <header class="topbar">
+    <a class="logo anim" style="--d:0s" href="index.html" aria-label="Madame home"><img class="logo-mark"
+        src="assets/madame-logo.png" alt="Madame"></a>
+  </header>
+
+  <article class="doc">
+    <h1 class="headline anim" style="--d:.1s">Terms &amp; <span class="mark underline"><span
+          class="script">conditions</span><svg viewBox="0 0 200 22" preserveAspectRatio="none">
+          <path class="accent" style="--len:210;stroke-width:4.7" d="M2 7 L90 7 L198 19" />
+        </svg></span>.</h1>
+    <p class="doc-meta anim" style="--d:.2s">Last updated 16 July 2026</p>
+
+    <h2>1. Who we are</h2>
+    <p>Madame is a cleaning booking service. When you book through this site you are entering an agreement
+      with us to arrange a cleaner on your behalf. These terms set out what you can expect from us and what
+      we need from you.</p>
+
+    <h2>2. Booking a clean</h2>
+    <p>A booking is confirmed once you receive a confirmation from us. Until then, the slot you selected is
+      held but not guaranteed. We will always tell you the price before you confirm, and that price will not
+      change afterwards unless the job you described differs materially from the job we find.</p>
+
+    <h2>3. Changes and cancellations</h2>
+    <p>You can reschedule or cancel free of charge up to 24 hours before your clean. Inside 24 hours we may
+      charge up to 50% of the booking value, because your cleaner has already set that time aside. If we
+      need to cancel on you, you pay nothing and we will find you another slot as a priority.</p>
+
+    <h2>4. Access</h2>
+    <p>We need to be able to get in. If your cleaner cannot access the property at the agreed time and we
+      cannot reach you within 30 minutes, the visit is treated as a late cancellation.</p>
+
+    <h2>5. Payment</h2>
+    <p>Payment is taken after the clean is complete. Gift vouchers are redeemed at the time of booking and
+      are valid for 12 months from purchase.</p>
+
+    <h2>6. Our cleaners</h2>
+    <p>Every cleaner is interviewed, referenced and insured. They are not your employees, and we ask that
+      you do not offer them work directly outside the platform during your time with us or for six months
+      afterwards.</p>
+
+    <h2>7. If something goes wrong</h2>
+    <p>Tell us within 48 hours and we will put it right — usually by sending someone back at no cost. If
+      something is damaged, we are insured, and we will handle the claim with you rather than leaving you to
+      it.</p>
+
+    <h2>8. Your data</h2>
+    <p>We keep what we need to run your bookings and nothing more. We do not sell it. You can ask us to
+      delete it at any time by writing to <a class="inkline inkline--rest" href="mailto:hello@madame.com">hello@madame.com</a>.</p>
+
+    <h2>9. Getting in touch</h2>
+    <p>Questions about any of this are welcome and go to a real person:
+      <a class="inkline inkline--rest" href="mailto:hello@madame.com">hello@madame.com</a>.
+    </p>
+  </article>
+
+  <script src="app.js"></script>
+</body>
+
+</html>

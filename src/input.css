@@ -164,10 +164,134 @@
   /* The PSD canvas aspect ratio (3900 x 1816) */
   --art-w: 3900;
   --art-h: 1816;
+
+  /* =========================================================
+     THE DIALS — every number that positions the artwork.
+     =========================================================
+     THE ONE RULE: page-facing dials are declared HERE and nowhere else.
+     .stage may only DERIVE from them (--swirl-right, --front-band, ...).
+
+     Why: a custom property declared on .stage beats one inherited from
+     <body>, because an element's own declaration always wins over an
+     inherited value. So the moment a dial below is also declared on
+     .stage, every css/pages/*.css override stops working — silently, with
+     no error. If you need a new dial, add it here, not there.
+     ========================================================= */
+
+  /* ---- GLOBAL — the swirl is the SAME artwork in the SAME place on every
+     page (it always was: this used to be .stage's --swirl-l/t/w). Change
+     these once and all pages move together. --------------------------------- */
+
+  /* MASTER anchor. The hand and both swirl passes hang off it, each keeping
+     its own offset (--hand-nudge / --swirl-nudge), so editing this slides
+     every page's whole composition horizontally with the weave still
+     registered. <-- EDIT THIS to move all the art, everywhere. */
+  --art-right: -23.3cqw;
+  --swirl-nudge: 16.3cqw;
+  /* the swirl's fixed offset from the anchor (≡ the old left: 13.4cqw) */
+
+  /* Swirl SIZE — two independent axes.
+     --swirl-h-n     : VERTICAL size only (% of canvas height).
+     --swirl-stretch : HORIZONTAL size only. 1 = the asset's natural 1.403
+                       aspect; >1 widens the bands sideways WITHOUT changing
+                       their height. The swirl is right-anchored, so the extra
+                       width grows LEFTWARD — the hand never moves.
+     Kept UNITLESS so the weave math can divide by them (calc() refuses to
+     divide a length by a length); *1cqh puts the unit back on in .stage.
+
+     DO NOT "correct" these against the PSD. The swirl is deliberately zoomed
+     out from its registered ~154% and widened, and it is signed off exactly as
+     it is on the landing. It is the same on every page by design. If a page
+     looks wrong, the dial you want is that page's --hand-* or --stripe-*. */
+  --swirl-h-n: 126;
+  --swirl-stretch: 1.1;
+
+  /* Swirl VERTICAL position. --swirl-cy-base is the registered centre (don't
+     touch); --swirl-drop nudges the whole swirl DOWN (+) / UP (-).
+     The weave survives this because --front-band masks the IMAGE, so the mask
+     travels with the swirl and keeps the same strand selected. */
+  --swirl-cy-base: 54%;
+  --swirl-drop: 0cqh;
+
+  /* The top band dissolves as it rises, so it flows up into the cream instead
+     of ending on the asset's flat top edge. */
+  --swirl-fade: linear-gradient(to top, #000 66%, transparent 88%);
+
+  /* Weave CONSTANTS — properties of swirl.webp itself, measured once offline
+     (scripts/_weavefit.mjs). They describe the ASSET, so they are global and
+     never change when you turn a dial. Everything downstream is math CSS does
+     itself, which is why the mask RE-FITS ITSELF when --swirl-stretch changes
+     instead of quietly cutting the ribbon. */
+  --strand-mid: 63.41;
+  /* strand centre (swirl-%) at the swirl's mid-x */
+  --strand-thick: 9.7;
+  /* strand thickness (swirl-%) */
+  --strand-run: 0.2225;
+  /* strand rise/run in the asset's own aspect */
+  --strand-slop: 0.7;
+  /* extra width so the mask edges land in the transparent GAPS between
+     strands, never on the ribbon itself (landing on it = a hard straight cut) */
+
+  /* ---- PER PAGE — the only things that differ. Overridden on <body> by
+     css/pages/<page>.css. The values here are the landing's. ---------------- */
+
+  /* WHERE THE HAND SITS. Each page's hand is a different photo with the wrist
+     in a different place, so it gets its own offset from the shared anchor —
+     exactly like --swirl-nudge, which is why --art-right still moves
+     everything together. */
+  --hand-nudge: 0cqw;
+  --hand-top: 0.8cqh;
+  --hand-h: 148.4cqh;
+
+  /* THE GLOW. It exists to light this page's hand, so it travels with the hand
+     rather than with the swirl. Pages without a hand omit the img entirely —
+     with nothing in front of it, the PSD's pink blob reads as a hard blob. */
+  --glow-right: 0cqw;
+  --glow-top: 4cqh;
+  --glow-w: 46cqw;
+
+  /* THE STRIPE — which bit of ribbon is promoted IN FRONT of this page's hand.
+     Added ON TOP of the computed weave fit above; all 0 = use the fit as-is.
+     Tune these by eye: put class="show-stripe" on <body> and the promoted
+     ribbon turns green. Nothing else needs touching. */
+  --stripe-down: 0;
+  /* slide the stripe DOWN (+) or UP (-). try: 1, 2, -1, -2 (1 ≈ 1% of travel) */
+  --stripe-grow: 0;
+  /* make the stripe TALLER (+) or SHORTER (-) — grabs more/less ribbon */
+  --stripe-lean: 0deg;
+  /* extra TILT. (+) lifts the right end, (-) drops it. try: 1deg, -1deg */
+  --stripe-soft: 0.4;
+  /* edge softness. 0 = razor sharp, 1-2 = feathered */
+
+  /* COPY BLOCK — where this page's headline/panel column sits. --ctop/--cleft/
+     --cw are % of the VIEWPORT (the chrome is pinned to the viewport, not the
+     canvas). --cgap is the space between the items stacked in that column;
+     the design leaves ~76% of the headline's cap-height between the pill and
+     the headline, where the old default only gave ~51% (scripts/_pillfit.mjs).
+
+     --cgap lives HERE, not on body>.content, for the reason in the note at the
+     top of this block: declared on .content it would beat every per-page value
+     inherited from <body>, and step 2's gap silently stayed at the landing's. */
+  --cgap: clamp(.9rem, 1.9vw, 2.1rem);
 }
 
 * {
   box-sizing: border-box;
+}
+
+/* Hidden from sight, kept for screen readers. For fields the design gives no
+   visible label — the copy above says what to type — but the input still has to
+   announce itself to anyone not looking at it. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }
 
 html,
@@ -199,22 +323,71 @@ body {
   overflow-x: hidden;
 }
 
-/* ---------- The stage: holds the delayered layers ---------- */
+/* =========================================================
+   THE STAGE — the artwork canvas, on every page.
+
+   Fills the viewport HEIGHT (never letterboxes). It keeps the design's fixed
+   aspect, so on screens taller than 2.147 it is WIDER than the viewport and
+   bleeds off the LEFT; anchored right so the full glove + swirl wrap-around
+   stay in frame. The design's top and bottom edges sit on the viewport's, so
+   nothing is cut short. The chrome (logo, copy) is pinned to the viewport
+   OUTSIDE this canvas, so nothing important is lost to the bleed.
+
+   container-type:size makes the whole composition scale with the CANVAS via
+   cqw/cqh, so proportions match the design at every screen size. That is the
+   single reason this holds up when resized.
+
+   ---------------------------------------------------------
+   EVERYTHING BELOW IS DERIVED. Do not declare a page-facing dial here — see
+   the note in :root. Anything named here shadows the per-page CSS.
+   ========================================================= */
 .stage {
   position: relative;
-  width: min(100vw, calc(100svh * (var(--art-w) / var(--art-h))));
-  aspect-ratio: var(--art-w) / var(--art-h);
+  width: calc(100dvh * (var(--art-w) / var(--art-h)));
+  height: 100dvh;
+  max-width: none;
+  justify-self: end;
+  container-type: size;
   overflow: hidden;
-  background: var(--cream);
   isolation: isolate;
+  /* transparent so the body's full-bleed cream shows through behind the art */
+  background: transparent;
 
-  /* swirl is the SAME artwork + position on every page (PSD Layer 7) */
-  --swirl-l: 4.744%;
-  --swirl-t: -22.467%;
-  --swirl-w: 100.256%;
-  /* which slice of the swirl is pulled IN FRONT of the forearm (the weave) */
-  --front-band: linear-gradient(to bottom,
-      transparent 40%, #000 46%, #000 70%, transparent 76%);
+  /* --- the two shared anchors ------------------------------------------- */
+  --hand-right: calc(var(--art-right) + var(--hand-nudge));
+  --swirl-right: calc(var(--art-right) + var(--swirl-nudge));
+  --swirl-cy: calc(var(--swirl-cy-base) + var(--swirl-drop));
+
+  /* --- swirl size: --swirl-h-n/--swirl-stretch with the units put back --- */
+  --sw-n: calc(var(--swirl-h-n) * 1.403 * var(--swirl-stretch));
+  --swirl-h: calc(var(--swirl-h-n) * 1cqh);
+  --sw: calc(var(--sw-n) * 1cqh);
+
+  /* --- the weave, derived rather than hand-fitted ------------------------ */
+  /* tilt depends ONLY on the stretch — the vertical size cancels out */
+  --weave-tilt: atan(var(--strand-run) / var(--swirl-stretch));
+  --weave-angle: calc(180deg - var(--weave-tilt) - var(--stripe-lean));
+  /* gradient-line length, unitless (in cqh): |W*sin| + |H*cos| */
+  --weave-len: calc(var(--sw-n) * sin(var(--weave-tilt)) + var(--swirl-h-n) * cos(var(--weave-tilt)));
+  /* strand centre + half-thickness, projected onto the tilted gradient axis */
+  --weave-mid: calc(50 + (var(--strand-mid) - 50) / 100 * var(--swirl-h-n) * cos(var(--weave-tilt)) / var(--weave-len) * 100 + var(--stripe-down));
+  --weave-half: calc((var(--strand-thick) + var(--strand-slop)) / 100 * var(--swirl-h-n) * cos(var(--weave-tilt)) / var(--weave-len) * 100 / 2 + var(--stripe-grow));
+  --front-band: linear-gradient(var(--weave-angle),
+      transparent calc((var(--weave-mid) - var(--weave-half) - var(--stripe-soft)) * 1%),
+      #000 calc((var(--weave-mid) - var(--weave-half)) * 1%),
+      #000 calc((var(--weave-mid) + var(--weave-half)) * 1%),
+      transparent calc((var(--weave-mid) + var(--weave-half) + var(--stripe-soft)) * 1%));
+}
+
+/* =========================================================
+   SEE THE STRIPE — add class="show-stripe" to <body> and the front pass turns
+   green. Whatever is GREEN is the bit of ribbon being promoted in front of the
+   hand. That's the fastest way to tell if a stray sliver is the stripe catching
+   ribbon you didn't mean, and it's how you fit --stripe-* on a new page.
+   Remove the class when done.
+   ========================================================= */
+body.show-stripe .swirl-front {
+  filter: hue-rotate(125deg) saturate(4);
 }
 
 .layer {
@@ -224,57 +397,83 @@ body {
   -webkit-user-drag: none;
 }
 
-/* z0 — cream canvas, full bleed */
-.layer-cream {
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  z-index: 0;
-}
+/* The z-stack, low to high:
+     z1  .layer-glow    warm glow behind the sponge
+     z1  .swirl-back    the ribbon, BEHIND the hand
+     z2  .layer-hand    the hand (the one animated layer)
+     z3  .swirl-front   the SAME ribbon again, masked to one strand, IN FRONT
+   Back and front are the same asset at identical placement, so they coincide
+   as ONE ribbon that happens to weave over the wrist — never a double swirl. */
 
-/* z1 — soft warm glow (only on pages that have it). The PSD glow is a pink
-   blob meant for a blend mode; screen + low opacity turns it into soft light. */
+/* warm glow behind the sponge (upper-right), lifts the cream toward near-white.
+   The PSD glow is a pink blob meant for a blend mode; screen + low opacity
+   turns it into soft light. */
 .layer-glow {
-  left: var(--glow-l);
-  top: var(--glow-t);
+  left: auto;
+  right: var(--glow-right);
+  top: var(--glow-top);
   width: var(--glow-w);
   height: auto;
   z-index: 1;
   mix-blend-mode: screen;
-  opacity: .55;
+  opacity: .7;
 }
 
-/* z2 — the swirl, full, BEHIND the hand */
-.layer-swirl {
-  left: var(--swirl-l);
-  top: var(--swirl-t);
-  width: var(--swirl-w);
-  height: auto;
-  z-index: 2;
-}
-
-/* z3 — the HAND, the one animated layer, at its exact PSD coordinates */
+/* The hand sits between the two swirl passes. Size + position are REGISTERED
+   to the design via a landmark (scripts/_fit_hand.mjs) — for the landing, the
+   coral sponge: its top-left lands at ~50%/6.5% of the canvas and it spans
+   ~25% of the width, which needs the asset ~148cqh tall, running off the
+   bottom-right corner just like the design's forearm.
+   Placement comes from the per-page dials; every page's hand is different. */
 .layer-hand {
-  left: var(--hand-l);
-  top: var(--hand-t);
-  width: var(--hand-w);
-  height: auto;
-  z-index: 3;
+  left: auto;
+  /* the shared anchor + this page's own offset (see :root) */
+  right: var(--hand-right);
+  top: var(--hand-top);
+  width: auto;
+  height: var(--hand-h);
+  z-index: 2;
   transform: translate3d(0, 0, 0);
   transition: transform .45s cubic-bezier(.22, .61, .36, 1);
   will-change: transform;
 }
 
-/* z4 — the SAME swirl again, masked to the crossing band so one strand
-   weaves IN FRONT of the forearm. Same src + position as .layer-swirl,
-   so the two passes coincide exactly (no double swirl). */
-.layer-swirl-front {
-  left: var(--swirl-l);
-  top: var(--swirl-t);
-  width: var(--swirl-w);
-  height: auto;
-  z-index: 4;
+/* both swirl passes share identical placement, so they coincide as one ribbon */
+.swirl {
+  position: absolute;
+  /* pinned to the SHARED anchor (see --art-right), same as the hand */
+  left: auto;
+  right: var(--swirl-right);
+  top: var(--swirl-cy);
+  transform: translateY(-50%);
+  /* height is EXPLICIT (not auto) so width no longer drives it: the two axes
+     are independent and --swirl-stretch can widen the bands on its own. */
+  width: var(--sw);
+  height: var(--swirl-h);
+  pointer-events: none;
+  user-select: none;
+}
+
+/* behind the hand */
+.swirl-back {
+  z-index: 1;
+  opacity: .9;
+  /* the top band trails up and dissolves into the cream (no sharp asset edge) */
+  -webkit-mask-image: var(--swirl-fade);
+  mask-image: var(--swirl-fade);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+/* front pass: same swirl, masked to the wrist band so a single strand weaves
+   in front of the forearm. Elsewhere the band coincides with the back pass
+   (same asset, same place) so it reads as one continuous ribbon — never
+   doubled. --front-band picks WHICH strand; nudge it per page with --stripe-*.
+   A page whose hand no strand crosses simply omits the .swirl-front img. */
+.swirl-front {
+  z-index: 3;
+  opacity: 1;
+  /* opaque so the crossing strand reads solid over the suds, like the design */
   -webkit-mask-image: var(--front-band);
   mask-image: var(--front-band);
   -webkit-mask-repeat: no-repeat;
@@ -345,27 +544,23 @@ body {
   height: auto;
 }
 
-/* top-right pill (appears on later steps) */
-.topcta {
-  position: absolute;
-  top: max(1.1rem, 5%);
-  right: max(1.25rem, 2.6%);
-  z-index: 40;
-}
-
-/* On the landing hero the chrome lives OUTSIDE the fill-height canvas (as a direct
+/* The chrome (logo, copy, footer) lives OUTSIDE the fill-height canvas (as a direct
    child of <body>) so it stays pinned to the viewport instead of bleeding off with
    the canvas.
 
-   The logo and the secondary pill share ONE fixed header row: align-items:center
+   The logo and the utility nav share ONE fixed header row: align-items:center
    puts them on the same centre line at every screen size. They used to be two
    independently-placed corners (7.5% of viewport height vs 3.5vh), which resolved
-   to different heights and drifted further apart as each scaled by its own clamp. */
+   to different heights and drifted further apart as each scaled by its own clamp.
+
+   The LOGO is on every page. The utility nav, the footer and the eyebrow pill are
+   the landing's alone — the components below are shared, but only index.html's
+   markup uses them. A logo-only topbar simply has one flex item. */
 body>.topbar {
   position: fixed;
   /* Insets measured off the design (scripts/_logopad.mjs): the logo ink sits
      5.91% of the width in and 8.60% of the height down. The left inset is
-     MIRRORED on the right so the pill balances the logo instead of hugging the
+     MIRRORED on the right so the nav balances the logo instead of hugging the
      corner on its own. */
   top: max(1.1rem, 8.6%);
   left: max(1.25rem, 5.9%);
@@ -384,9 +579,8 @@ body>.topbar>* {
   pointer-events: auto;
 }
 
-/* inside the row they are flex items, not absolutely-placed corners */
-body>.topbar .logo,
-body>.topbar .topcta {
+/* inside the row it is a flex item, not an absolutely-placed corner */
+body>.topbar .logo {
   position: static;
   inset: auto;
 }
@@ -397,9 +591,23 @@ body>.topbar .topcta {
 body>.content {
   position: fixed;
   z-index: 45;
-  /* the design leaves ~76% of the headline's cap-height between the pill and the
-     headline; the default gap only gave ~51% (scripts/_pillfit.mjs) */
-  --cgap: clamp(.9rem, 1.9vw, 2.1rem);
+  /* NB: no --cgap here. It is a page-facing dial and lives in :root — declared
+     on this element it would shadow every css/pages/*.css override. */
+}
+
+/* SELF-FITTING variant, for pages whose copy isn't a fitted poster headline.
+   The landing pins its block at a measured --ctop because its headline is a known
+   two lines against known artwork. An info page carries whatever copy it carries,
+   so a measured top either collides with the logo or runs the panel off the foot
+   of a short screen — and centring alone doesn't help, because it centres through
+   the logo. This takes the full column instead and centres the block in the space
+   BELOW the logo, so it fits itself at any copy length and any aspect.
+   --ctop is ignored on these pages; --cleft/--cw still apply. */
+body>.content--fill {
+  top: 0;
+  height: 100dvh;
+  justify-content: center;
+  padding-block: clamp(6.5rem, 17vh, 9rem) clamp(2rem, 7vh, 4rem);
 }
 
 /* ---------- Headlines ---------- */
@@ -454,12 +662,37 @@ body>.content {
   height: .4em;
 }
 
+/* The circle is drawn at 132% of the word's width, centred — so it spills ~16%
+   of that width beyond each side of the span. The span itself is only as wide as
+   the word, so that spill lands ON the neighbouring words: the ring cut straight
+   through the "i" of "in a click", the "?" after "time" and the "s" of "set".
+   The margin buys the ring its own room. It is not part of .mark.circle>svg
+   because the box, not the drawing, is what has to reserve the space.
+
+   .16em, measured: the design leaves 8px between the ring and the next word at
+   its 2048px canvas — just clear, not a gap. .35em was enough to stop the
+   collision but pushed "in a click." nearly 3x too far away, which read as a
+   hole in the headline. Only the spill needs covering, not more. */
+.mark.circle {
+  margin: 0 .16em;
+}
+
+/* ...but not on the left when the circled word opens the line, or the whole
+   headline would sit indented from everything below it. The ring still oversails
+   the text edge there, which is what a hand-drawn circle should do. */
+.mark.circle:first-child {
+  margin-left: 0;
+}
+
 .mark.circle>svg {
   top: 50%;
-  translate: 0 -50%;
   left: 50%;
   width: 132%;
   height: 168%;
+  /* NB: `translate` and `transform` are separate properties and COMPOSE. This
+     rule used to carry `translate: 0 -50%` as well, which meant the ring was
+     pulled up by 50% of its height TWICE — a full 100% — and sat a line above
+     the word it was meant to circle. One centring shift, not two. */
   transform: translate(-50%, -50%);
 }
 
@@ -621,48 +854,102 @@ body>.botbar>* {
   opacity: 1;
 }
 
-/* the span carries the underline so it stays tight to the TEXT while the <a> is
-   free to grow into a 44px touch target on coarse pointers */
-.ulink>span {
-  position: relative;
-  display: inline-block;
-}
-
-.ulink>span::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -.45em;
-  height: .4em;
-  /* the headline's wobbly hand-drawn accent, in --pink #D93A92 */
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 12' preserveAspectRatio='none'%3E%3Cpath d='M3 8.5 C 55 2.5, 148 2.5, 197 6' fill='none' stroke='%23D93A92' stroke-width='3.4' stroke-linecap='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-size: 100% 100%;
-  transform: scaleX(0);
-  transform-origin: left center;
-  transition: transform .3s cubic-bezier(.2, .7, .2, 1);
-  pointer-events: none;
-}
-
-.ulink:hover>span::after,
-.ulink:focus-visible>span::after {
-  transform: scaleX(1);
-}
-
 .ulink:focus-visible {
   outline: 3px solid var(--blue);
   outline-offset: 5px;
   border-radius: 3px;
 }
 
+/* =========================================================
+   INKLINE — the hand-drawn underline that wipes in on hover.
+   THE site's link gesture: the same wobbly stroke that underlines "lady" in the
+   headline, so a link and an accent are visibly the same hand.
+
+   This lived inside .ulink, which meant only the landing's nav could have it and
+   every other page invented its own thing (plain text-decoration here, a
+   border-bottom there). It is a component now, so any link on any page wears the
+   same gesture — which is the whole point of extracting the reusable bits.
+
+   Wear it on the element that hugs the TEXT, not on a padded <a>: the underline
+   is drawn to the box's width, so a link stretched to a 44px touch target would
+   stretch the stroke with it. That's why .ulink puts it on an inner <span>.
+   ========================================================= */
+.inkline {
+  position: relative;
+  display: inline-block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.inkline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -.28em;
+  height: .4em;
+  /* The headline's wobbly hand-drawn accent. It is a MASK, not a background
+     image, so the colour comes from --ink-underline (defaulting to --pink) like
+     every other accent on the site. As a background-image the stroke colour had
+     to be baked into the data-URI (it was a literal %23D93A92), so this one mark
+     silently kept the old colour whenever the palette changed — exactly the kind
+     of thing that makes "change the design in one place" quietly untrue. */
+  background-color: var(--ink-underline, var(--pink));
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 12' preserveAspectRatio='none'%3E%3Cpath d='M3 8.5 C 55 2.5, 148 2.5, 197 6' fill='none' stroke='%23000' stroke-width='3.4' stroke-linecap='round'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 12' preserveAspectRatio='none'%3E%3Cpath d='M3 8.5 C 55 2.5, 148 2.5, 197 6' fill='none' stroke='%23000' stroke-width='3.4' stroke-linecap='round'/%3E%3C/svg%3E");
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform .3s cubic-bezier(.2, .7, .2, 1);
+  pointer-events: none;
+}
+
+.inkline:hover::after,
+.inkline:focus-visible::after,
+a:hover>.inkline::after,
+a:focus-visible>.inkline::after {
+  transform: scaleX(1);
+}
+
+/* ALREADY DRAWN, and it wipes the other way on hover.
+   For links in running text and for links the design draws underlined at rest:
+   a body-copy link that only reveals itself on hover isn't discoverable, and is
+   invisible to anyone who can't hover at all. Same stroke, same animation — it
+   just starts on and retracts, so the gesture still reads on interaction. */
+.inkline--rest::after {
+  transform: scaleX(1);
+}
+
+.inkline--rest:hover::after,
+.inkline--rest:focus-visible::after,
+a:hover>.inkline--rest::after,
+a:focus-visible>.inkline--rest::after {
+  transform: scaleX(0);
+  transform-origin: right center;
+}
+
+/* the nav's stroke sits lower — it clears a full-height flex row, not a text run */
+.ulink>.inkline::after {
+  bottom: -.45em;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .ulink>span::after {
+  .inkline::after {
     transition: none;
   }
 }
 
-/* ---------- Form-ish blocks (static, visual only) ---------- */
+/* =========================================================
+   THE ACTION PANEL — the blue card that carries each step's actual task.
+   The panel CHROME is shared; what goes inside it is the step's own business
+   (a calendar, a time grid, a summary) and lives in css/pages/<step>.css.
+
+   Styled, not wired: the controls are real <input>/<button> elements so they
+   are focusable and announced properly, but nothing is hooked up yet.
+   ========================================================= */
 .panel {
   background: var(--blue);
   color: #fff;
@@ -672,6 +959,7 @@ body>.botbar>* {
   box-shadow: 0 20px 40px -24px rgba(4, 91, 167, .6);
 }
 
+.panel h2,
 .panel h3 {
   margin: 0 0 .15em;
   font-size: clamp(.95rem, 1.6vw, 1.3rem);
@@ -684,49 +972,189 @@ body>.botbar>* {
   opacity: .9;
 }
 
-.panel .fields {
+/* Centred variant — the step-1 design centres everything in the card and drops
+   the heading in favour of a single line of lede. */
+.panel--center {
+  text-align: center;
+}
+
+.panel--center .btn {
+  margin-inline: auto;
+}
+
+/* the one line of copy at the top of a centred panel */
+.panel-lede {
+  font-size: clamp(.78rem, 1.2vw, .95rem);
+  font-weight: 600;
+  margin: 0 0 1.4em;
+  opacity: 1;
+}
+
+/* a stack of fields; .fields--2 pairs them up on one row */
+.fields {
   display: grid;
-  grid-template-columns: 1fr 1fr;
   gap: .7rem;
+  margin: 0 0 1.1rem;
+  border: 0;
+  padding: 0;
+}
+
+.fields--2 {
+  grid-template-columns: 1fr 1fr;
 }
 
 .field {
-  background: #fff;
-  border-radius: 12px;
-  min-height: clamp(4.5rem, 9vw, 8rem);
   display: grid;
-  place-items: center;
-  color: var(--blue);
-  font-size: .8rem;
-  opacity: .95;
+  gap: .35em;
+  min-width: 0;
 }
 
-.field.line {
-  min-height: 0;
-  padding: .8em 1em;
-  justify-content: start;
-  color: var(--blue);
-}
-
-.outline-box {
-  /* big empty blue-outlined box (steps 3-5) */
-  border: 5px solid var(--blue);
-  border-radius: 16px;
-  width: 100%;
-  aspect-ratio: 12 / 5;
-  display: grid;
-  place-items: center;
-  color: var(--blue);
+.field>label {
+  font-size: clamp(.66rem, .95vw, .78rem);
+  font-weight: 600;
+  letter-spacing: .01em;
   opacity: .85;
-  font-size: clamp(.8rem, 1.3vw, 1rem);
-  background: rgba(255, 255, 255, .12);
+}
+
+/* Cream, not white — per the design. The input reads as a piece of the page's
+   own canvas set into the blue card, rather than a browser default pasted on
+   top of it. Same reason the artwork sits on cream. */
+.field>input,
+.field>select,
+.field>textarea {
+  font: inherit;
+  font-size: clamp(.78rem, 1.1vw, .92rem);
+  color: var(--blue);
+  background: var(--cream);
+  border: 2px solid transparent;
+  border-radius: 12px;
+  padding: .72em .9em;
+  width: 100%;
+  min-width: 0;
+  transition: border-color .2s ease;
+}
+
+.field>input::placeholder {
+  color: var(--blue);
+  opacity: .45;
+}
+
+.field>input:focus-visible,
+.field>select:focus-visible,
+.field>textarea:focus-visible {
+  outline: none;
+  border-color: var(--pink);
+}
+
+/* a full-width action at the foot of a panel */
+.panel .btn {
+  width: 100%;
+}
+
+/* =========================================================
+   CHOICE — the shared selectable-cell primitive.
+   A calendar day, a time slot and a gift amount are the same interaction:
+   pick one of many. So they share one control here, and each page only
+   arranges them (see .cal / .timegrid / .amounts in css/pages/*.css).
+   ========================================================= */
+.choice {
+  font: inherit;
+  font-size: clamp(.72rem, 1vw, .88rem);
+  font-weight: 600;
+  color: #fff;
+  background: rgba(255, 255, 255, .1);
+  border: 2px solid rgba(255, 255, 255, .25);
+  border-radius: 10px;
+  padding: .55em .2em;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: background-color .2s ease, border-color .2s ease, color .2s ease;
+}
+
+.choice:hover:not(:disabled) {
+  background: rgba(255, 255, 255, .22);
+  border-color: #fff;
+}
+
+.choice:focus-visible {
+  outline: 3px solid var(--pink);
+  outline-offset: 2px;
+}
+
+/* the picked one — pink, the same colour the accents use for "yes, this" */
+.choice[aria-pressed="true"],
+.choice.is-on {
+  background: var(--pink);
+  border-color: var(--pink);
+  color: #fff;
+}
+
+.choice:disabled {
+  opacity: .3;
+  cursor: default;
+}
+
+/* =========================================================
+   DOC — a long-form reading page (terms, and anything like it).
+   The poster pages are exactly one screen; a terms page is not. So here the
+   artwork stops being a grid item and becomes a fixed BACKDROP, which lets the
+   copy column scroll over it — and stops the stage and the copy being laid out
+   as two stacked grid rows.
+   ========================================================= */
+body:has(.doc) .stage {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 0;
+}
+
+.doc {
+  position: relative;
+  z-index: 30;
+  justify-self: start;
+  width: min(64ch, 100%);
+  margin: 0 max(1.25rem, 5.9%);
+  /* clear the fixed logo above, and give the last line room to breathe */
+  padding: clamp(7rem, 22vh, 12rem) 0 clamp(3rem, 10vh, 6rem);
+  color: var(--blue);
+}
+
+.doc h2 {
+  font-size: clamp(1rem, 1.5vw, 1.25rem);
+  font-weight: 700;
+  margin: 2.2em 0 .5em;
+}
+
+.doc p,
+.doc li {
+  font-size: clamp(.85rem, 1.05vw, .98rem);
+  line-height: 1.65;
+  margin: 0 0 .9em;
+  opacity: .88;
+}
+
+.doc a {
+  color: var(--pink);
 }
 
 /* =========================================================
    Copy entrance — every text element rises + fades in the
    same way, lightly staggered via --d.
    ========================================================= */
-.anim {
+/* The hidden start state is gated on html.js — a class set by an inline script in
+   each page's <head>. Ungated, .anim{opacity:0} means that if app.js is slow,
+   blocked or 404s, .is-ready never lands and the ENTIRE page stays invisible
+   forever: every headline, every panel, every link. Gating on a class set inline
+   (before first paint, no network) makes the copy default to VISIBLE and the
+   animation the enhancement, which is the right way round.
+
+   :where() is load-bearing, not decoration. It contributes ZERO specificity, so
+   this stays at (0,1,0) — exactly what plain `.anim` scored. Written as a bare
+   `html.js .anim` it scores (0,2,1) and outranks the reduced-motion override
+   below, whose `animation:none` then kills the rise while this opacity:0 still
+   applies — every reduced-motion user gets a permanently blank page. */
+:where(html.js) .anim {
   opacity: 0;
   transform: translateY(16px);
 }
@@ -743,8 +1171,11 @@ body>.botbar>* {
   }
 }
 
-/* draw-on accents fire a beat after the titles have arrived */
-.accent {
+/* draw-on accents fire a beat after the titles have arrived. Same :where(html.js)
+   gate, and for the same two reasons: undrawn strokes would be permanently
+   invisible without JS, and the gate must not outrank the reduced-motion
+   override below. */
+:where(html.js) .accent {
   stroke-dasharray: var(--len, 400);
   stroke-dashoffset: var(--len, 400);
 }
@@ -783,9 +1214,13 @@ body>.botbar>* {
     max-width: 92%;
   }
 
-  .panel,
-  .outline-box {
+  .panel {
     width: min(100%, 92%);
+  }
+
+  /* stacked, the paired fields have no room to sit side by side */
+  .fields--2 {
+    grid-template-columns: 1fr;
   }
 
   /* Touch targets. Every action gets >=44px of tappable height and 14-16px type
@@ -825,261 +1260,3 @@ body>.botbar>* {
   }
 }
 
-/* =========================================================
-   LANDING HERO — full-viewport composition (per design spec)
-   cream cover background · main swirl anchored right + vertically
-   centred with the top cropped · hand on top · top swirl crossing
-   in front. Both swirls are semi-transparent so the cream's grain
-   shows through ("grainy" look).
-   ========================================================= */
-.stage--hero {
-  /* Fill the viewport HEIGHT (never letterbox). The canvas keeps the design's
-     fixed aspect, so on screens taller than 2.147 it is WIDER than the viewport
-     and bleeds off the right; anchored left so the logo, headline, hand and weave
-     stay put (only the far-right forearm/loop run off-screen). The design's top
-     and bottom edges sit on the viewport top/bottom — exactly like the design,
-     nothing cut short. container-type:size makes the whole composition scale with
-     the CANVAS via cqw/cqh, so proportions match the design at every screen. */
-  width: calc(100dvh * (var(--art-w) / var(--art-h)));
-  height: 100dvh;
-  max-width: none;
-  justify-self: end;
-  /* anchor RIGHT so the full glove + swirl wrap-around stay in frame; the excess
-     width (left cap / left bands) bleeds off the left, and the bands sweep in from
-     the viewport's left edge. The logo/headline are pinned to the viewport (below),
-     so nothing important is lost on the left. */
-  container-type: size;
-  overflow: hidden;
-  /* transparent so the body's full-bleed cream shows through behind the art */
-  background: transparent;
-
-  /* --- Swirl placement (the real PSD ribbon, assets/swirl.webp, aspect ≈1.403) ---
-     Drawn twice at IDENTICAL placement — once BEHIND the hand (its loops fall
-     over the cream on the left; the strands behind the glove are hidden by it)
-     and once again IN FRONT, masked to a horizontal band so only the single
-     lower strand weaves over the wrist. Units are cqh/cqw = % of the STAGE. */
-  /* ---- Swirl SIZE dials (two independent axes) -------------------------------
-     --swirl-h       : VERTICAL size only (% of canvas height).
-     --swirl-stretch : HORIZONTAL size only. 1 = the asset's natural 1.403 aspect;
-                       >1 widens the bands sideways WITHOUT changing their height.
-                       e.g. 1.15 = 15% wider. The swirl is right-anchored, so the
-                       extra width grows LEFTWARD — the hand never moves.
-     Both feed --sw (the rendered width). At stretch:1 this is identical to the
-     old `width: --sw; height: auto`, which locked the aspect and made any widening
-     grow the swirl vertically too. */
-  /* kept UNITLESS so the weave math below can divide by them (calc() refuses to
-     divide a length by a length); the *1cqh puts the unit back on at the end. */
-  --swirl-h-n: 126;
-  --swirl-stretch: 1.1;
-  --sw-n: calc(var(--swirl-h-n) * 1.403 * var(--swirl-stretch));
-  --swirl-h: calc(var(--swirl-h-n) * 1cqh);
-  --sw: calc(var(--sw-n) * 1cqh);
-  /* swirl WIDTH; height ≈ 128% of canvas height. Zoomed OUT from the registered
-     ≈154% so the bands read closer to the design's size, then RE-CENTERED over the
-     hand (via --swirl-nudge) so the ribbon still wraps and the front weave holds. */
-
-  /* ---- MASTER right-side dial ------------------------------------------------
-     The hand and BOTH swirl passes hang off ONE shared right anchor, so editing
-     --art-right slides the whole composition horizontally TOGETHER and the weave
-     stays registered. Each element keeps its own offset from that anchor, so the
-     gap between hand and swirl is preserved no matter where you put --art-right.
-     (The swirl used to be anchored by `left`, which is why the two could drift
-     apart and had to be re-tuned separately.) */
-  --art-right: -23.3cqw;
-  /* <-- EDIT THIS to move hand + swirl together */
-  --hand-right: var(--art-right);
-  --swirl-nudge: 16.3cqw;
-  /* the swirl's fixed offset from the shared anchor (≡ the old left: 13.4cqw) */
-  --swirl-right: calc(var(--art-right) + var(--swirl-nudge));
-  /* ---- Swirl VERTICAL position -------------------------------------------------
-     --swirl-cy-base : the registered vertical centre (don't touch).
-     --swirl-drop    : nudge the WHOLE swirl DOWN (+) or UP (-). e.g. 2cqh = 2% of
-                       canvas height lower.
-     Why the weave survives this: --front-band masks the .swirl-front IMAGE, so its
-     percentages are in the SWIRL's own coordinate space, not the canvas's. The mask
-     travels with the swirl, so the same strand stays selected and keeps reading as
-     in-front. It only breaks once you drop far enough that a DIFFERENT strand lands
-     on the wrist — then the stops need refitting (scripts/_bandfit.mjs).
-     1cqh == 1% here: `top`'s % resolves against the stage height, and cqh is 1% of
-     that same stage, so the calc mixes cleanly. */
-  --swirl-cy-base: 54%;
-  --swirl-drop: 0cqh;
-  /* <-- EDIT THIS to slide the swirl down/up */
-  --swirl-cy: calc(var(--swirl-cy-base) + var(--swirl-drop));
-  /* Only the TOP band is treated: it dissolves as it rises so it flows up into the
-     cream instead of ending in the asset's flat/sharp top edge. Vertical fade keyed
-     to swirl height — leaves the left cap and lower strands (the prime swirl) intact.
-     Tune the stops to move where the top band starts fading. */
-  --swirl-fade: linear-gradient(to top, #000 66%, transparent 88%);
-  /* the slice of the swirl pulled in front of the wrist. Sized (scripts/_bandfit.mjs)
-     to reveal the FULL middle strand — swirl-height 52.5%-66% — with its hard edges
-     landing in the transparent gaps between strands, so the ribbon shows its OWN
-     crisp edges at full opacity (reads as solid + in-front, not a soft floating wash).
-     The upper strand (behind the sponge) and bottom sweep (behind the suds) are left
-     to the back pass only, preserving the over/under weave. */
-  /* ---- Weave fit — DERIVED, not hand-fitted ----------------------------------
-     The ONE thing CSS can't do is read swirl.webp's alpha to find where the
-     ribbon's strands are, so that is measured ONCE offline (scripts/_weavefit.mjs)
-     and baked in as the 3 constants below. They describe the ASSET, so they never
-     change when you turn the dials. Everything after that is math CSS does itself
-     — which is why the mask now RE-FITS ITSELF when --swirl-stretch changes,
-     instead of quietly cutting the ribbon. */
-  --strand-mid: 63.41;
-  /* strand centre (swirl-%) at the swirl's mid-x — constant, the dials cancel */
-  --strand-thick: 9.7;
-  /* strand thickness (swirl-%) */
-  --strand-run: 0.2225;
-  /* strand rise/run in the asset's own aspect */
-  --strand-slop: 0.7;
-  /* extra width so the mask edges land in the transparent GAPS between strands,
-     never on the ribbon itself (landing on it = the hard straight cut) */
-
-  /* ============================================================
-     ↓↓↓  HAND DIALS — tweak these until it looks right  ↓↓↓
-     All are ADDED ON TOP of the auto-fit above. All 0 = use the computed fit.
-     Nothing else needs touching.
-     ============================================================ */
-
-  --stripe-down: -1;
-  /* slide the stripe DOWN (+) or UP (-).   try: 1, 2, -1, -2   (1 ≈ 1% of stripe travel) */
-
-  --stripe-grow: 0;
-  /* make the stripe TALLER (+) or SHORTER (-) — grabs more/less ribbon.  try: 1, 2, -1 */
-
-  --stripe-lean: 0deg;
-  /* extra TILT. (+) lifts the right end, (-) drops it.  try: 1deg, -1deg, 2deg */
-
-  --stripe-soft: 0.4;
-  /* edge softness. 0 = razor sharp, 1-2 = feathered */
-
-  /* ↑↑↑  that's it — everything below is the math  ↑↑↑ */
-
-  /* tilt depends ONLY on the stretch — the vertical size cancels out of the ratio */
-  --weave-tilt: atan(var(--strand-run) / var(--swirl-stretch));
-  --weave-angle: calc(180deg - var(--weave-tilt) - var(--stripe-lean));
-  /* gradient-line length, unitless (in cqh): |W*sin| + |H*cos| */
-  --weave-len: calc(var(--sw-n) * sin(var(--weave-tilt)) + var(--swirl-h-n) * cos(var(--weave-tilt)));
-  /* strand centre + half-thickness, projected onto the tilted gradient axis */
-  --weave-mid: calc(50 + (var(--strand-mid) - 50) / 100 * var(--swirl-h-n) * cos(var(--weave-tilt)) / var(--weave-len) * 100 + var(--stripe-down));
-  --weave-half: calc((var(--strand-thick) + var(--strand-slop)) / 100 * var(--swirl-h-n) * cos(var(--weave-tilt)) / var(--weave-len) * 100 / 2 + var(--stripe-grow));
-  --front-band: linear-gradient(var(--weave-angle),
-      transparent calc((var(--weave-mid) - var(--weave-half) - var(--stripe-soft)) * 1%),
-      #000 calc((var(--weave-mid) - var(--weave-half)) * 1%),
-      #000 calc((var(--weave-mid) + var(--weave-half)) * 1%),
-      transparent calc((var(--weave-mid) + var(--weave-half) + var(--stripe-soft)) * 1%));
-}
-
-/* ============================================================
-   SEE THE STRIPE — add class="show-stripe" to <body> and the front pass turns
-   green. Whatever is GREEN is the bit of ribbon being promoted in front of the
-   hand. That's the fastest way to tell if a stray sliver is the stripe catching
-   ribbon you didn't mean. Remove the class when done.
-   ============================================================ */
-body.show-stripe .stage--hero .swirl-front {
-  filter: hue-rotate(125deg) saturate(4);
-}
-
-/* both swirl passes share identical placement, so they coincide as one ribbon */
-.stage--hero .swirl {
-  position: absolute;
-  /* pinned to the SHARED right anchor (see --art-right), same as the hand */
-  left: auto;
-  right: var(--swirl-right);
-  top: var(--swirl-cy);
-  transform: translateY(-50%);
-  /* height is EXPLICIT (not auto) so width no longer drives it: the two axes are
-     independent and --swirl-stretch can widen the bands on its own. */
-  width: var(--sw);
-  height: var(--swirl-h);
-  pointer-events: none;
-  user-select: none;
-}
-
-.stage--hero .swirl-back {
-  z-index: 1;
-  opacity: .9;
-  /* the top band trails up and dissolves into the cream (no sharp asset edge) */
-  -webkit-mask-image: var(--swirl-fade);
-  mask-image: var(--swirl-fade);
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-}
-
-/* behind the hand */
-
-/* front pass: same swirl, masked to the wrist band so a single strand weaves
-   in front of the forearm. Elsewhere the band coincides with the back pass
-   (same asset, same place) so it reads as one continuous ribbon — never doubled. */
-.stage--hero .swirl-front {
-  z-index: 3;
-  opacity: 1;
-  /* TWO masks, intersected:
-       --front-band picks the STRAND (which horizontal slice of the ribbon)
-       --front-span picks WHERE ALONG IT the ribbon is allowed to come forward
-     Without the span the band ran the ribbon's full width, so it also landed on
-     the sponge + suds — the pink sliver. The reference does show a sliver there,
-     but it reads as an accident, so the ribbon now only crosses in FRONT over the
-     wrist/forearm and stays BEHIND everywhere left of it. The span fades in rather
-     than cutting, so there's no hard edge announcing the transition — and because
-     it's keyed to the swirl's own x, the sliver can't come back when dials move. */
-  -webkit-mask-image: var(--front-band);
-  mask-image: var(--front-band);
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-}
-
-/* the hand sits between the two swirl passes. Size + position are REGISTERED to
-   the design via the coral sponge landmark (scripts/_fit_hand.mjs): the sponge
-   top-left lands at ~50%/6.5% of the canvas and the sponge spans ~25% of width,
-   which requires the asset at ~148svh tall, running off the bottom-right corner
-   just like the design's forearm. */
-.stage--hero .layer-hand {
-  left: auto;
-  /* the SHARED right anchor — moves in lockstep with the swirl (see --art-right) */
-  right: var(--hand-right);
-  top: 0.8cqh;
-  width: auto;
-  height: 148.4cqh;
-  z-index: 2;
-}
-
-/* warm glow behind the sponge (upper-right), lifts the cream toward near-white */
-.stage--hero .layer-glow {
-  left: auto;
-  right: 0;
-  top: 4cqh;
-  width: 46cqw;
-  height: auto;
-  z-index: 1;
-  mix-blend-mode: screen;
-  opacity: .7;
-}
-
-/* keep foreground copy above the weave */
-.stage--hero .content,
-.stage--hero .logo {
-  z-index: 5;
-}
-
-/* Hero copy + logo scale with the STAGE (container units) so the whole
-   composition stays locked to the design at every screen size — the same reason
-   the art uses cqh/cqw. At the design aspect these equal the old vw values. */
-.stage--hero .headline {
-  font-size: 4.3cqw;
-}
-
-.stage--hero .eyebrow {
-  font-size: 0.98cqw;
-}
-
-.stage--hero .topcta {
-  font-size: 0.98cqw;
-}
-
-.stage--hero .logo-mark {
-  width: 10.5cqw;
-}
-
-.stage--hero .content {
-  --cgap: 1.2cqw;
-}

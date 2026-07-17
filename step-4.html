@@ -1,30 +1,61 @@
 <!doctype html>
 <html lang="en">
+
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Madame — What about the time</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>M</text></svg>">
-<link rel="stylesheet" href="dist/styles.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Madame — What about the time</title>
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>M</text></svg>">
+  <link rel="stylesheet" href="dist/styles.css">
+  <link rel="stylesheet" href="css/pages/step-4.css">
+  <!-- Marks JS as available BEFORE first paint, so the entrance animation
+       can hide the copy. Without this the page would render blank if app.js
+       ever failed to load. Must stay inline and in <head>. -->
+  <script>document.documentElement.classList.add("js")</script>
 </head>
-<body>
-<main class="stage" style="--hand-l:49.897%;--hand-t:6.553%;--hand-w:38.256%;" data-page="step-4">
-  <img class="layer layer-cream" src="assets/cream.webp" alt="" aria-hidden="true">
-  
-  <img class="layer layer-swirl" src="assets/swirl.webp" alt="" aria-hidden="true">
-  <img class="layer layer-hand"  src="assets/step4-hand.webp" alt="Gloved hand holding a striped cloth">
-  <img class="layer layer-swirl-front" src="assets/swirl.webp" alt="" aria-hidden="true">
 
-  <a class="logo anim" style="--d:0s" href="index.html" aria-label="Madame home"><svg class="logo-wave" viewBox="0 0 34 16" aria-hidden="true"><path d="M1 11 C 3 3, 7 3, 9 8 C 11 13, 15 13, 17 8 C 19 3, 23 3, 25 8 C 27 12, 31 11, 33 6" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="logo-word">madame</span></a>
-  
+<body data-page="step-4">
+  <main class="stage">
+    <img class="swirl swirl-back" src="assets/swirl.webp" alt="" aria-hidden="true">
+    <img class="layer layer-hand" src="assets/step4-hand.webp" alt="Gloved hand holding a striped cloth">
+    <img class="swirl swirl-front" src="assets/swirl.webp" alt="" aria-hidden="true">
+  </main>
 
-  <div class="content" style="--ctop:12%;--cw:50%;">
+  <header class="topbar">
+    <a class="logo anim" style="--d:0s" href="index.html" aria-label="Madame home"><img class="logo-mark"
+        src="assets/madame-logo.png" alt="Madame"></a>
+  </header>
 
-    <h1 class="headline anim" style="--d:.1s">And what about<br>the <span class="mark circle"><span class="script">t</span>ime<svg viewBox="0 0 220 110" preserveAspectRatio="none"><path class="accent" style="--len:640" d="M158 16 C 70 -2, 14 22, 20 55 C 27 92, 130 100, 188 78 C 224 64, 210 26, 150 14"/></svg></span>?</h1>
-    <div class="outline-box anim" style="--d:.28s">choose a time</div>
-    <a class="btn anim" style="--d:.4s" href="step-5.html">Continue</a>
+  <div class="content content--fill">
+    <h1 class="headline anim" style="--d:.1s">And what about<br>the <span class="mark circle"><span
+          class="script">t</span>ime<svg viewBox="0 0 220 110" preserveAspectRatio="none">
+          <path class="accent" style="--len:640"
+            d="M158 16 C 70 -2, 14 22, 20 55 C 27 92, 130 100, 188 78 C 224 64, 210 26, 150 14" />
+        </svg></span>?</h1>
+
+    <!-- Styled, not wired: real buttons, one marked is-on to show the picked state. -->
+    <div class="panel anim" style="--d:.28s">
+      <h2>Friday 17 July</h2>
+      <p>Your cleaner needs about three hours.</p>
+
+      <div class="timegrid" role="group" aria-label="Choose a start time">
+        <button class="choice" type="button" disabled>08:00</button>
+        <button class="choice" type="button">09:00</button>
+        <button class="choice" type="button">10:00</button>
+        <button class="choice is-on" type="button" aria-pressed="true">11:00</button>
+        <button class="choice" type="button">12:00</button>
+        <button class="choice" type="button">13:00</button>
+        <button class="choice" type="button">14:00</button>
+        <button class="choice" type="button">15:00</button>
+        <button class="choice" type="button" disabled>16:00</button>
+      </div>
+
+      <a class="btn" href="step-5.html">Continue</a>
+    </div>
   </div>
-</main>
-<script src="app.js"></script>
+
+  <script src="app.js"></script>
 </body>
+
 </html>

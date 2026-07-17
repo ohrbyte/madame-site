@@ -5,7 +5,14 @@
       "Bash(npx --version)",
       "Read(//c/Users/Shiya/.claude/plugins/cache/claude-plugins-official/frontend-design/unknown/**)",
       "Read(//c/Users/Shiya/.claude/plugins/cache/claude-plugins-official/frontend-design/unknown/skills/**)",
-      "Bash(claude plugin *)"
+      "Bash(claude plugin *)",
+      "Bash(echo \"=== 1. No Referer header ===\")",
+      "Bash(curl -s -o /dev/null -w 'status=%{http_code} type=%{content_type} bytes=%{size_download}\\\\n' 'https://maps.googleapis.com/maps/api/staticmap?center=14+Ackroyd+Road,London&zoom=15&size=640x460&scale=2&key=AIzaSyDtSx1fzr1XvYfXTSaTWuIxxIFORV5Ed8k')",
+      "Bash(echo \"=== 2. Bogus Referer ===\")",
+      "Bash(curl -s -o /dev/null -w 'status=%{http_code} type=%{content_type} bytes=%{size_download}\\\\n' -H 'Referer: https://totally-not-your-site.example/' 'https://maps.googleapis.com/maps/api/staticmap?center=14+Ackroyd+Road,London&zoom=15&size=640x460&scale=2&key=AIzaSyDtSx1fzr1XvYfXTSaTWuIxxIFORV5Ed8k')",
+      "Bash(echo \"=== 3. Referer spoofed as a plausible real origin ===\")",
+      "Bash(curl -s -H 'Referer: https://totally-not-your-site.example/' 'https://maps.googleapis.com/maps/api/staticmap?center=14+Ackroyd+Road,London&zoom=15&size=640x460&scale=2&key=AIzaSyDtSx1fzr1XvYfXTSaTWuIxxIFORV5Ed8k')",
+      "Bash(curl -s -H 'Referer: https://madame.london/' 'https://maps.googleapis.com/maps/api/staticmap?center=14+Ackroyd+Road,London&zoom=15&size=640x460&scale=2&key=AIzaSyDtSx1fzr1XvYfXTSaTWuIxxIFORV5Ed8k')"
     ]
   },
   "enabledPlugins": {

@@ -1,37 +1,81 @@
 <!doctype html>
 <html lang="en">
+
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Madame — Clean in a click</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>M</text></svg>">
-<link rel="stylesheet" href="dist/styles.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Madame — Clean in a click</title>
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>M</text></svg>">
+  <link rel="stylesheet" href="dist/styles.css">
+  <link rel="stylesheet" href="css/pages/step-2.css">
+  <!-- Marks JS as available BEFORE first paint, so the entrance animation
+       can hide the copy. Without this the page would render blank if app.js
+       ever failed to load. Must stay inline and in <head>. -->
+  <script>document.documentElement.classList.add("js")</script>
 </head>
-<body>
-<main class="stage" style="--hand-l:50.000%;--hand-t:11.894%;--hand-w:47.821%;" data-page="step-2">
-  <img class="layer layer-cream" src="assets/cream.webp" alt="" aria-hidden="true">
-  
-  <img class="layer layer-swirl" src="assets/swirl.webp" alt="" aria-hidden="true">
-  <img class="layer layer-hand"  src="assets/step2-hand.webp" alt="Gloved hand holding a stack of clean dishes">
-  <img class="layer layer-swirl-front" src="assets/swirl.webp" alt="" aria-hidden="true">
 
-  <a class="logo anim" style="--d:0s" href="index.html" aria-label="Madame home"><svg class="logo-wave" viewBox="0 0 34 16" aria-hidden="true"><path d="M1 11 C 3 3, 7 3, 9 8 C 11 13, 15 13, 17 8 C 19 3, 23 3, 25 8 C 27 12, 31 11, 33 6" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="logo-word">madame</span></a>
-  
+<body data-page="step-2">
+  <main class="stage">
+    <img class="swirl swirl-back" src="assets/swirl.webp" alt="" aria-hidden="true">
+    <img class="layer layer-hand" src="assets/step2-hand.webp" alt="Gloved hand holding a stack of dirty pans">
+    <img class="swirl swirl-front" src="assets/swirl.webp" alt="" aria-hidden="true">
+  </main>
 
-  <div class="content" style="--ctop:16%;--cw:50%;">
+  <header class="topbar">
+    <a class="logo anim" style="--d:0s" href="index.html" aria-label="Madame home"><img class="logo-mark"
+        src="assets/madame-logo.png" alt="Madame"></a>
+  </header>
 
-    <h1 class="headline anim" style="--d:.1s"><span class="mark circle"><span class="script">C</span>lean<svg viewBox="0 0 220 110" preserveAspectRatio="none"><path class="accent" style="--len:640" d="M158 16 C 70 -2, 14 22, 20 55 C 27 92, 130 100, 188 78 C 224 64, 210 26, 150 14"/></svg></span> in a click.</h1>
-    <div class="panel anim" style="--d:.28s">
-      <h3>Confirm your address</h3>
-      <p>We need to verify your address is in our service area.</p>
-      <div class="fields">
-        <div class="field">Enter address</div>
-        <div class="field">Google&nbsp;maps</div>
+  <!-- Laid out to Design/step 2.png (the flat mockup — NOT Design/png/step 2.png,
+       which is artwork only). Positions measured off it; see css/pages/step-2.css. -->
+  <div class="content">
+    <h1 class="headline anim" style="--d:.1s"><span class="mark circle"><span class="script">C</span>lean<svg
+          viewBox="0 0 220 110" preserveAspectRatio="none">
+          <path class="accent" style="--len:640"
+            d="M158 16 C 70 -2, 14 22, 20 55 C 27 92, 130 100, 188 78 C 224 64, 210 26, 150 14" />
+        </svg></span> in a click.</h1>
+
+    <!-- Styled, not wired: real control, no submit handler yet. The design gives
+         the field no visible label and no placeholder — the line above says what
+         to type — so the label is there for screen readers only. -->
+    <form class="panel anim" style="--d:.28s" action="#" onsubmit="return false">
+      <h2>Confirm your address.</h2>
+      <p>We need to verify your address is in our service area</p>
+
+      <div class="addr">
+        <label class="visually-hidden" for="addr">Address</label>
+        <input class="addr-field" id="addr" name="addr" type="text" autocomplete="street-address"
+          value="14 Ackroyd Road, London">
+        <!-- Live map, per the design's "Google maps" box. app.js swaps the
+             center= as you type (data-map-src names the field that drives it).
+
+             STATIC Maps, not the Embed API, on purpose: the Embed API is an
+             iframe and ships Google's own chrome inside it — an "Open in Maps"
+             button and zoom controls that cannot be removed or styled. Static
+             Maps returns a plain PNG, which is what the design draws. The Google
+             logo and "Map data" baked into the image are required attribution
+             and must stay.
+
+             The key is visible here because a Maps key IS a client key — it goes
+             out in every page that shows a map and cannot be hidden in a static
+             site. What protects it is RESTRICTION, not secrecy: it is already
+             locked to an HTTP-referrer allowlist (localhost:3001 + the deploy
+             domains). Note that restriction stops the key working on OTHER
+             sites; it can't stop a script sending a spoofed Referer, so the hard
+             cap is the API restriction plus a billing quota. -->
+        <img class="addr-map" alt="Map of the address entered above" loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade" data-map-src="#addr" data-map-param="center"
+          src="https://maps.googleapis.com/maps/api/staticmap?center=14+Ackroyd+Road,London&zoom=15&size=640x460&scale=2&key=AIzaSyDtSx1fzr1XvYfXTSaTWuIxxIFORV5Ed8k">
       </div>
-    </div>
+    </form>
+
+    <!-- Outside the panel, per the design: the card is the task, the button is
+         the way on from it. -->
     <a class="btn anim" style="--d:.4s" href="step-3.html">Book Now</a>
   </div>
-</main>
-<script src="app.js"></script>
+
+  <script src="app.js"></script>
 </body>
+
 </html>
