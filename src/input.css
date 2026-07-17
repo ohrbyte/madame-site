@@ -1304,6 +1304,44 @@ body:has(.doc) .stage {
     --swirl-h-n: 153.47;
     --swirl-stretch: 1;
     --swirl-drop: 0.27cqh;    /* registered centre is 54.27%, base is 54% */
+
+    /* 1% of the FRAME's width. The chrome type is clamp(min, X·vw, max) —
+       fitted where viewport ≈ frame. Once the viewport outgrows the poster,
+       vw-preferreds balloon (short wide windows) or the rem ceilings pin the
+       type undersized (tall wide monitors); either way the text loses the
+       design's proportion to the art. Swapping each fitted X·vw for X·--fw
+       keeps the poster's own scale at any frame size. */
+    --fw: 2.1476dvh;          /* 100dvh · (3900/1816) / 100 */
+    --cgap: calc(1.9 * var(--fw));
+  }
+
+  /* Poster chrome scales with the poster. The panels and their buttons stay
+     on the rem-capped clamps deliberately — they are UI, not poster ink. */
+  .headline {
+    font-size: calc(4.3 * var(--fw));
+  }
+
+  .subhead {
+    font-size: calc(1.8 * var(--fw));
+  }
+
+  .eyebrow {
+    font-size: calc(1.16 * var(--fw));
+    /* the inherited line-height inflates the pill at poster scale — the
+       reference pill is 4.8% of the frame's height */
+    line-height: 1.1;
+  }
+
+  .logo-mark {
+    width: calc(10.5 * var(--fw));
+  }
+
+  .ulink {
+    font-size: calc(.95 * var(--fw));
+  }
+
+  .utility--foot .ulink {
+    font-size: calc(.82 * var(--fw));
   }
 
   html {
