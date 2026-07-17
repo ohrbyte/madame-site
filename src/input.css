@@ -1356,33 +1356,20 @@ body:has(.doc) .stage {
     font-size: calc(.82 * var(--fw));
   }
 
-  /* THE ARM BLEED (landing). The poster cuts the arm at the canvas edge —
-     fine when that edge IS the screen edge (the old right-anchored layout,
-     and still true at standard aspects), but with the frame centred the cut
-     lands mid-screen against the continuing cream and reads as a hard wall.
-     So the landing's stage un-clips; the swirl keeps the poster-edge cut
-     via its own right clip (the -5cqw hang ÷ its 100.26cqw box = 4.99%);
-     the arm flows on into the margin and dissolves over its last 7% so its
-     own crop edge never lands as a hard line (that zone starts at ~111cqw,
-     entirely outside the frame — the in-frame poster is untouched); and the
-     page clips at the viewport so the off-canvas art can't mint scrollbars.
-     Landing only: the other pages' hands are tight crops whose edges the
-     poster cut serves fine. */
+  /* COMPLETE THE ART (landing). The poster cuts swirl and arm at the canvas
+     edge — natural when that edge IS the screen edge (standard aspects, and
+     the old right-anchored layout), but mid-screen against the continuing
+     cream it reads as a hard wall. So the landing's stage un-clips and both
+     swirl and arm simply run on past the frame until their ink genuinely
+     exits the view. The one non-visual guard: the un-clipped stage's
+     off-canvas overhang would otherwise create page scroll, so the page
+     clips at the viewport — the view itself is exactly as tall as before. */
   html:has(body[data-page="index"]) {
     overflow: clip;
   }
 
   body[data-page="index"] .stage {
     overflow: visible;
-  }
-
-  body[data-page="index"] .swirl {
-    clip-path: inset(0 4.99% 0 0);
-  }
-
-  body[data-page="index"] .layer-hand {
-    -webkit-mask-image: linear-gradient(to right, #000 93%, transparent 100%);
-    mask-image: linear-gradient(to right, #000 93%, transparent 100%);
   }
 
   html {
