@@ -175,14 +175,25 @@ body {
   height: 100%;
 }
 
+/* cream on the root too, so if 100svh ever falls short of the visible viewport
+   (mobile toolbars, etc.) the gap is cream — never a white strip. */
+html {
+  background: var(--cream);
+}
+
 body {
   margin: 0;
-  background: var(--cream);
+  /* full-bleed cream so the contained hero's letterbox is seamless (the design
+     bg is cream, so the margins are indistinguishable from the canvas). */
+  background: url("../assets/cream.webp") center / cover no-repeat, var(--cream);
   color: var(--blue);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  /* pin the column to the viewport width so an over-wide hero overflows WITHIN it
+     and justify-self can anchor it (right); step-page stages (<=100vw) stay centred */
   place-items: center;
   min-height: 100svh;
   overflow-x: hidden;
@@ -342,6 +353,55 @@ body {
   z-index: 40;
 }
 
+/* On the landing hero the chrome lives OUTSIDE the fill-height canvas (as a direct
+   child of <body>) so it stays pinned to the viewport instead of bleeding off with
+   the canvas.
+
+   The logo and the secondary pill share ONE fixed header row: align-items:center
+   puts them on the same centre line at every screen size. They used to be two
+   independently-placed corners (7.5% of viewport height vs 3.5vh), which resolved
+   to different heights and drifted further apart as each scaled by its own clamp. */
+body>.topbar {
+  position: fixed;
+  /* Insets measured off the design (scripts/_logopad.mjs): the logo ink sits
+     5.91% of the width in and 8.60% of the height down. The left inset is
+     MIRRORED on the right so the pill balances the logo instead of hugging the
+     corner on its own. */
+  top: max(1.1rem, 8.6%);
+  left: max(1.25rem, 5.9%);
+  right: max(1.25rem, 5.9%);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  /* the row spans the top strip, so let pointer events through to the artwork
+     (the hand's parallax) and only catch them on the links themselves */
+  pointer-events: none;
+}
+
+body>.topbar>* {
+  pointer-events: auto;
+}
+
+/* inside the row they are flex items, not absolutely-placed corners */
+body>.topbar .logo,
+body>.topbar .topcta {
+  position: static;
+  inset: auto;
+}
+
+/* the headline is pinned to the viewport too (it lives outside the artwork canvas).
+   Its %/vw positions are relative to the viewport, matching the design at its own
+   aspect and staying put as the artwork bleeds on taller screens. */
+body>.content {
+  position: fixed;
+  z-index: 45;
+  /* the design leaves ~76% of the headline's cap-height between the pill and the
+     headline; the default gap only gave ~51% (scripts/_pillfit.mjs) */
+  --cgap: clamp(.9rem, 1.9vw, 2.1rem);
+}
+
 /* ---------- Headlines ---------- */
 .headline {
   font-family: var(--font-sans);
@@ -366,6 +426,13 @@ body {
   position: relative;
   white-space: nowrap;
   display: inline-block;
+  /* The markup says class="mark underline", and `underline` is ALSO a Tailwind
+     utility (text-decoration-line: underline) — so Tailwind was painting a real
+     blue text-decoration under the word ON TOP of the hand-drawn pink accent,
+     giving "lady" a double underline the design doesn't have. The accent SVG is
+     the only underline these words should ever get. (Unlayered, so this beats
+     the utility in @layer utilities regardless of specificity.) */
+  text-decoration: none;
 }
 
 .mark>svg {
@@ -377,8 +444,13 @@ body {
 }
 
 .mark.underline>svg {
-  bottom: -.18em;
-  width: 108%;
+  /* the design sits the stroke SNUG under the letters: a 0.124em gap from the
+     baseline (scripts/_gap.mjs). At -.18em ours floated ~0.046em too low. */
+  bottom: -.15em;
+  /* the design's stroke measures 111% of the word's INK width; the .mark span is
+     slightly wider than the ink (.script carries .04em side padding), so 101% of
+     the span lands on 111% of the ink (scripts/_pinkcmp.mjs) */
+  width: 101%;
   height: .4em;
 }
 
@@ -458,21 +530,136 @@ body {
 }
 
 .eyebrow {
-  /* little pill above a headline */
+  /* little pill above a headline — the primary "Click to hire" CTA (a real link) */
   display: inline-flex;
   align-items: center;
   background: var(--pink);
   color: #fff;
   font-weight: 600;
-  font-size: clamp(.7rem, 1.1vw, .95rem);
-  padding: .42em 1.05em;
+  /* Sized off the design (scripts/_pillfit.mjs), normalised to the headline's
+     cap-height: the design's pill is 293% of capH wide vs 222% here, so it needs
+     ~32% more width — almost all of it horizontal PADDING (the design's pill has a
+     4.4 w/h aspect; ours was 3.5). Height was already close, so the font barely
+     moves. */
+  font-size: clamp(.74rem, 1.16vw, 1rem);
+  padding: .42em 2.05em;
   border-radius: 999px;
   width: fit-content;
-  transition: background-color .3s ease;
+  text-decoration: none;
+  transition: background-color .3s ease, transform .2s ease, box-shadow .3s ease;
 }
 
-.eyebrow:hover {
+.eyebrow:hover,
+.eyebrow:focus-visible {
   background: var(--blue);
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.eyebrow:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 3px;
+}
+
+/* =========================================================
+   Utility links — the QUIET tier (the four secondary destinations).
+   Deliberately NOT buttons. The page carries exactly one filled pill ("Click to
+   hire"), so anything else that reads as an action steals authority from it —
+   which is what the single pink "About & Contact" pill used to do. These read as
+   type instead, and earn colour only on hover/focus, where the hand-sketched
+   underline from "lady" in the headline wipes in. Same gesture, no static weight.
+   ========================================================= */
+.utility {
+  display: flex;
+  align-items: center;
+  gap: clamp(1rem, 1.7vw, 2rem);
+}
+
+/* Colophon strip — info + legal at the FOOT of the same single screen. Pinned, not
+   a flow section: it adds no page height and never introduces a scroll, so the
+   landing stays one full-viewport poster. Insets mirror .topbar, so the wordmark +
+   utility sit on the top edge and info + legal on the bottom edge. */
+body>.botbar {
+  position: fixed;
+  bottom: max(1.1rem, 6%);
+  left: max(1.25rem, 5.9%);
+  right: max(1.25rem, 5.9%);
+  z-index: 50;
+  display: flex;
+  /* the strip spans the foot, so let pointer events through to the artwork and
+     catch them only on the links themselves */
+  pointer-events: none;
+}
+
+body>.botbar>* {
+  pointer-events: auto;
+}
+
+/* colophon tier — info + legal, in the footer at the page's bottom edge */
+
+.ulink {
+  display: inline-flex;
+  align-items: center;
+  color: var(--blue);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: clamp(.78rem, .95vw, .95rem);
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  opacity: .82;
+  transition: opacity .25s ease;
+}
+
+.utility--foot .ulink {
+  font-size: clamp(.72rem, .82vw, .84rem);
+  opacity: .6;
+}
+
+.ulink:hover,
+.ulink:focus-visible {
+  opacity: 1;
+}
+
+/* the span carries the underline so it stays tight to the TEXT while the <a> is
+   free to grow into a 44px touch target on coarse pointers */
+.ulink>span {
+  position: relative;
+  display: inline-block;
+}
+
+.ulink>span::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -.45em;
+  height: .4em;
+  /* the headline's wobbly hand-drawn accent, in --pink #D93A92 */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 12' preserveAspectRatio='none'%3E%3Cpath d='M3 8.5 C 55 2.5, 148 2.5, 197 6' fill='none' stroke='%23D93A92' stroke-width='3.4' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform .3s cubic-bezier(.2, .7, .2, 1);
+  pointer-events: none;
+}
+
+.ulink:hover>span::after,
+.ulink:focus-visible>span::after {
+  transform: scaleX(1);
+}
+
+.ulink:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 5px;
+  border-radius: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ulink>span::after {
+    transition: none;
+  }
 }
 
 /* ---------- Form-ish blocks (static, visual only) ---------- */
@@ -600,6 +787,42 @@ body {
   .outline-box {
     width: min(100%, 92%);
   }
+
+  /* Touch targets. Every action gets >=44px of tappable height and 14-16px type
+     (the pills previously rendered ~23-26px tall with ~11px text). The <a> grows;
+     the inner span keeps the underline tight to the text. */
+  .ulink {
+    font-size: 15px;
+    min-height: 44px;
+    opacity: 1;
+  }
+
+  .utility--foot .ulink {
+    font-size: 14px;
+    opacity: .75;
+  }
+
+  .utility {
+    gap: 1.25rem;
+    flex-wrap: wrap;
+  }
+
+  .eyebrow,
+  .btn,
+  .btn.small {
+    font-size: 15px;
+    min-height: 44px;
+  }
+
+  /* let the masthead shrink its wordmark before it ever collides with the nav */
+  .logo-mark {
+    width: clamp(6rem, 26vw, 8rem);
+  }
+
+  body>.topbar {
+    flex-wrap: wrap;
+    gap: .5rem 1rem;
+  }
 }
 
 /* =========================================================
@@ -610,39 +833,134 @@ body {
    shows through ("grainy" look).
    ========================================================= */
 .stage--hero {
-  width: 100vw;
-  height: 100svh;
-  aspect-ratio: auto;
-  /* override the fixed-ratio stage */
+  /* Fill the viewport HEIGHT (never letterbox). The canvas keeps the design's
+     fixed aspect, so on screens taller than 2.147 it is WIDER than the viewport
+     and bleeds off the right; anchored left so the logo, headline, hand and weave
+     stay put (only the far-right forearm/loop run off-screen). The design's top
+     and bottom edges sit on the viewport top/bottom — exactly like the design,
+     nothing cut short. container-type:size makes the whole composition scale with
+     the CANVAS via cqw/cqh, so proportions match the design at every screen. */
+  width: calc(100dvh * (var(--art-w) / var(--art-h)));
+  height: 100dvh;
+  max-width: none;
+  justify-self: end;
+  /* anchor RIGHT so the full glove + swirl wrap-around stay in frame; the excess
+     width (left cap / left bands) bleeds off the left, and the bands sweep in from
+     the viewport's left edge. The logo/headline are pinned to the viewport (below),
+     so nothing important is lost on the left. */
+  container-type: size;
   overflow: hidden;
-  background: url("../assets/cream.webp") center / cover no-repeat;
+  /* transparent so the body's full-bleed cream shows through behind the art */
+  background: transparent;
 
   /* --- Swirl placement (the real PSD ribbon, assets/swirl.webp, aspect ≈1.403) ---
      Drawn twice at IDENTICAL placement — once BEHIND the hand (its loops fall
      over the cream on the left; the strands behind the glove are hidden by it)
      and once again IN FRONT, masked to a horizontal band so only the single
-     lower strand weaves over the wrist. Tune these to move/scale it. */
-  --sw: calc(153.8svh * 1.403);
-  /* swirl WIDTH; height ≈ 154svh. Registered to the design by mask overlap
-     (scripts/_fit_swirl.mjs + _swirlcheck.mjs): width ≈ 216% of viewport height,
-     centre at 54%, left edge ≈ 5vw — the ribbon is a UNIFORM scale of the design's. */
-  --swirl-left: 5vw;
-  /* left edge */
-  --swirl-cy: 54%;
-  /* vertical centre of the swirl */
-  /* the slice of the swirl pulled in front of the wrist (fraction of its height) */
-  --front-band: linear-gradient(to bottom,
-      transparent 53%, #000 56%, #000 66%, transparent 69%);
+     lower strand weaves over the wrist. Units are cqh/cqw = % of the STAGE. */
+  /* ---- Swirl SIZE dials (two independent axes) -------------------------------
+     --swirl-h       : VERTICAL size only (% of canvas height).
+     --swirl-stretch : HORIZONTAL size only. 1 = the asset's natural 1.403 aspect;
+                       >1 widens the bands sideways WITHOUT changing their height.
+                       e.g. 1.15 = 15% wider. The swirl is right-anchored, so the
+                       extra width grows LEFTWARD — the hand never moves.
+     Both feed --sw (the rendered width). At stretch:1 this is identical to the
+     old `width: --sw; height: auto`, which locked the aspect and made any widening
+     grow the swirl vertically too. */
+  /* kept UNITLESS so the weave math below can divide by them (calc() refuses to
+     divide a length by a length); the *1cqh puts the unit back on at the end. */
+  --swirl-h-n: 126;
+  --swirl-stretch: 1.1;
+  --sw-n: calc(var(--swirl-h-n) * 1.403 * var(--swirl-stretch));
+  --swirl-h: calc(var(--swirl-h-n) * 1cqh);
+  --sw: calc(var(--sw-n) * 1cqh);
+  /* swirl WIDTH; height ≈ 128% of canvas height. Zoomed OUT from the registered
+     ≈154% so the bands read closer to the design's size, then RE-CENTERED over the
+     hand (via --swirl-nudge) so the ribbon still wraps and the front weave holds. */
+
+  /* ---- MASTER right-side dial ------------------------------------------------
+     The hand and BOTH swirl passes hang off ONE shared right anchor, so editing
+     --art-right slides the whole composition horizontally TOGETHER and the weave
+     stays registered. Each element keeps its own offset from that anchor, so the
+     gap between hand and swirl is preserved no matter where you put --art-right.
+     (The swirl used to be anchored by `left`, which is why the two could drift
+     apart and had to be re-tuned separately.) */
+  --art-right: -25.3cqw;
+  /* <-- EDIT THIS to move hand + swirl together */
+  --hand-right: var(--art-right);
+  --swirl-nudge: 16.3cqw;
+  /* the swirl's fixed offset from the shared anchor (≡ the old left: 13.4cqw) */
+  --swirl-right: calc(var(--art-right) + var(--swirl-nudge));
+  /* ---- Swirl VERTICAL position -------------------------------------------------
+     --swirl-cy-base : the registered vertical centre (don't touch).
+     --swirl-drop    : nudge the WHOLE swirl DOWN (+) or UP (-). e.g. 2cqh = 2% of
+                       canvas height lower.
+     Why the weave survives this: --front-band masks the .swirl-front IMAGE, so its
+     percentages are in the SWIRL's own coordinate space, not the canvas's. The mask
+     travels with the swirl, so the same strand stays selected and keeps reading as
+     in-front. It only breaks once you drop far enough that a DIFFERENT strand lands
+     on the wrist — then the stops need refitting (scripts/_bandfit.mjs).
+     1cqh == 1% here: `top`'s % resolves against the stage height, and cqh is 1% of
+     that same stage, so the calc mixes cleanly. */
+  --swirl-cy-base: 54%;
+  --swirl-drop: 0cqh;
+  /* <-- EDIT THIS to slide the swirl down/up */
+  --swirl-cy: calc(var(--swirl-cy-base) + var(--swirl-drop));
+  /* Only the TOP band is treated: it dissolves as it rises so it flows up into the
+     cream instead of ending in the asset's flat/sharp top edge. Vertical fade keyed
+     to swirl height — leaves the left cap and lower strands (the prime swirl) intact.
+     Tune the stops to move where the top band starts fading. */
+  --swirl-fade: linear-gradient(to top, #000 66%, transparent 88%);
+  /* the slice of the swirl pulled in front of the wrist. Sized (scripts/_bandfit.mjs)
+     to reveal the FULL middle strand — swirl-height 52.5%-66% — with its hard edges
+     landing in the transparent gaps between strands, so the ribbon shows its OWN
+     crisp edges at full opacity (reads as solid + in-front, not a soft floating wash).
+     The upper strand (behind the sponge) and bottom sweep (behind the suds) are left
+     to the back pass only, preserving the over/under weave. */
+  /* ---- Weave fit — DERIVED, not hand-fitted ----------------------------------
+     The ONE thing CSS can't do is read swirl.webp's alpha to find where the
+     ribbon's strands are, so that is measured ONCE offline (scripts/_weavefit.mjs)
+     and baked in as the 3 constants below. They describe the ASSET, so they never
+     change when you turn the dials. Everything after that is math CSS does itself
+     — which is why the mask now RE-FITS ITSELF when --swirl-stretch changes,
+     instead of quietly cutting the ribbon. */
+  --strand-mid: 63.41;
+  /* strand centre (swirl-%) at the swirl's mid-x — constant, the dials cancel */
+  --strand-thick: 9.7;
+  /* strand thickness (swirl-%) */
+  --strand-run: 0.2225;
+  /* strand rise/run in the asset's own aspect */
+  --strand-slop: 0.15;
+  /* extra width so the mask edges land in the transparent GAPS between strands,
+     never on the ribbon itself (landing on it = the hard straight cut) */
+
+  /* tilt depends ONLY on the stretch — the vertical size cancels out of the ratio */
+  --weave-tilt: atan(var(--strand-run) / var(--swirl-stretch));
+  --weave-angle: calc(180deg - var(--weave-tilt));
+  /* gradient-line length, unitless (in cqh): |W*sin| + |H*cos| */
+  --weave-len: calc(var(--sw-n) * sin(var(--weave-tilt)) + var(--swirl-h-n) * cos(var(--weave-tilt)));
+  /* strand centre + half-thickness, projected onto the tilted gradient axis */
+  --weave-mid: calc(50 + (var(--strand-mid) - 50) / 100 * var(--swirl-h-n) * cos(var(--weave-tilt)) / var(--weave-len) * 100);
+  --weave-half: calc((var(--strand-thick) + var(--strand-slop)) / 100 * var(--swirl-h-n) * cos(var(--weave-tilt)) / var(--weave-len) * 100 / 2);
+  --front-band: linear-gradient(var(--weave-angle),
+      transparent calc((var(--weave-mid) - var(--weave-half) - 0.4) * 1%),
+      #000 calc((var(--weave-mid) - var(--weave-half)) * 1%),
+      #000 calc((var(--weave-mid) + var(--weave-half)) * 1%),
+      transparent calc((var(--weave-mid) + var(--weave-half) + 0.4) * 1%));
 }
 
 /* both swirl passes share identical placement, so they coincide as one ribbon */
 .stage--hero .swirl {
   position: absolute;
-  left: var(--swirl-left);
+  /* pinned to the SHARED right anchor (see --art-right), same as the hand */
+  left: auto;
+  right: var(--swirl-right);
   top: var(--swirl-cy);
   transform: translateY(-50%);
+  /* height is EXPLICIT (not auto) so width no longer drives it: the two axes are
+     independent and --swirl-stretch can widen the bands on its own. */
   width: var(--sw);
-  height: auto;
+  height: var(--swirl-h);
   pointer-events: none;
   user-select: none;
 }
@@ -650,6 +968,11 @@ body {
 .stage--hero .swirl-back {
   z-index: 1;
   opacity: .9;
+  /* the top band trails up and dissolves into the cream (no sharp asset edge) */
+  -webkit-mask-image: var(--swirl-fade);
+  mask-image: var(--swirl-fade);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
 }
 
 /* behind the hand */
@@ -659,7 +982,8 @@ body {
    (same asset, same place) so it reads as one continuous ribbon — never doubled. */
 .stage--hero .swirl-front {
   z-index: 3;
-  opacity: .9;
+  opacity: 1;
+  /* opaque so the crossing strand reads solid over the suds, like the design */
   -webkit-mask-image: var(--front-band);
   mask-image: var(--front-band);
   -webkit-mask-repeat: no-repeat;
@@ -673,10 +997,11 @@ body {
    just like the design's forearm. */
 .stage--hero .layer-hand {
   left: auto;
-  right: -17.3vw;
-  top: 0.8svh;
+  /* the SHARED right anchor — moves in lockstep with the swirl (see --art-right) */
+  right: var(--hand-right);
+  top: 0.8cqh;
   width: auto;
-  height: 148.4svh;
+  height: 148.4cqh;
   z-index: 2;
 }
 
@@ -684,8 +1009,8 @@ body {
 .stage--hero .layer-glow {
   left: auto;
   right: 0;
-  top: 4svh;
-  width: 46vw;
+  top: 4cqh;
+  width: 46cqw;
   height: auto;
   z-index: 1;
   mix-blend-mode: screen;
@@ -698,16 +1023,25 @@ body {
   z-index: 5;
 }
 
-@media (max-width: 760px) {
-  .stage--hero {
-    --sw: 150vw;
-  }
+/* Hero copy + logo scale with the STAGE (container units) so the whole
+   composition stays locked to the design at every screen size — the same reason
+   the art uses cqh/cqw. At the design aspect these equal the old vw values. */
+.stage--hero .headline {
+  font-size: 4.3cqw;
+}
 
-  /* keeps top-swirl aligned to main on mobile */
-  /* negative bottom drops the bare-skin wrist off-screen — glove only */
-  .stage--hero .layer-hand {
-    height: 70svh;
-    top: auto;
-    bottom: -12svh;
-  }
+.stage--hero .eyebrow {
+  font-size: 0.98cqw;
+}
+
+.stage--hero .topcta {
+  font-size: 0.98cqw;
+}
+
+.stage--hero .logo-mark {
+  width: 10.5cqw;
+}
+
+.stage--hero .content {
+  --cgap: 1.2cqw;
 }

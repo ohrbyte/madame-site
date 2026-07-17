@@ -1,29 +1,63 @@
 <!doctype html>
 <html lang="en">
+
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Madame — Choose a lady like a lady</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>M</text></svg>">
-<link rel="stylesheet" href="dist/styles.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Madame — Choose a lady like a lady</title>
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>M</text></svg>">
+  <link rel="stylesheet" href="dist/styles.css">
 </head>
+
 <body>
-<main class="stage stage--hero" data-page="index">
-  <!-- One swirl, drawn twice: the real grainy PSD ribbon (assets/swirl.webp),
+  <main class="stage stage--hero" data-page="index">
+    <!-- One swirl, drawn twice: the real grainy PSD ribbon (assets/swirl.webp),
        once BEHIND the hand and again IN FRONT (clipped to the glove) at the
        identical position, so a single strand weaves over the wrist. -->
-  <img class="layer layer-glow" src="assets/landing-glow.webp" alt="" aria-hidden="true">
-  <img class="swirl swirl-back" src="assets/swirl.webp" alt="" aria-hidden="true">
-  <img class="layer layer-hand" src="assets/hand-landing.webp" alt="Gloved hand squeezing a soapy sponge">
-  <img class="swirl swirl-front" src="assets/swirl.webp" alt="" aria-hidden="true">
+    <img class="layer layer-glow" src="assets/landing-glow.webp" alt="" aria-hidden="true">
+    <img class="swirl swirl-back" src="assets/swirl.webp" alt="" aria-hidden="true">
+    <img class="layer layer-hand" src="assets/hand-landing.webp" alt="Gloved hand squeezing a soapy sponge">
+    <img class="swirl swirl-front" src="assets/swirl.webp" alt="" aria-hidden="true">
+  </main>
 
-  <a class="logo anim" style="--d:0s" href="index.html" aria-label="Madame home"><img class="logo-mark" src="assets/madame-logo.png" alt="Madame"></a>
+  <!-- Page chrome — pinned to the VIEWPORT (outside the fill-height artwork canvas)
+       so the logo, headline and pill stay put while the artwork bleeds at the edges.
+       This lets the artwork anchor right (full glove + wrap-around) without losing
+       the copy on tall screens. -->
+  <header class="topbar">
+    <a class="logo anim" style="--d:0s" href="/" aria-label="Madame home"><img class="logo-mark"
+        src="assets/madame-logo.png" alt="Madame"></a>
+    <nav class="utility" aria-label="Account and gifting">
+      <a class="ulink anim" style="--d:.1s" href="purchase-a-gift.html"><span>Purchase a gift</span></a>
+      <a class="ulink anim" style="--d:.15s" href="my-bookings.html"><span>My bookings</span></a>
+    </nav>
+  </header>
 
   <div class="content" style="--ctop:54.6%;--cw:40%;--cleft:12.3%;">
-    <span class="eyebrow anim" style="--d:.05s">Click to hire</span>
-    <h1 class="headline anim" style="--d:.15s">Choose a <span class="mark underline"><span class="script">lady</span><svg viewBox="0 0 200 22" preserveAspectRatio="none"><path class="accent" style="--len:240" d="M5 14 C 55 5, 150 5, 196 12"/></svg></span><br>like a <span class="script">lady</span>.</h1>
+    <a class="eyebrow anim" style="--d:.05s" href="step-1.html">Click to hire</a>
+    <h1 class="headline anim" style="--d:.15s">Choose a <span class="mark underline"><span
+          class="script">lady</span><svg viewBox="0 0 200 22" preserveAspectRatio="none">
+          <!-- Traced from the design (scripts/_fineprof.mjs): dead HORIZONTAL for the
+               first 45% (under the "l" and "a"), then a distinct KNEE into a straight
+               ~4.5deg descent through the "d" and "y", ending at the y's lowest point.
+               A smooth bezier is wrong here — the design's switch-up is sharp. The
+               knee is softened only by .accent's stroke-linejoin: round. -->
+          <path class="accent" style="--len:210;stroke-width:4.7" d="M2 7 L90 7 L198 19" />
+        </svg></span><br>like a <span class="script">lady</span>.</h1>
   </div>
-</main>
-<script src="app.js"></script>
+
+  <!-- Colophon — info + legal, the lowest tier. Mirrors the masthead's insets so
+       the page reads as one framed poster: wordmark + utility at the top edge,
+       info + legal at the bottom edge, artwork between. -->
+  <footer class="botbar">
+    <nav class="utility utility--foot" aria-label="Information">
+      <a class="ulink anim" style="--d:.3s" href="about.html"><span>About &amp; Contact</span></a>
+      <a class="ulink anim" style="--d:.35s" href="terms.html"><span>Terms &amp; Conditions</span></a>
+    </nav>
+  </footer>
+
+  <script src="app.js"></script>
 </body>
+
 </html>

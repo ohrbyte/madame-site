@@ -6,7 +6,7 @@
   "scripts": {
     "build:css": "tailwindcss -i ./src/input.css -o ./dist/styles.css --minify",
     "watch:css": "tailwindcss -i ./src/input.css -o ./dist/styles.css --watch",
-    "serve": "browser-sync start --server --index index.html --files \"*.html\" \"dist/styles.css\" \"app.js\" \"assets/**/*.svg\" --no-notify --no-open",
+    "serve": "browser-sync start --server --index index.html --port 3001 --ui-port 3011 --files \"*.html\" \"dist/styles.css\" \"app.js\" \"assets/**/*.svg\" --no-notify --no-open",
     "dev": "concurrently -k -n CSS,SERVE -c cyan,magenta \"npm:watch:css\" \"npm:serve\"",
     "build": "npm run build:css"
   },
