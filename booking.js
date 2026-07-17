@@ -181,6 +181,36 @@
        specificity would beat any stage class — but display:none from [hidden]
        is a different property, so it wins regardless. */
     const authswap = $(".authswap", form);
+    const submitBtn = $(".authsubmit", form);
+
+    const emailMode = () => !!($("#mode-email", form) || {}).checked;
+
+    /* The button shows only when what's typed is actually sendable, and its
+       label says what pressing it will do. Enter works either way — the
+       hidden button is still the form's default button. */
+    function stageValid() {
+      const st = form.dataset.stage || "start";
+      if (st === "start") {
+        return emailMode()
+          ? EMAIL_RE.test(emailField.value.trim())
+          : digits(phoneField.value).replace(/^1/, "").length === 10;
+      }
+      if (st === "code") return digits(codeField.value).length >= 6;
+      if (st === "name") return nameField.value.trim().length > 0;
+      return false; // "sent" — the inbox is the next step, not this card
+    }
+
+    function refreshSubmit() {
+      if (!submitBtn) return;
+      const st = form.dataset.stage || "start";
+      submitBtn.textContent =
+        st === "code" ? "Sign in"
+        : st === "name" ? "Continue"
+        : emailMode() ? "Email me a sign-in link"
+        : "Text me a sign-in code";
+      submitBtn.hidden = !stageValid();
+    }
+
     function stage(name) {
       form.dataset.stage = name;
       form.dataset.sent = name === "code" || name === "sent" ? "true" : "false";
@@ -191,9 +221,17 @@
       if (nameField) nameField.hidden = name !== "name";
       if (authswap) authswap.hidden = !inStart;
       note(status, "");
+      refreshSubmit();
       const focus = { start: null, code: codeField, name: nameField }[name];
       if (focus) focus.focus();
     }
+
+    [emailField, codeField, nameField].forEach((el) => {
+      if (el) el.addEventListener("input", refreshSubmit);
+    });
+    form.querySelectorAll('input[name="mode"]').forEach((radio) => {
+      radio.addEventListener("change", refreshSubmit);
+    });
 
     async function afterAuth() {
       if (isNewClient()) {
@@ -215,6 +253,7 @@
         : d.length > 3 ? `(${d.slice(0, 3)}) ${d.slice(3)}`
         : d.length > 0 ? `(${d}`
         : "";
+      refreshSubmit();
     });
 
     const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -275,6 +314,8 @@
       if (codeField) codeField.value = "";
       stage("start");
     });
+
+    refreshSubmit();
   }
 
   /* ================================================================

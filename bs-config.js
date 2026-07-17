@@ -13,6 +13,7 @@
    through this proxy are real rows in the production database. */
 
 const https = require("https");
+const http = require("http");
 
 const API_ORIGIN = "admin.cleanmadame.com";
 
@@ -82,6 +83,36 @@ module.exports = {
         },
       },
       { route: "/api", handle: apiProxy },
+      // Same proxy, DEV flavour: /dev-api/* → the local cleaneri-api on
+      // :5000. Point a session at it with
+      //   localStorage.setItem('madame_api_base', location.origin + '/dev-api/v1')
+      // to exercise the flow against the dev stack instead of production
+      // (and localStorage.removeItem(...) to go back).
+      {
+        route: "/dev-api",
+        handle: (req, res, next) => {
+          const original = req.originalUrl || "/dev-api" + req.url;
+          if (!original.startsWith("/dev-api/")) return next();
+          const proxied = http.request(
+            {
+              hostname: "127.0.0.1",
+              port: 5000,
+              path: "/api" + original.slice("/dev-api".length),
+              method: req.method,
+              headers: { ...req.headers, host: "localhost:5000" },
+            },
+            (upstream) => {
+              res.writeHead(upstream.statusCode, upstream.headers);
+              upstream.pipe(res);
+            }
+          );
+          proxied.on("error", (err) => {
+            res.writeHead(502, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ code: "BadGateway", message: err.message }));
+          });
+          req.pipe(proxied);
+        },
+      },
     ],
   },
   files: [

@@ -86,13 +86,14 @@
       <p class="authnote">We sent a login link to —<br>Check your inbox and click the link to sign in.</p>
       <a class="authalt" href="#">Use a different email</a>
 
-      <!-- The design has no visible button — Enter is the submit. But a form
-           with SEVERAL text fields and NO submit button never implicitly
-           submits in any browser; this invisible default button is what makes
-           Enter work. Not display:none-via-[hidden]: some browsers drop a
-           hidden default button from implicit submission too, so it wears
-           .visually-hidden instead. -->
-      <button class="visually-hidden" type="submit" tabindex="-1" aria-hidden="true">Continue</button>
+      <!-- The submit. Hidden until the field holds something sendable (a full
+           phone, a real email, the whole code) — then it appears with a label
+           that says exactly what pressing it does. It is ALSO the form's
+           default button, so Enter submits whether or not it is showing:
+           without a submit button a form with several text fields never
+           implicitly submits in any browser. booking.js drives label +
+           visibility (refreshSubmit). -->
+      <button class="btn authsubmit" type="submit" hidden>Continue</button>
     </form>
   </div>
 
