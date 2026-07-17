@@ -28,7 +28,15 @@
        identical position, so a single strand weaves over the wrist. -->
     <img class="layer layer-glow" src="assets/landing-glow.webp" alt="" aria-hidden="true">
     <img class="swirl swirl-back" src="assets/swirl.webp" alt="" aria-hidden="true">
-    <img class="layer layer-hand" src="assets/hand-landing.webp" alt="Gloved hand squeezing a soapy sponge">
+    <!-- Two hand photos, one motif: hand-landing.webp (arm entering from the
+         right) fills the 16:9 crop; the design's own landing-hand.webp (arm
+         rising from the ground, the one step-1 shows) takes over once the
+         frame is wide enough for the full poster — placed by the wide-mode
+         hand dials in src/input.css, which are step-1's PSD-exact values. -->
+    <picture>
+      <source media="(min-aspect-ratio: 3900/1816)" srcset="assets/landing-hand.webp">
+      <img class="layer layer-hand" src="assets/hand-landing.webp" alt="Gloved hand squeezing a soapy sponge">
+    </picture>
     <img class="swirl swirl-front" src="assets/swirl.webp" alt="" aria-hidden="true">
   </main>
 

@@ -26,3 +26,13 @@ body[data-page="index"] {
   --cw: 40%;
   --cleft: 12.3%;
 }
+
+/* Wide frames swap in the design's own hand (see index.html's <picture> and
+   the wide-mode dials in src/input.css). --stripe-down: -1 above was fitted
+   to hand-landing.webp's wrist; the design photo at its PSD box needs the
+   computed fit as-is — step-1 shows the same photo there with no nudges. */
+@media (min-aspect-ratio: 3900/1816) {
+  body[data-page="index"] {
+    --stripe-down: 0;
+  }
+}

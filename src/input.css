@@ -1313,6 +1313,18 @@ body:has(.doc) .stage {
        keeps the poster's own scale at any frame size. */
     --fw: 2.1476dvh;          /* 100dvh · (3900/1816) / 100 */
     --cgap: calc(1.9 * var(--fw));
+
+    /* The landing's hand. In the 16:9 crop it is hand-landing.webp, tucked
+       right so the arm reads from the right edge of the narrower window; the
+       design's poster draws the OTHER photo of the same motif — the arm
+       rising from the ground — which index.html's <picture> swaps in at this
+       same breakpoint. These are its PSD box dials, verbatim from step-1
+       (the page that always shows that photo at design position). Pages with
+       their own hands override all three in their page css, so this reaches
+       the landing alone. */
+    --hand-nudge: 5.5cqw;
+    --hand-top: -19.99cqh;
+    --hand-h: 165.2cqh;
   }
 
   /* Poster chrome scales with the poster. The panels and their buttons stay
