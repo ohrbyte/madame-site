@@ -3,6 +3,11 @@
    Hand: step4-hand.webp — a striped cloth held from the lower right.
    ========================================================= */
 body[data-page="step-4"] {
+  /* WEAVE — how much of the chosen strand may come forward (the sliver guard).
+     scripts/_weavecut.mjs; see .swirl-front in input.css.
+     url() is relative to THIS file (css/pages/), not to dist/. */
+  --front-span: url("../../assets/weave/step4.webp");
+
   /* ART — converted from --hand-l/-t/-w: 49.897% / 6.553% / 38.256% */
   --hand-nudge: 35.15cqw;
   --hand-top: 6.55cqh;

@@ -263,6 +263,20 @@
   --stripe-soft: 0.4;
   /* edge softness. 0 = razor sharp, 1-2 = feathered */
 
+  /* THE SPAN — WHERE ALONG the ribbon the stripe is allowed to come forward.
+     This is the --front-span the .swirl-front comment always described and that
+     was never actually declared; it is the second of the two intersected masks.
+     --front-band decides WHICH strand, this decides HOW MUCH OF IT, and without
+     it the band also lands on the sponge and the suds as a stray pink sliver.
+
+     It is a SHAPE, not numbers, because the ribbon is a CURVE: the strand's
+     extent cannot be expressed as a straight strip. Built by
+     scripts/_weavecut.mjs from the customer's own hand-cut front layer — read
+     that file before changing this. Per page, because each hand meets the
+     ribbon at a different place.
+     url() is relative to dist/ — see the note at the top of this file. */
+  --front-span: url("../assets/weave/landing.webp");
+
   /* COPY BLOCK — where this page's headline/panel column sits. --ctop/--cleft/
      --cw are % of the VIEWPORT (the chrome is pinned to the viewport, not the
      canvas). --cgap is the space between the items stacked in that column;
@@ -468,14 +482,43 @@ body.show-stripe .swirl-front {
 /* front pass: same swirl, masked to the wrist band so a single strand weaves
    in front of the forearm. Elsewhere the band coincides with the back pass
    (same asset, same place) so it reads as one continuous ribbon — never
-   doubled. --front-band picks WHICH strand; nudge it per page with --stripe-*.
-   A page whose hand no strand crosses simply omits the .swirl-front img. */
+   doubled. A page whose hand no strand crosses simply omits the .swirl-front
+   img.
+
+   TWO masks, INTERSECTED — as this comment always said it should be:
+     --front-band  picks WHICH strand.       A tilted strip, derived by trig
+                   from the --strand-* asset constants and nudged per page with
+                   --stripe-*. Straight, because a strip is all it needs to be
+                   to choose a strand.
+     --front-span  picks HOW MUCH OF IT may come forward. Without it the band
+                   also lands on the sponge and the suds as a stray pink sliver.
+                   A SHAPE, not a strip: the ribbon is a curve, so its extent
+                   cannot be cut by a straight edge. Built from the customer's
+                   own hand-cut front layer by scripts/_weavecut.mjs.
+   mask-composite:intersect = show only where BOTH allow. The band still chooses
+   the strand and --stripe-* still tunes it; the span only ever takes away.
+
+   mask-size 100% 100% suits both: the gradient is generated into the element's
+   box anyway, and the span is drawn on the swirl's own canvas (same aspect), so
+   stretching it to that box registers it to the ribbon exactly — under every
+   swirl dial, with no re-fitting.
+
+   The span carries a SHAPE and no swirl pixels, so the swirl stays ONE source
+   of truth: replace assets/swirl.webp and both passes still follow.
+
+   NOTE FOR TESTING: a CSS mask image is blocked on file:// (opaque origin), so
+   a file:// capture renders this element FULLY HIDDEN with no error — the weave
+   just vanishes. Shoot over http (scripts/_wshot.mjs serves it). */
 .swirl-front {
   z-index: 3;
   opacity: 1;
   /* opaque so the crossing strand reads solid over the suds, like the design */
-  -webkit-mask-image: var(--front-band);
-  mask-image: var(--front-band);
+  -webkit-mask-image: var(--front-span), var(--front-band);
+  mask-image: var(--front-span), var(--front-band);
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
   -webkit-mask-repeat: no-repeat;
   mask-repeat: no-repeat;
 }
@@ -688,7 +731,19 @@ body>.content--fill {
   top: 50%;
   left: 50%;
   width: 132%;
-  height: 168%;
+  /* HEIGHT COMES FROM THE WIDTH — do not set it independently.
+     The ring is a fixed shape, not a box to be filled: traced off the design it
+     is a superellipse of aspect 2.5 (scripts/_ringfit.mjs), and the design draws
+     that same ring on step 2 ("Clean", 284x113 = 2.51) and step 4 ("time",
+     248x100 = 2.48). Sizing width and height independently let the box's aspect
+     drift from the viewBox's, and with preserveAspectRatio="none" on the <svg>
+     that stretch fell on the STROKE: measured on step 2, the ring rendered
+     226x161 (aspect 1.40, vs the design's 2.51) with a stroke 5px across the top
+     and 19px up the sides, where the design's is an even ~7 all round.
+     aspect-ratio pins the box to the ring, so the scale stays uniform and the
+     stroke cannot smear. The circle SVGs also drop preserveAspectRatio="none"
+     for the same reason — see step-2.html. */
+  aspect-ratio: 283.4 / 113.4;
   /* NB: `translate` and `transform` are separate properties and COMPOSE. This
      rule used to carry `translate: 0 -50%` as well, which meant the ring was
      pulled up by 50% of its height TWICE — a full 100% — and sat a line above
@@ -703,6 +758,16 @@ body>.content--fill {
   stroke-width: 7;
   stroke-linecap: round;
   stroke-linejoin: round;
+}
+
+/* The design's ring stroke measures 7.5 against its own 283.4-wide ring — 2.6%
+   of the ring's width. The circle's viewBox is authored at that same design
+   scale and (per .mark.circle>svg above) scales uniformly, so 7.5 here holds
+   that ratio at any size. It has to override .accent's 7 because that 7 is
+   tuned to the underline's short 200x22 viewBox — a different scale entirely,
+   not a different weight. */
+.mark.circle .accent {
+  stroke-width: 7.5;
 }
 
 .accent.blue {

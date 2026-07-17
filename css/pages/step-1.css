@@ -6,6 +6,11 @@
    (submitting sends a magic link; the confirmation replaces the prompt).
    ========================================================= */
 body[data-page="step-1"] {
+  /* WEAVE — how much of the chosen strand may come forward (the sliver guard).
+     scripts/_weavecut.mjs; see .swirl-front in input.css.
+     url() is relative to THIS file (css/pages/), not to dist/. */
+  --front-span: url("../../assets/weave/landing.webp");
+
   /* ART — converted from this page's PSD coords (was --hand-l/-t/-w:
      17.795% / -19.989% / 100%). The canvas aspect is unchanged, so the
      conversion to the right-anchored dials is exact arithmetic. */

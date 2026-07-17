@@ -15,24 +15,24 @@
    ========================================================= */
 body[data-page="step-2"] {
   /* ART — the PSD coords (--hand-l/-t/-w: 50% / 11.894% / 47.821%) convert to
-     25.48cqw / 11.89cqh / 137.4cqh. Pulled back from that: at full PSD size the
-     pans crowd the copy and run into the panel. Scaled down ~8% and slid right
-     (a SMALLER --hand-nudge = further right, since the nudge is an inset from
-     the shared right anchor) so the stack clears the text column. */
-  --hand-nudge: 19cqw;
+     25.48cqw / 11.89cqh / 137.4cqh. Scaled down ~8% from that: at full PSD size
+     the pans crowd the copy and run into the panel.
+     --hand-nudge is an inset from the shared right anchor, so BIGGER = further
+     LEFT. 25 sits the stack left of centre-right with the panel still clear;
+     19 (its old value) hung it off the right edge.
+     Moving this re-registers the hand against the weave, because the strand is
+     pinned to the SWIRL, not the hand: sliding the hand left walks the crossing
+     UP the stack (19 crossed at the bowl, 25 crosses at the blue pan). Re-check
+     the over/under with class="show-stripe" after touching it. */
+  --hand-nudge: 25cqw;
   --hand-top: 11.89cqh;
   --hand-h: 126cqh;
 
-  /* WEAVE — this hand holds the pans from BELOW, so its glove sits far lower
-     than the landing's forearm. At the shared default the promoted strand landed
-     across the pans, washing them out and reading as an accident rather than a
-     weave. Dropped until it crosses the glove's fingers and the bottom bowl —
-     which is exactly what the PSD does (its "Layer 7 copy" is the swirl drawn a
-     second time in front, over the glove).
-     Re-fit after the hand moved: 12 was fitted to the hand at its full PSD size
-     and position, and once the hand was scaled down and slid right, 12 rode up
-     onto the pans again. Fitted by eye with class="show-stripe" on <body>. */
-  --stripe-down: 8;
+  /* WEAVE — the strand that crosses in front of the pans: up over the blue pan
+     and the white bowl, with the wrist below it sitting on top of the next band
+     down. Built by scripts/_weavecut.mjs; see .swirl-front in input.css.
+     url() is relative to THIS file (css/pages/), not to dist/. */
+  --front-span: url("../../assets/weave/step2.webp");
 
   /* COPY — the panel's left edge is the column edge. The headline sits 1.5%
      further in, because its pink circle oversails the text and the DESIGN lines
@@ -63,16 +63,8 @@ body[data-page="step-2"] .headline {
   font-size: clamp(1.5rem, 3.83vw, 4.1rem);
 }
 
-/* The ring is drawn too heavy: measured against the design it renders a 12px
-   stroke where the design's is 8px — 1.5x. The shared .accent stroke-width of 7
-   is right for the UNDERLINE marks (a short wide viewBox), but the circle's
-   viewBox is 220x110 stretched over a much wider box with
-   preserveAspectRatio="none", so the same 7 comes out heavier here.
-   Scoped to this page rather than changed globally, because .accent's 7 is what
-   the signed-off landing draws with. */
-body[data-page="step-2"] .mark.circle .accent {
-  stroke-width: 4.7;
-}
+/* NB: the ring needs no stroke correction on this page — .mark.circle in
+   input.css now scales uniformly, so it draws the design's weight as-is. */
 
 /* the panel fills the measured column rather than the shared 40ch cap.
    Percentage padding resolves against the WIDTH, so these are % of the panel's
