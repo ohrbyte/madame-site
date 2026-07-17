@@ -1287,19 +1287,23 @@ body:has(.doc) .stage {
    properties, so the ratio is written out; keep them in sync.
    ========================================================= */
 @media (min-aspect-ratio: 3900/1816) {
-  /* The 16:9-crop tune pushes the art right so the swirl fills that narrower
-     window — its left loops begin exactly at a 16:9 screen's edge, and the
-     canvas beyond them is meant to be cut. With the whole canvas in frame
-     there is no crop to fill: the swirl reads pushed-right with a sixth of
-     the poster dead cream. So once the frame shows the full canvas, slide the
-     composition back left until the entire swirl sits in view — its 90.5cqw
-     of ink centred, ~4.7cqw clear of BOTH edges, the framing of the original
-     design. A pure translation through the master anchor: hand, swirl and
-     weave stay registered, on every page. The glow is anchored to the canvas
-     edge (not the anchor), so it gets the same slide to stay on the sponge. */
+  /* The hands sit at their PSD canvas positions at every aspect (the per-page
+     --hand-nudge values reproduce the manifest boxes exactly at the base
+     --art-right) — the ONE 16:9 concession in the art is the SWIRL, zoomed
+     out from its registered ~154% so its visible portion carries the narrow
+     crop. With the whole canvas in frame that concession reads as a small,
+     pushed-right swirl against design-true text and hands. So in wide mode
+     the swirl alone returns to the PSD's registered geometry (numbers from
+     assets/manifest.json, identical on every page's PSD): natural 1.403
+     aspect, 153.47cqh tall, right edge 5cqw past the canvas — left loops
+     fully in frame 4.74cqw off the left edge, right side running off the
+     poster exactly as the design draws it. Hands, copy and weave anchors are
+     untouched; the band mask re-fits itself from the same dials. */
   :root {
-    --art-right: -11.6cqw;
-    --glow-right: 11.7cqw;
+    --swirl-nudge: 18.3cqw;   /* -23.3 + 18.3 = -5cqw — the PSD right edge */
+    --swirl-h-n: 153.47;
+    --swirl-stretch: 1;
+    --swirl-drop: 0.27cqh;    /* registered centre is 54.27%, base is 54% */
   }
 
   html {
