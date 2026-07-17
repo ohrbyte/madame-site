@@ -1,0 +1,49 @@
+/* =========================================================
+   STEP 3 — "which day works?"  ·  Pick a date
+   Hand: step3-hand.webp — a spray bottle held from the lower right.
+   ========================================================= */
+body[data-page="step-3"] {
+  /* ART — converted from --hand-l/-t/-w: 52.051% / 5.782% / 54.128% */
+  --hand-nudge: 17.12cqw;
+  --hand-top: 5.78cqh;
+  --hand-h: 155.6cqh;
+
+  /* COPY */
+  --cw: 42%;
+  --cleft: 5.9%;
+}
+
+/* The calendar — unique to this page, so it lives here rather than in the
+   engine. It only ARRANGES the shared .choice cell; the cell itself (hover,
+   focus, picked state) is defined once in src/input.css and is the same control
+   the time grid and the gift amounts use. */
+body[data-page="step-3"] .cal {
+  margin: 0 0 1.1rem;
+}
+
+body[data-page="step-3"] .cal-dow,
+body[data-page="step-3"] .cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: .28rem;
+}
+
+body[data-page="step-3"] .cal-dow {
+  margin-bottom: .35rem;
+}
+
+body[data-page="step-3"] .cal-dow span {
+  text-align: center;
+  font-size: clamp(.56rem, .75vw, .66rem);
+  font-weight: 700;
+  opacity: .55;
+}
+
+/* square-ish cells, and tighter than the default .choice padding: 31 of them
+   have to fit the panel without turning it into a wall */
+body[data-page="step-3"] .cal-grid .choice {
+  padding: 0;
+  aspect-ratio: 1;
+  font-size: clamp(.6rem, .85vw, .76rem);
+  border-radius: 8px;
+}

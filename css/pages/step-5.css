@@ -1,0 +1,39 @@
+/* =========================================================
+   STEP 5 — "Ready to book?"  ·  Review & confirm
+   Hand: step5-hand.webp — a scrub brush held from the lower right.
+   ========================================================= */
+body[data-page="step-5"] {
+  /* ART — converted from --hand-l/-t/-w: 53.949% / 4.405% / 34.872% */
+  --hand-nudge: 34.48cqw;
+  --hand-top: 4.41cqh;
+  --hand-h: 140.3cqh;
+
+  /* COPY */
+  --cw: 42%;
+  --cleft: 5.9%;
+}
+
+/* the review summary — unique to this page */
+body[data-page="step-5"] .review {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: .5em .9em;
+  margin: 0 0 1.2rem;
+  font-size: clamp(.72rem, 1vw, .88rem);
+}
+
+body[data-page="step-5"] .review dt {
+  font-weight: 700;
+  opacity: .6;
+}
+
+body[data-page="step-5"] .review dd {
+  margin: 0;
+  text-align: right;
+}
+
+/* the number they're actually agreeing to — the one thing worth emphasis */
+body[data-page="step-5"] .review-total {
+  font-weight: 700;
+  font-size: 1.15em;
+}

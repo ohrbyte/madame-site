@@ -1,0 +1,22 @@
+/* =========================================================
+   STEP 4 — "And what about the time?"  ·  Pick a slot
+   Hand: step4-hand.webp — a striped cloth held from the lower right.
+   ========================================================= */
+body[data-page="step-4"] {
+  /* ART — converted from --hand-l/-t/-w: 49.897% / 6.553% / 38.256% */
+  --hand-nudge: 35.15cqw;
+  --hand-top: 6.55cqh;
+  --hand-h: 164.8cqh;
+
+  /* COPY */
+  --cw: 42%;
+  --cleft: 5.9%;
+}
+
+/* the time grid — another arrangement of the shared .choice cell */
+body[data-page="step-4"] .timegrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: .45rem;
+  margin: 0 0 1.1rem;
+}

@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Madame — About &amp; Contact</title>
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>M</text></svg>">
+  <link rel="stylesheet" href="dist/styles.css">
+  <link rel="stylesheet" href="css/pages/about.css">
+  <!-- Marks JS as available BEFORE first paint, so the entrance animation
+       can hide the copy. Without this the page would render blank if app.js
+       ever failed to load. Must stay inline and in <head>. -->
+  <script>document.documentElement.classList.add("js")</script>
+</head>
+
+<body data-page="about">
+  <!-- No hand on the info pages: the swirl carries them on its own, and the copy
+       gets the room the artwork would otherwise take. Same canvas, same ribbon,
+       same place — only the hand is missing.
+       Also no .swirl-front (no wrist to weave over, so it would just double the
+       ribbon) and no .layer-glow: the glow exists to light the SPONGE, and with
+       no hand in front of it, it reads as a hard pink blob. -->
+  <main class="stage">
+    <img class="swirl swirl-back" src="assets/swirl.webp" alt="" aria-hidden="true">
+  </main>
+
+  <header class="topbar">
+    <a class="logo anim" style="--d:0s" href="index.html" aria-label="Madame home"><img class="logo-mark"
+        src="assets/madame-logo.png" alt="Madame"></a>
+  </header>
+
+  <div class="content content--fill">
+    <h1 class="headline anim" style="--d:.1s">Hello, we're <span class="mark underline"><span
+          class="script">Madame</span><svg viewBox="0 0 200 22" preserveAspectRatio="none">
+          <path class="accent" style="--len:210;stroke-width:4.7" d="M2 7 L90 7 L198 19" />
+        </svg></span>.</h1>
+    <p class="subhead anim" style="--d:.25s">We send brilliant cleaners to lovely homes. No contracts,
+      no call centres.</p>
+
+    <div class="panel anim" style="--d:.35s">
+      <h2>Get in touch</h2>
+      <p>We answer everything ourselves, usually the same day.</p>
+      <p class="contact"><a href="mailto:hello@madame.com">hello@madame.com</a><br>
+        <a href="tel:+442070000000">+44 20 7000 0000</a>
+      </p>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+
+</html>

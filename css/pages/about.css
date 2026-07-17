@@ -1,0 +1,46 @@
+/* =========================================================
+   ABOUT & CONTACT — no hand; the swirl carries the page.
+   ========================================================= */
+body[data-page="about"] {
+  /* ART — nothing to place. The hand dials in :root go unused because this
+     page has no .layer-hand, and the stripe dials go unused because it has no
+     .swirl-front. The swirl itself is global, so it needs no help. */
+
+  /* COPY — with no hand competing for the right side, the column sits at the
+     same left inset as the landing but runs wider: this page is copy, not a
+     poster. --ctop is not used here (see the centring below). */
+  --cw: 44%;
+  --cleft: 5.9%;
+}
+
+/* Without a hand in front of it, the ribbon at full strength shouts over the
+   copy. Softening it is what makes "the swirl carries the page" work rather
+   than "the swirl fights the page". */
+body[data-page="about"] .swirl-back {
+  opacity: .45;
+}
+
+/* the contact details read as type, not as another panel inside the panel */
+body[data-page="about"] .contact {
+  margin: 0;
+  font-size: clamp(.8rem, 1.25vw, 1rem);
+  line-height: 1.7;
+  opacity: 1;
+}
+
+/* A quiet underline, not the shared .inkline: an address and a phone number are
+   details you read off, not gestures — the hand-drawn stroke would make two
+   lines of contact info compete with the headline. */
+body[data-page="about"] .contact a {
+  color: #fff;
+  text-decoration: underline;
+  text-underline-offset: .25em;
+  text-decoration-thickness: 2px;
+  text-decoration-color: var(--pink-soft);
+  transition: text-decoration-color .2s ease;
+}
+
+body[data-page="about"] .contact a:hover,
+body[data-page="about"] .contact a:focus-visible {
+  text-decoration-color: #fff;
+}

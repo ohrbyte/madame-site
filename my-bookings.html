@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Madame — My bookings</title>
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>M</text></svg>">
+  <link rel="stylesheet" href="dist/styles.css">
+  <link rel="stylesheet" href="css/pages/my-bookings.css">
+  <!-- Marks JS as available BEFORE first paint, so the entrance animation
+       can hide the copy. Without this the page would render blank if app.js
+       ever failed to load. Must stay inline and in <head>. -->
+  <script>document.documentElement.classList.add("js")</script>
+</head>
+
+<body data-page="my-bookings">
+  <!-- Info pages: swirl only. See about.html for why there's no hand, no front
+       pass and no glow. -->
+  <main class="stage">
+    <img class="swirl swirl-back" src="assets/swirl.webp" alt="" aria-hidden="true">
+  </main>
+
+  <header class="topbar">
+    <a class="logo anim" style="--d:0s" href="index.html" aria-label="Madame home"><img class="logo-mark"
+        src="assets/madame-logo.png" alt="Madame"></a>
+  </header>
+
+  <div class="content content--fill">
+    <h1 class="headline anim" style="--d:.1s">Your <span class="mark underline"><span
+          class="script">bookings</span><svg viewBox="0 0 200 22" preserveAspectRatio="none">
+          <path class="accent" style="--len:210;stroke-width:4.7" d="M2 7 L90 7 L198 19" />
+        </svg></span>.</h1>
+
+    <div class="panel anim" style="--d:.3s">
+      <h2>Upcoming</h2>
+      <!-- Styled, not wired: static sample rows standing in for real data. -->
+      <ul class="bookings">
+        <li class="booking">
+          <span class="booking-when"><strong>Thu 23 Jul</strong> · 10:00</span>
+          <span class="booking-what">Deep clean · 2 bed</span>
+          <a class="booking-edit inkline" href="step-3.html">Reschedule</a>
+        </li>
+        <li class="booking">
+          <span class="booking-when"><strong>Thu 6 Aug</strong> · 10:00</span>
+          <span class="booking-what">Regular clean · 2 bed</span>
+          <a class="booking-edit inkline" href="step-3.html">Reschedule</a>
+        </li>
+      </ul>
+      <a class="btn" href="step-1.html">Book another clean</a>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+
+</html>

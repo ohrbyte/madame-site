@@ -1,0 +1,183 @@
+/* =========================================================
+   STEP 2 — "Clean in a click."  ·  Confirm your address
+   Hand: step2-hand.webp — a stack of dirty pans held from below.
+
+   Layout measured off Design/step 2.png (the flat mockup, 2048x954).
+   NOTE there are two different "step 2" PNGs in the Design folder:
+     Design/step 2.png       <- THIS one. The mockup, with the copy and panel.
+     Design/png/step 2.png   <- artwork only, no UI. Not the layout reference.
+   Measured positions (% of viewport):
+     logo      left 5.91%  top 8.60%          (already the .topbar insets)
+     headline  left 10.40% top 29.77%
+     panel     left 8.89%  top 44.03%  w 38.23%  h 41.19%
+     boxes     top 19.59% of panel, h 69.72%; widths 48.66% / 35.12% of panel
+     Book Now  left 8.89%  top 87.74%
+   ========================================================= */
+body[data-page="step-2"] {
+  /* ART — the PSD coords (--hand-l/-t/-w: 50% / 11.894% / 47.821%) convert to
+     25.48cqw / 11.89cqh / 137.4cqh. Pulled back from that: at full PSD size the
+     pans crowd the copy and run into the panel. Scaled down ~8% and slid right
+     (a SMALLER --hand-nudge = further right, since the nudge is an inset from
+     the shared right anchor) so the stack clears the text column. */
+  --hand-nudge: 19cqw;
+  --hand-top: 11.89cqh;
+  --hand-h: 126cqh;
+
+  /* WEAVE — this hand holds the pans from BELOW, so its glove sits far lower
+     than the landing's forearm. At the shared default the promoted strand landed
+     across the pans, washing them out and reading as an accident rather than a
+     weave. Dropped until it crosses the glove's fingers and the bottom bowl —
+     which is exactly what the PSD does (its "Layer 7 copy" is the swirl drawn a
+     second time in front, over the glove).
+     Re-fit after the hand moved: 12 was fitted to the hand at its full PSD size
+     and position, and once the hand was scaled down and slid right, 12 rode up
+     onto the pans again. Fitted by eye with class="show-stripe" on <body>. */
+  --stripe-down: 8;
+
+  /* COPY — the panel's left edge is the column edge. The headline sits 1.5%
+     further in, because its pink circle oversails the text and the DESIGN lines
+     the CIRCLE up with the panel, not the "C". */
+  --ctop: 29.77%;
+  --cleft: 10.4%;
+  --cw: 38.23%;
+  /* Headline -> panel. Fitted, not derived: the design puts the panel's top at
+     44.03%, and what sits above it is the headline's LINE BOX, which is taller
+     than its ink by however much leading the font carries. With the fallback
+     font that box is oversized, so this gap is small to compensate.
+     Re-fit alongside the --headline size override below once Neulis lands. */
+  --cgap: 5.24vh;
+}
+
+/* TYPE SCALE — a fallback-font correction, not a design value.
+   Measured against Design/step 2.png, the headline renders 1.12x too wide and
+   1.20x too tall. That is not the size being wrong: it is Poppins standing in
+   for Neulis Sans and Segoe Script for Neulis Cursive, because fonts/ has no
+   Neulis files at all (26 are referenced by @font-face; none exist). A wider
+   font also drags the circle with it, since the ring is drawn as a % of the
+   word's box.
+   0.89 brings the fallback back to the design's measured width.
+   >>> DELETE THIS RULE once the real Neulis fonts land in fonts/ — it is
+   compensating for the wrong typeface, and with the right one it will be too
+   small. <<< */
+body[data-page="step-2"] .headline {
+  font-size: clamp(1.5rem, 3.83vw, 4.1rem);
+}
+
+/* The ring is drawn too heavy: measured against the design it renders a 12px
+   stroke where the design's is 8px — 1.5x. The shared .accent stroke-width of 7
+   is right for the UNDERLINE marks (a short wide viewBox), but the circle's
+   viewBox is 220x110 stretched over a much wider box with
+   preserveAspectRatio="none", so the same 7 comes out heavier here.
+   Scoped to this page rather than changed globally, because .accent's 7 is what
+   the signed-off landing draws with. */
+body[data-page="step-2"] .mark.circle .accent {
+  stroke-width: 4.7;
+}
+
+/* the panel fills the measured column rather than the shared 40ch cap.
+   Percentage padding resolves against the WIDTH, so these are % of the panel's
+   own width, not its height — which is why they aren't the measured 19.59%. */
+body[data-page="step-2"] .panel {
+  width: 100%;
+  /* Pull back to the column edge — the headline is the indented one.
+     In vw, not %: a percentage margin resolves against the CONTAINING BLOCK's
+     width (.content, ~38% of the viewport), so -1.51% only moved it ~0.6% of
+     the viewport and the panel sat 1% right of the design. */
+  margin-left: -1.51vw;
+  /* Asymmetric, as measured: the design's stack is tight under the heading and
+     leaves a deeper margin below the boxes.
+     Measured: panel top 44.03% -> box top 51.89% = 7.86% of viewport height for
+     padding + heading + subtext combined; box bottom 80.82% -> panel bottom
+     85.22% = 4.4% below. These were 1.61x too tall, which is what pushed the
+     panel down the page and shoved Book Now off the bottom edge.
+     % padding resolves against the panel's WIDTH, hence these numbers. */
+  padding: 2.3% 4.2% 5.4%;
+  border-radius: 10px;
+}
+
+/* PINK, not white — the design gives the panel's heading the brand pink and
+   lets the explanatory line under it stay white. */
+body[data-page="step-2"] .panel h2 {
+  color: var(--pink);
+  font-size: clamp(.7rem, 1.05vw, .95rem);
+  line-height: 1.2;
+  margin: 0 0 .2em;
+}
+
+body[data-page="step-2"] .panel p {
+  margin: 0 0 .55em;
+  font-size: clamp(.56rem, .8vw, .72rem);
+  line-height: 1.35;
+  opacity: 1;
+}
+
+/* the two cream boxes, side by side. Ratio is measured: 48.66 : 35.12 of the
+   panel's width, with a 2.2% gutter between them. */
+body[data-page="step-2"] .addr {
+  display: grid;
+  grid-template-columns: 48.66fr 35.12fr;
+  gap: 2.4%;
+}
+
+body[data-page="step-2"] .addr-field,
+body[data-page="step-2"] .addr-map {
+  background: var(--cream);
+  border: 2px solid transparent;
+  border-radius: 8px;
+  min-width: 0;
+}
+
+body[data-page="step-2"] .addr-field {
+  font: inherit;
+  font-size: clamp(.75rem, 1.05vw, .9rem);
+  color: var(--blue);
+  padding: .8em .9em;
+  transition: border-color .2s ease;
+  /* ONE box carries the aspect and sets the row height; the other stretches to
+     match it (grid's default align-items:stretch). Putting aspect-ratio on both
+     made each compute its own height from its own width — and since the boxes
+     are deliberately different widths, they came out different heights. The
+     design's are level. Measured: 18.6% of viewport wide x 28.9% tall = 1.393,
+     nudged to 1.46 because the rendered box measured 1.05x tall. */
+  aspect-ratio: 1.46;
+}
+
+body[data-page="step-2"] .addr-field:focus-visible {
+  outline: none;
+  border-color: var(--pink);
+}
+
+/* the live map fills its box; the cream behind it is what shows while it loads.
+   object-fit:cover so the map crops rather than letterboxes if the box's aspect
+   drifts from the requested image size. */
+body[data-page="step-2"] .addr-map {
+  border: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+/* Book Now sits BELOW the panel, at the column's left edge — it is not a
+   full-width action inside the card. */
+body[data-page="step-2"] .btn {
+  margin-left: -1.51vw;
+  /* --cgap is fitted to the headline->panel gap; the panel->button gap in the
+     design is much tighter (85.22% -> 87.74%), so pull it back to ~2.5vh */
+  margin-top: calc(2.5vh - var(--cgap));
+}
+
+@media (max-width: 760px) {
+
+  /* stacked, the two boxes have no room to sit side by side */
+  body[data-page="step-2"] .addr {
+    grid-template-columns: 1fr;
+  }
+
+  body[data-page="step-2"] .addr-field,
+  body[data-page="step-2"] .addr-map {
+    aspect-ratio: auto;
+    min-height: 3.5rem;
+  }
+}

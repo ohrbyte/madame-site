@@ -1,0 +1,156 @@
+/* =========================================================
+   STEP 1 — "Ready to roll?"  ·  Sign in
+   Hand: landing-hand.webp (note: NOT hand-landing.webp, which is the landing's
+   — two different photos with near-identical names).
+   Built to the supplied design: centred card, cream field, no Continue button
+   (submitting sends a magic link; the confirmation replaces the prompt).
+   ========================================================= */
+body[data-page="step-1"] {
+  /* ART — converted from this page's PSD coords (was --hand-l/-t/-w:
+     17.795% / -19.989% / 100%). The canvas aspect is unchanged, so the
+     conversion to the right-anchored dials is exact arithmetic. */
+  --hand-nudge: 5.5cqw;
+  --hand-top: -19.99cqh;
+  --hand-h: 165.2cqh;
+
+  /* no --glow-* dials: this page has no .layer-glow img (see step-1.html) */
+
+  /* COPY */
+  --cw: 42%;
+  --cleft: 5.9%;
+}
+
+/* the design's card is squarer and roomier than the default panel */
+body[data-page="step-1"] .panel {
+  padding: clamp(1.3rem, 2.4vw, 2.2rem);
+}
+
+/* ---- Phone / Email toggle ------------------------------------------------
+   Driven entirely by the two hidden radios and :has() — no JavaScript. The
+   chosen mode is stated plainly; the other reads as the thing you press. */
+body[data-page="step-1"] .authswap {
+  display: flex;
+  justify-content: center;
+  gap: 1.4em;
+  margin: 0 0 .9em;
+  font-size: clamp(.74rem, 1.1vw, .9rem);
+  font-weight: 600;
+}
+
+/* UNCHOSEN: plain white — the option you haven't taken. A thin underline is
+   declared but transparent, so choosing it changes only the colour and the rule
+   fades in rather than the text jumping as a decoration appears.
+   Deliberately NOT the shared .inkline: the hand-drawn stroke is the headline's
+   gesture and carries real weight; on a pair of 5-character mode labels it
+   shouts, and the design draws a quiet rule here. */
+body[data-page="step-1"] .authswap-opt {
+  color: #fff;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: .25em;
+  text-decoration-thickness: 2px;
+  transition: color .2s ease, text-decoration-color .2s ease;
+}
+
+body[data-page="step-1"] .authswap-opt:hover {
+  text-decoration-color: var(--pink-soft);
+}
+
+/* CHOSEN: pink, underlined. Pink means "this one" everywhere else on the site —
+   the picked calendar day, the picked time slot, the headline accents — so it
+   has to mean the same here. This was the wrong way round: white read as chosen,
+   which is the opposite of what the rest of the design teaches. */
+body[data-page="step-1"] .authswap:has(#mode-phone:checked) [for="mode-phone"],
+body[data-page="step-1"] .authswap:has(#mode-email:checked) [for="mode-email"] {
+  color: var(--pink-soft);
+  text-decoration-color: var(--pink-soft);
+  cursor: default;
+}
+
+/* the escape link stays a link: pink and underlined at rest */
+body[data-page="step-1"] .authalt {
+  color: var(--pink-soft);
+  text-decoration: underline;
+  text-underline-offset: .25em;
+  text-decoration-thickness: 2px;
+  transition: color .2s ease;
+}
+
+body[data-page="step-1"] .authalt:hover,
+body[data-page="step-1"] .authalt:focus-visible {
+  color: #fff;
+}
+
+/* the radios are hidden, so the focus ring has to land on their labels instead —
+   otherwise the toggle is invisible to keyboard users */
+body[data-page="step-1"] .authswap input:focus-visible+.authswap-opt {
+  outline: 3px solid var(--pink);
+  outline-offset: 4px;
+  border-radius: 3px;
+}
+
+/* ---- the field ----
+   Tall and cream, as drawn: the field is the whole point of this card, so it
+   gets the weight a Continue button would otherwise carry.
+   Both fields share one grid cell so the swap is a crossfade in place — the card
+   never jumps, which is the difference between a toggle and a redraw. */
+body[data-page="step-1"] .authfields {
+  display: grid;
+}
+
+body[data-page="step-1"] .authfield {
+  grid-area: 1 / 1;
+  font: inherit;
+  font-size: clamp(.85rem, 1.2vw, 1rem);
+  color: var(--blue);
+  background: var(--cream);
+  border: 2px solid transparent;
+  border-radius: 14px;
+  padding: 1.35em 1em;
+  width: 100%;
+  text-align: center;
+  transition: border-color .2s ease, opacity .25s ease;
+}
+
+body[data-page="step-1"] .authfield:focus-visible {
+  outline: none;
+  border-color: var(--pink);
+}
+
+/* the inactive field: visibility (not display) so it fades rather than vanishes,
+   and still leaves the tab order — a hidden-but-focusable field is a trap */
+body[data-page="step-1"] .panel:has(#mode-phone:checked) .authfield--email,
+body[data-page="step-1"] .panel:has(#mode-email:checked) .authfield--phone {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body[data-page="step-1"] .authfield {
+    transition: none;
+  }
+}
+
+/* ---- the sent state ----
+   Present in the design, so built — but it is the AFTER state, so it stays
+   hidden until the form says a link went out. Nothing flips data-sent yet. */
+body[data-page="step-1"] .authnote,
+body[data-page="step-1"] .authalt {
+  display: none;
+}
+
+body[data-page="step-1"] .panel[data-sent="true"] .authnote {
+  display: block;
+  margin: 1.6em 0 .8em;
+  font-size: clamp(.68rem, .95vw, .8rem);
+  line-height: 1.5;
+  opacity: .85;
+}
+
+body[data-page="step-1"] .panel[data-sent="true"] .authalt {
+  display: inline-block;
+  font-size: clamp(.68rem, .95vw, .8rem);
+  font-weight: 600;
+}

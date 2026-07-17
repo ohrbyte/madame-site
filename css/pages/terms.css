@@ -1,0 +1,23 @@
+/* =========================================================
+   TERMS & CONDITIONS — the one page that scrolls.
+   The .doc component (src/input.css) pins the stage as a fixed backdrop; this
+   file only sets what's specific to this page.
+   ========================================================= */
+
+/* Faint here rather than the info pages' .45: this is a page of body copy, and
+   legal text has to be comfortably readable over whatever sits behind it. */
+body[data-page="terms"] .swirl-back {
+  opacity: .28;
+}
+
+/* the headline needs a little air before the first section */
+body[data-page="terms"] .headline {
+  margin-bottom: .2em;
+}
+
+body[data-page="terms"] .doc-meta {
+  font-size: clamp(.72rem, .9vw, .82rem);
+  font-weight: 600;
+  opacity: .55;
+  margin: 0 0 1em;
+}

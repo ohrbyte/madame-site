@@ -1,0 +1,21 @@
+/* =========================================================
+   PURCHASE A GIFT — no hand; the swirl carries the page.
+   ========================================================= */
+body[data-page="purchase-a-gift"] {
+  --cw: 44%;
+  --cleft: 5.9%;
+  /* --ctop unused — the block is centred (see below) */
+}
+
+/* quieter ribbon with no hand in front of it to hold it down */
+body[data-page="purchase-a-gift"] .swirl-back {
+  opacity: .45;
+}
+
+/* the amount picker — just an arrangement of the shared .choice cell */
+body[data-page="purchase-a-gift"] .amounts {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: .5rem;
+  margin: 0 0 1.1rem;
+}

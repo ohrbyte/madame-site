@@ -1,0 +1,49 @@
+/* =========================================================
+   MY BOOKINGS — no hand; the swirl carries the page.
+   ========================================================= */
+body[data-page="my-bookings"] {
+  --cw: 44%;
+  --cleft: 5.9%;
+  /* --ctop unused — the block is centred (see below) */
+}
+
+body[data-page="my-bookings"] .swirl-back {
+  opacity: .45;
+}
+
+/* the booking list — unique to this page */
+body[data-page="my-bookings"] .bookings {
+  list-style: none;
+  margin: 0 0 1.1rem;
+  padding: 0;
+  display: grid;
+  gap: .55rem;
+}
+
+body[data-page="my-bookings"] .booking {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: .1em .8em;
+  align-items: baseline;
+  background: rgba(255, 255, 255, .1);
+  border-radius: 12px;
+  padding: .75em .9em;
+  font-size: clamp(.72rem, 1vw, .88rem);
+}
+
+body[data-page="my-bookings"] .booking-what {
+  grid-column: 1;
+  opacity: .75;
+  font-size: .9em;
+}
+
+/* wears the shared .inkline — wipes in on hover, like the landing's nav links,
+   because this is an action you reach for rather than body copy you read */
+body[data-page="my-bookings"] .booking-edit {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
+  color: #fff;
+  font-weight: 600;
+  --ink-underline: var(--pink-soft);
+}

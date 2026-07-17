@@ -1,0 +1,24 @@
+/* =========================================================
+   LANDING — "Choose a lady like a lady"
+   Hand: hand-landing.webp — gloved hand squeezing a soapy sponge.
+   The wrist enters bottom-right; the swirl's middle strand crosses it.
+
+   Loaded AFTER dist/styles.css, so everything here wins on cascade order
+   alone — no !important, no specificity games.
+   ========================================================= */
+body[data-page="index"] {
+  /* HAND — this is the hand the shared --art-right was fitted to, so it needs
+     no offset of its own (--hand-nudge stays 0). */
+
+  /* SWIRL — nothing here. The swirl is global and signed off; it lives in
+     :root and is the same on every page. */
+
+  /* the stripe fitted to THIS hand (the wrist below the sponge) */
+  --stripe-down: -1;
+
+  /* COPY — the headline block. Pinned to the viewport, not the canvas, so
+     these are % of the VIEWPORT. Fitted against the design. */
+  --ctop: 54.6%;
+  --cw: 40%;
+  --cleft: 12.3%;
+}

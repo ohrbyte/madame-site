@@ -1,0 +1,21 @@
+/* =========================================================
+   STEP 6 — "All set!"  ·  Confirmation
+   Hand: step6-hand.webp — a thumbs up. The tallest of the hands.
+   ========================================================= */
+body[data-page="step-6"] {
+  /* ART — converted from --hand-l/-t/-w: 51.179% / 9.306% / 54.872% */
+  --hand-nudge: 17.25cqw;
+  --hand-top: 9.31cqh;
+  --hand-h: 188.6cqh;
+
+  /* COPY */
+  --cw: 42%;
+  --cleft: 5.9%;
+}
+
+/* two ways onward, side by side */
+body[data-page="step-6"] .actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .6rem;
+}

@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Madame — Purchase a gift</title>
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>M</text></svg>">
+  <link rel="stylesheet" href="dist/styles.css">
+  <link rel="stylesheet" href="css/pages/purchase-a-gift.css">
+  <!-- Marks JS as available BEFORE first paint, so the entrance animation
+       can hide the copy. Without this the page would render blank if app.js
+       ever failed to load. Must stay inline and in <head>. -->
+  <script>document.documentElement.classList.add("js")</script>
+</head>
+
+<body data-page="purchase-a-gift">
+  <!-- Info pages: swirl only. See about.html for why there's no hand, no front
+       pass and no glow. -->
+  <main class="stage">
+    <img class="swirl swirl-back" src="assets/swirl.webp" alt="" aria-hidden="true">
+  </main>
+
+  <header class="topbar">
+    <a class="logo anim" style="--d:0s" href="index.html" aria-label="Madame home"><img class="logo-mark"
+        src="assets/madame-logo.png" alt="Madame"></a>
+  </header>
+
+  <div class="content content--fill">
+    <!-- Broken deliberately: .mark is nowrap, so left to itself the line breaks
+         before it and strands the full stop on its own line. -->
+    <h1 class="headline anim" style="--d:.1s">Give the gift<br>of <span class="mark underline"><span
+          class="script">clean</span><svg viewBox="0 0 200 22" preserveAspectRatio="none">
+          <path class="accent" style="--len:210;stroke-width:4.7" d="M2 7 L90 7 L198 19" />
+        </svg></span>.</h1>
+
+    <!-- Styled, not wired: real controls, no submit handler yet. -->
+    <form class="panel anim" style="--d:.3s" action="#" onsubmit="return false">
+      <h2>Choose an amount</h2>
+      <p>They pick the day. You look thoughtful.</p>
+
+      <div class="amounts">
+        <button type="button" class="choice">£40</button>
+        <button type="button" class="choice is-on">£80</button>
+        <button type="button" class="choice">£120</button>
+        <button type="button" class="choice">£200</button>
+      </div>
+
+      <div class="fields">
+        <div class="field">
+          <label for="gift-to">Who's it for?</label>
+          <input id="gift-to" name="gift-to" type="text" placeholder="Their name" autocomplete="name">
+        </div>
+        <div class="field">
+          <label for="gift-email">Their email</label>
+          <input id="gift-email" name="gift-email" type="email" placeholder="name@example.com" autocomplete="email">
+        </div>
+      </div>
+
+      <button class="btn" type="submit">Continue to payment</button>
+    </form>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+
+</html>
