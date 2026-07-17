@@ -12,3 +12,13 @@ hand-sponge.png
 # stray/probe files and the delivery bundle
 *.tmp
 madame-history.bundle
+
+# One-off measurement/probe scripts (scripts/_*.mjs). These are throwaway tools
+# written to MEASURE the design vs the live render (strand fitting, pill/logo
+# alignment, stroke profiles, screenshot diffs). They are not part of the build
+# and nothing at runtime imports them. The real build scripts (no underscore)
+# stay tracked.
+scripts/_*.mjs
+
+# scratch diagnostic pages
+_*.html

@@ -471,7 +471,12 @@ body.show-stripe .swirl-front {
 /* behind the hand */
 .swirl-back {
   z-index: 1;
-  opacity: .9;
+  /* MUST match .swirl-front's opacity. They are the same ribbon drawn twice, and
+     the front copy paints ON TOP of the back one — so any difference shows up as a
+     tonal step exactly along the stripe's edge (the "stitched" seam). At .9 the
+     back blended with the cream while the front stayed pure, so the same ribbon
+     rendered in two shades. Keep both at 1. */
+  opacity: 1;
   /* the top band trails up and dissolves into the cream (no sharp asset edge) */
   -webkit-mask-image: var(--swirl-fade);
   mask-image: var(--swirl-fade);
