@@ -11,16 +11,12 @@ body[data-page="step-1"] {
      url() is relative to THIS file (css/pages/), not to dist/. */
   --front-span: url("../../assets/weave/landing.webp");
 
-  /* ART — the PSD layer box said -19.99cqh top, but the shipped
-     landing-hand.webp is a re-crop of that layer (same aspect, less
-     headroom), which rendered the hand ~5cqh above its design position.
-     These values are the asset's true design placement, solved by
-     template-matching it into the design poster (0.5px residual — see the
-     matching note in src/input.css's wide-mode block, which uses the same
-     numbers for the landing). */
-  --hand-nudge: 5.47cqw;
-  --hand-top: -14.87cqh;
-  --hand-h: 165.3cqh;
+  /* ART — converted from this page's PSD coords (was --hand-l/-t/-w:
+     17.795% / -19.989% / 100%). The canvas aspect is unchanged, so the
+     conversion to the right-anchored dials is exact arithmetic. */
+  --hand-nudge: 5.5cqw;
+  --hand-top: -19.99cqh;
+  --hand-h: 165.2cqh;
 
   /* no --glow-* dials: this page has no .layer-glow img (see step-1.html) */
 

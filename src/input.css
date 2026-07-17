@@ -1318,16 +1318,13 @@ body:has(.doc) .stage {
        right so the arm reads from the right edge of the narrower window; the
        design's poster draws the OTHER photo of the same motif — the arm
        rising from the ground — which index.html's <picture> swaps in at this
-       same breakpoint. NOT the manifest box: the shipped landing-hand.webp
-       is a re-crop of the PSD layer (same aspect, less headroom), so the
-       manifest's -19.99cqh top renders it ~5cqh high. These values were
-       solved by template-matching the asset into the design poster
-       (scratchpad/handfit.py, 3 patches, 0.5px residual). Pages with their
-       own hands override all three in their page css, so this reaches the
-       landing alone. */
-    --hand-nudge: 5.47cqw;
-    --hand-top: -14.87cqh;
-    --hand-h: 165.3cqh;
+       same breakpoint. These are its PSD box dials, verbatim from step-1
+       (the page that always shows that photo at design position). Pages with
+       their own hands override all three in their page css, so this reaches
+       the landing alone. */
+    --hand-nudge: 5.5cqw;
+    --hand-top: -19.99cqh;
+    --hand-h: 165.2cqh;
   }
 
   /* Poster chrome scales with the poster. The panels and their buttons stay
