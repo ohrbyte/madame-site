@@ -1286,6 +1286,12 @@ body:has(.doc) .stage {
    3900/1816 below IS --art-w/--art-h — media queries can't read custom
    properties, so the ratio is written out; keep them in sync.
    ========================================================= */
+/* The landing's corner-bleed window (index.html) exists only for wide
+   frames; everywhere else it is inert. */
+.corner-bleed {
+  display: none;
+}
+
 @media (min-aspect-ratio: 3900/1816) {
   /* The hands sit at their PSD canvas positions at every aspect (the per-page
      --hand-nudge values reproduce the manifest boxes exactly at the base
@@ -1356,20 +1362,59 @@ body:has(.doc) .stage {
     font-size: calc(.82 * var(--fw));
   }
 
-  /* COMPLETE THE ART (landing). The poster cuts swirl and arm at the canvas
-     edge — natural when that edge IS the screen edge (standard aspects, and
-     the old right-anchored layout), but mid-screen against the continuing
-     cream it reads as a hard wall. So the landing's stage un-clips and both
-     swirl and arm simply run on past the frame until their ink genuinely
-     exits the view. The one non-visual guard: the un-clipped stage's
-     off-canvas overhang would otherwise create page scroll, so the page
-     clips at the viewport — the view itself is exactly as tall as before. */
-  html:has(body[data-page="index"]) {
-    overflow: clip;
+  /* CORNER BLEED (landing). The poster cuts band and arm at the canvas edge —
+     natural when that edge IS the screen edge, but mid-screen against the
+     continuing cream it reads as a hard wall. The stage stays a normally
+     clipped box; the flow-through comes from .corner-bleed (index.html): a
+     small self-clipped window past the frame's bottom-right holding
+     duplicates of the two art layers at pixel-identical geometry. Because
+     the window clips its own contents and is capped at the viewport edge,
+     NO page overflow exists in any browser — no guards, nothing to degrade.
+
+     Geometry, all frame-relative (--fw = 1% of frame width; dvh = 1% of
+     frame height): window x 100→118 fw, y 75→100 dvh — nothing crosses the
+     frame edge above y 82.8, the band tapers out by x 104.5, and the arm's
+     ink stays below y 115 at its crop edge, so no asset edge can ever show.
+     Duplicates repeat the wide-mode art dials offset by the window origin:
+     swirl left 4.74-100 fw / top -22.46-75 dvh, size 100.26 fw × 153.47 dvh;
+     hand left 17.79-100 fw / top -19.99-75 dvh, height 165.2 dvh. */
+  body[data-page="index"] .corner-bleed {
+    display: block;
+    position: absolute;
+    left: 100%;
+    top: 75%;
+    width: min(calc(18 * var(--fw)), calc((100vw - 214.76dvh) / 2));
+    height: 25%;
+    overflow: hidden;
+    z-index: 10;
+    pointer-events: none;
   }
 
-  body[data-page="index"] .stage {
-    overflow: visible;
+  body[data-page="index"] .corner-bleed img {
+    position: absolute;
+    max-width: none;
+  }
+
+  body[data-page="index"] .corner-bleed .cb-swirl {
+    left: calc(-95.26 * var(--fw));
+    top: -97.46dvh;
+    width: calc(100.26 * var(--fw));
+    height: 153.47dvh;
+  }
+
+  body[data-page="index"] .corner-bleed .cb-hand {
+    left: calc(-82.21 * var(--fw));
+    top: -94.99dvh;
+    height: 165.2dvh;
+    width: auto;
+  }
+
+  /* The in-stage hand parallaxes and idle-floats; a moving original against
+     a still duplicate would tear at the frame edge, so the landing's hand
+     holds still in wide mode — a poster, not a mobile. */
+  body[data-page="index"] .stage .layer-hand {
+    transform: none;
+    animation: none;
   }
 
   html {

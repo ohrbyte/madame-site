@@ -40,6 +40,18 @@
     <img class="swirl swirl-front" src="assets/swirl.webp" alt="" aria-hidden="true">
   </main>
 
+  <!-- CORNER BLEED (wide frames only; display:none otherwise). The poster
+       cuts band and arm at the canvas edge; on a centred wide frame they
+       should keep flowing through the bottom-right corner instead. This is a
+       small SELF-CLIPPED window holding duplicates of the two art layers,
+       aligned pixel-exactly over the stage's — not un-clipped stage overflow,
+       so the page can never grow a scrollbar from off-canvas art, in any
+       browser. Geometry in src/input.css's wide-mode block. -->
+  <div class="corner-bleed" aria-hidden="true">
+    <img class="cb-swirl" src="assets/swirl.webp" alt="">
+    <img class="cb-hand" src="assets/landing-hand.webp" alt="">
+  </div>
+
   <!-- Page chrome — pinned to the VIEWPORT (outside the fill-height artwork canvas)
        so the logo, headline and pill stay put while the artwork bleeds at the edges.
        This lets the artwork anchor right (full glove + wrap-around) without losing
