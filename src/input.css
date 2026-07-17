@@ -1287,6 +1287,21 @@ body:has(.doc) .stage {
    properties, so the ratio is written out; keep them in sync.
    ========================================================= */
 @media (min-aspect-ratio: 3900/1816) {
+  /* The 16:9-crop tune pushes the art right so the swirl fills that narrower
+     window — its left loops begin exactly at a 16:9 screen's edge, and the
+     canvas beyond them is meant to be cut. With the whole canvas in frame
+     there is no crop to fill: the swirl reads pushed-right with a sixth of
+     the poster dead cream. So once the frame shows the full canvas, slide the
+     composition back left until the entire swirl sits in view — its 90.5cqw
+     of ink centred, ~4.7cqw clear of BOTH edges, the framing of the original
+     design. A pure translation through the master anchor: hand, swirl and
+     weave stay registered, on every page. The glow is anchored to the canvas
+     edge (not the anchor), so it gets the same slide to stay on the sponge. */
+  :root {
+    --art-right: -11.6cqw;
+    --glow-right: 11.7cqw;
+  }
+
   html {
     background: url("../assets/cream.webp") center / cover no-repeat, var(--cream);
   }
