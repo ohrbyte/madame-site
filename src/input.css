@@ -1359,25 +1359,17 @@ body:has(.doc) .stage {
   /* COMPLETE THE ART (landing). The poster cuts swirl and arm at the canvas
      edge — natural when that edge IS the screen edge (standard aspects, and
      the old right-anchored layout), but mid-screen against the continuing
-     cream it reads as a hard wall. overflow: clip keeps the stage a sealed
-     box (no scrollable overflow, no page growth — the view stays exactly
-     100dvh), and the clip-margin widens its paint window so the bottom-right
-     band and arm run on past the frame and slope down out of view; the
-     viewport bounds everything else. 18 frame-% covers the arm's 17.8cqw
-     overhang; nothing else reaches the frame edge anywhere. (Safari has no
-     overflow-clip-margin — it degrades to the plain poster cut.) */
-  body[data-page="index"] .stage {
-    overflow: clip;
-    /* 18 frame-% = 18 · --fw, precomputed: the property rejects calc() (and
-       cqw here would read the viewport — the stage IS the container). */
-    overflow-clip-margin: 38.66dvh;
-  }
-
-  /* Chromium counts within-clip-margin content as page overflow, so pin the
-     view: the page is exactly the viewport, no scrollbars, nothing visible
-     past 100dvh. */
+     cream it reads as a hard wall. So the landing's stage un-clips and both
+     swirl and arm simply run on past the frame until their ink genuinely
+     exits the view. The one non-visual guard: the un-clipped stage's
+     off-canvas overhang would otherwise create page scroll, so the page
+     clips at the viewport — the view itself is exactly as tall as before. */
   html:has(body[data-page="index"]) {
     overflow: clip;
+  }
+
+  body[data-page="index"] .stage {
+    overflow: visible;
   }
 
   html {
