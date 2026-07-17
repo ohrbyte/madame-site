@@ -36,3 +36,17 @@ body[data-page="index"] {
     --stripe-down: 0;
   }
 }
+
+/* Wide mode: land the copy on the poster's measured rows. The fitted
+   --ctop: 54.6% puts the COLUMN top at the design's pill-top row, but the
+   pill's own line-box leading pushes its rendered top ~1.2%H below that.
+   Dialed empirically so the RENDERED pill box top and the headline's cap
+   INK row (baseline-probe measured, Poppins metrics — re-measure when
+   Neulis lands) hit the poster's measured rows: pill 54.61%H, headline cap
+   65.41%H. */
+@media (min-aspect-ratio: 3900/1816) {
+  body[data-page="index"] {
+    --ctop: 53.4%;
+    --cgap: calc(2.55 * var(--fw));
+  }
+}
