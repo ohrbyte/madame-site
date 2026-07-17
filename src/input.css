@@ -1268,6 +1268,51 @@ body:has(.doc) .stage {
 }
 
 /* =========================================================
+   ULTRA-WIDE — centre the composition, plain grain each side.
+
+   The stage is height-driven (100dvh at the art's 3900:1816 aspect), so once
+   the viewport is WIDER than that aspect the canvas stops growing and the
+   right-anchored art drifts away from the viewport-pinned chrome — copy hugs
+   the far left, swirl the far right, dead cream between. Past that exact
+   aspect, body itself becomes the frame: stage-wide, centred, and every
+   fixed-chrome element switches to absolute so its %-dials (--cleft, --cw,
+   topbar insets…) re-base from the viewport onto the frame. The composition
+   then renders exactly as it does on a 2.147:1 screen, just centred.
+
+   The grain moves up to <html> for this regime: body's own cover-crop would
+   differ from a narrower body's and seam at the frame edge — one sheet on the
+   root keeps the sides indistinguishable from the middle.
+
+   3900/1816 below IS --art-w/--art-h — media queries can't read custom
+   properties, so the ratio is written out; keep them in sync.
+   ========================================================= */
+@media (min-aspect-ratio: 3900/1816) {
+  html {
+    background: url("../assets/cream.webp") center / cover no-repeat, var(--cream);
+  }
+
+  body {
+    width: calc(100dvh * (var(--art-w) / var(--art-h)));
+    margin-inline: auto;
+    position: relative;
+    background: none;
+  }
+
+  body>.topbar,
+  body>.content,
+  body>.botbar {
+    position: absolute;
+  }
+
+  /* The doc backdrop must STAY fixed (it's what the copy scrolls over), so it
+     re-bases by inset instead: pin its right edge to the frame's, not the
+     viewport's. */
+  body:has(.doc) .stage {
+    right: calc((100vw - 100dvh * (var(--art-w) / var(--art-h))) / 2);
+  }
+}
+
+/* =========================================================
    Copy entrance — every text element rises + fades in the
    same way, lightly staggered via --d.
    ========================================================= */
