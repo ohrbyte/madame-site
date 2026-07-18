@@ -44,3 +44,39 @@ body[data-page="about"] .contact a:hover,
 body[data-page="about"] .contact a:focus-visible {
   text-decoration-color: #fff;
 }
+
+/* ---- the real about copy ----------------------------------------------
+   The document's opening paragraph rides the .subhead slot, so it needs the
+   room of a paragraph, not a strapline (the shared cap is 28ch). */
+body[data-page="about"] .subhead {
+  max-width: 58ch;
+}
+
+/* the story paragraphs — quieter than the subhead, same blue voice */
+body[data-page="about"] .about-copy {
+  display: grid;
+  gap: .75em;
+  max-width: 62ch;
+}
+
+body[data-page="about"] .about-copy p {
+  margin: 0;
+  font-size: clamp(.82rem, 1.25vw, 1.05rem);
+  line-height: 1.6;
+  font-weight: 500;
+}
+
+/* ---- the column must FIT the screen (same idea as step-2) --------------
+   Three real paragraphs + the contact panel can outgrow a short viewport.
+   The centred fixed column gets a scroll fallback; `safe center` keeps the
+   top reachable where supported, and where it isn't the plain center it
+   falls back to only clips when the copy truly doesn't fit. */
+body[data-page="about"] .content--fill {
+  justify-content: center;
+  justify-content: safe center;
+  overflow-y: auto;
+  /* no visible track: the column's overflow is small and a scrollbar floating
+     mid-page reads as a stray line against the art — the panel cresting the
+     fold is the scroll cue */
+  scrollbar-width: none;
+}

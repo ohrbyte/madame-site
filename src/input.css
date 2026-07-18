@@ -1273,6 +1273,29 @@ body:has(.doc) .stage {
   color: var(--pink);
 }
 
+/* The logo must stay legible while copy scrolls beneath it — on .doc pages the
+   whole page scrolls, on About the fixed column scrolls internally, and either
+   way the type rides up into the fixed wordmark. A cream band behind the topbar
+   keeps the logo on its own ground: centred on the topbar so it spans the
+   viewport exactly in normal mode AND in wide mode (where the topbar is inset
+   symmetrically in the centred frame), reaching back up to the viewport top and
+   fading at its foot so it never draws a hard shelf across the artwork. Lives
+   on the topbar so it shares the logo's stacking context: above the copy
+   (z-45/30), below the wordmark itself. */
+body:has(.doc)>.topbar::before,
+body[data-page="about"]>.topbar::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: calc(-1 * max(1.1rem, 8.6vh));
+  bottom: -2.4rem;
+  left: 50%;
+  width: 100vw;
+  transform: translateX(-50%);
+  background: linear-gradient(to bottom, var(--cream) calc(100% - 1.6rem), rgba(237, 227, 199, 0));
+  pointer-events: none;
+}
+
 /* =========================================================
    ULTRA-WIDE — centre the composition, plain grain each side.
 
@@ -1486,6 +1509,18 @@ body:has(.doc) .stage {
      viewport's. */
   body:has(.doc) .stage {
     right: calc((100vw - 100dvh * (var(--art-w) / var(--art-h))) / 2);
+  }
+
+  /* The logo stays locked too — absolute chrome would ride away with the
+     scrolling copy. Same re-basing as the stage: fixed, side insets moved
+     from the viewport onto the frame (frame edge + 5.9% of the frame's
+     214.76dvh width). The topbar's cream band (declared with the DOC rules)
+     spans the viewport from the topbar's centre, which this keeps at the
+     viewport's centre, so it needs no re-basing of its own. */
+  body:has(.doc)>.topbar {
+    position: fixed;
+    left: calc((100vw - 100dvh * (var(--art-w) / var(--art-h))) / 2 + 12.67dvh);
+    right: calc((100vw - 100dvh * (var(--art-w) / var(--art-h))) / 2 + 12.67dvh);
   }
 }
 
