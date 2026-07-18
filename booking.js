@@ -116,9 +116,23 @@
 
   function goto(href) { window.location.href = href; }
 
+  /* A session is live only if the token exists AND hasn't expired — judging
+     by existence alone let a stale token brick sign-in: the sign-in page
+     bounced "already signed in" visitors onward while every API call 401'd.
+     A dead token is cleared on sight so no page trips over it again. */
+  function hasLiveSession() {
+    const claims = api.claims();
+    if (!claims) return false;
+    if (claims.exp && claims.exp * 1000 <= Date.now() + 30000) {
+      api.setToken(null);
+      return false;
+    }
+    return true;
+  }
+
   /* Signed-out visitors get bounced to the start of the flow. */
   function requireAuth() {
-    if (api.getToken()) return true;
+    if (hasLiveSession()) return true;
     goto("sign-in");
     return false;
   }
@@ -284,7 +298,7 @@
         note(status, "That sign-in link is invalid or has already been used — request a new one below.", true);
         return;
       }
-      if (result === "ok" || api.getToken()) afterAuth();
+      if (result === "ok" || hasLiveSession()) afterAuth();
     });
 
     form.addEventListener("submit", async (e) => {
@@ -1193,8 +1207,7 @@
       list.before(p);
     }
 
-    const claims = api.claims();
-    if (!claims || (claims.exp && claims.exp * 1000 <= Date.now())) {
+    if (!hasLiveSession()) {
       offerSignin();
       return;
     }
