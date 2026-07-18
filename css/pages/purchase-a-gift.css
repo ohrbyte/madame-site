@@ -38,8 +38,21 @@ body[data-page="purchase-a-gift"] .stripe-box--card {
 body[data-page="purchase-a-gift"] form[data-stage="done"] .amounts,
 body[data-page="purchase-a-gift"] form[data-stage="done"] .fields,
 body[data-page="purchase-a-gift"] form[data-stage="done"] .formnote,
+body[data-page="purchase-a-gift"] form[data-stage="done"] .gift-hours,
 body[data-page="purchase-a-gift"] form[data-stage="done"] .btn {
   display: none;
+}
+
+/* …and, where the controls were, the way home. Hidden until then; the extra
+   class outranks the .btn hide above. */
+body[data-page="purchase-a-gift"] .gift-return {
+  display: none;
+}
+
+body[data-page="purchase-a-gift"] form[data-stage="done"] .btn.gift-return {
+  display: inline-flex;
+  width: fit-content;
+  margin-top: .4rem;
 }
 
 /* Turnstile widget — only present when the backend has a site key */
