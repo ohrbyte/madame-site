@@ -1109,12 +1109,52 @@
     let records = [];
     try { records = JSON.parse(localStorage.getItem(RECORDS_KEY) || "[]"); } catch { /* noop */ }
 
+    // Shared machines: the session (30 days) and this list live in the
+    // browser, so a public computer keeps both for whoever sits down next.
+    // One quiet link wipes them — two-press, because the device list is the
+    // only copy (there's no server list to restore it from).
+    function addSignout() {
+      if (!api.getToken() && !records.length) return;
+      const wrap = document.createElement("p");
+      wrap.className = "booking-signout";
+      const link = document.createElement("button");
+      link.type = "button";
+      link.className = "signout-link";
+      link.textContent = "Sign out on this device";
+      link.addEventListener("click", () => {
+        if (wrap.querySelector(".booking-confirm")) return;
+        const strip = document.createElement("span");
+        strip.className = "booking-confirm";
+        const q = document.createElement("span");
+        q.textContent = "This also clears the booking list shown on this device.";
+        const yes = document.createElement("button");
+        yes.type = "button";
+        yes.className = "booking-act booking-act--cancel";
+        yes.textContent = "Sign out";
+        yes.addEventListener("click", () => {
+          api.setToken(null);
+          localStorage.removeItem(RECORDS_KEY);
+          window.location.reload();
+        });
+        const no = document.createElement("button");
+        no.type = "button";
+        no.className = "booking-act";
+        no.textContent = "Keep";
+        no.addEventListener("click", () => strip.remove());
+        strip.append(q, yes, no);
+        wrap.appendChild(strip);
+      });
+      wrap.appendChild(link);
+      list.parentElement.appendChild(wrap);
+    }
+
     list.innerHTML = "";
     if (!records.length) {
       const li = document.createElement("li");
       li.className = "booking booking--empty";
       li.textContent = "No bookings on this device yet — your next clean will show up here.";
       list.appendChild(li);
+      addSignout();
       return;
     }
     records.forEach((r) => {
@@ -1235,6 +1275,8 @@
         if (err && err.status === 401) offerSignin();
       }
     });
+
+    addSignout();
   }
 
   /* ================================================================

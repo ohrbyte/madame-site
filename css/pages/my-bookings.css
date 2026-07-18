@@ -117,3 +117,31 @@ body[data-page="my-bookings"] .booking-signin {
 body[data-page="my-bookings"] .booking-signin .booking-act {
   white-space: nowrap;
 }
+
+/* the shared-machine escape hatch — quiet type under the button, never
+   competing with Book another clean */
+body[data-page="my-bookings"] .booking-signout {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .6rem;
+  margin: .9rem 0 0;
+}
+
+body[data-page="my-bookings"] .signout-link {
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  font-size: clamp(.68rem, .9vw, .8rem);
+  color: #fff;
+  opacity: .65;
+  text-decoration: underline;
+  text-underline-offset: .25em;
+}
+
+body[data-page="my-bookings"] .signout-link:hover,
+body[data-page="my-bookings"] .signout-link:focus-visible {
+  opacity: 1;
+}
