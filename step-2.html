@@ -69,9 +69,40 @@
       <div class="addrlist" role="group" aria-label="Your saved addresses" hidden></div>
 
       <div class="addr">
-        <label class="visually-hidden" for="addr">Address</label>
-        <input class="addr-field" id="addr" name="addr" type="text" autocomplete="street-address"
-          placeholder="14 Smith St, Monroe, NY 10950">
+        <!-- Structured entry (street / apt / city / state / ZIP). The hidden
+             #addr below carries the composed one-line form every existing
+             consumer keys on — the map preview (data-map-src) and the
+             saved-picker sync — so the wiring contract is unchanged. -->
+        <div class="addr-form">
+          <div class="field">
+            <label for="addr-street">Street address</label>
+            <input id="addr-street" name="addr-street" type="text" autocomplete="address-line1"
+              placeholder="14 Smith St">
+          </div>
+          <div class="addr-row">
+            <div class="field">
+              <label for="addr-apt">Apt / unit</label>
+              <input id="addr-apt" name="addr-apt" type="text" autocomplete="address-line2" placeholder="Optional">
+            </div>
+            <div class="field">
+              <label for="addr-city">City</label>
+              <input id="addr-city" name="addr-city" type="text" autocomplete="address-level2" placeholder="Monroe">
+            </div>
+          </div>
+          <div class="addr-row addr-row--statezip">
+            <div class="field">
+              <label for="addr-state">State</label>
+              <input id="addr-state" name="addr-state" type="text" autocomplete="address-level1" maxlength="2"
+                value="NY">
+            </div>
+            <div class="field">
+              <label for="addr-zip">ZIP</label>
+              <input id="addr-zip" name="addr-zip" type="text" inputmode="numeric" autocomplete="postal-code"
+                maxlength="5" placeholder="10950">
+            </div>
+          </div>
+          <input type="hidden" id="addr" name="addr">
+        </div>
         <!-- Live map, per the design's "Google maps" box. app.js swaps the
              center= as you type (data-map-src names the field that drives it).
 

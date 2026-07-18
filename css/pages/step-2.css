@@ -111,7 +111,6 @@ body[data-page="step-2"] .addr {
   gap: 2.4%;
 }
 
-body[data-page="step-2"] .addr-field,
 body[data-page="step-2"] .addr-map {
   background: var(--cream);
   border: 2px solid transparent;
@@ -119,24 +118,24 @@ body[data-page="step-2"] .addr-map {
   min-width: 0;
 }
 
-body[data-page="step-2"] .addr-field {
-  font: inherit;
-  font-size: clamp(.75rem, 1.05vw, .9rem);
-  color: var(--blue);
-  padding: .8em .9em;
-  transition: border-color .2s ease;
-  /* ONE box carries the aspect and sets the row height; the other stretches to
-     match it (grid's default align-items:stretch). Putting aspect-ratio on both
-     made each compute its own height from its own width — and since the boxes
-     are deliberately different widths, they came out different heights. The
-     design's are level. Measured: 18.6% of viewport wide x 28.9% tall = 1.393,
-     nudged to 1.46 because the rendered box measured 1.05x tall. */
-  aspect-ratio: 1.46;
+/* the structured fields stack; its natural height sets the row, and the map
+   stretches to match (grid's default align-items:stretch + object-fit:cover
+   below, so the map crops rather than distorts) */
+body[data-page="step-2"] .addr-form {
+  display: grid;
+  gap: .55rem;
+  align-content: start;
+  min-width: 0;
 }
 
-body[data-page="step-2"] .addr-field:focus-visible {
-  outline: none;
-  border-color: var(--pink);
+body[data-page="step-2"] .addr-row {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: .55rem;
+}
+
+body[data-page="step-2"] .addr-row--statezip {
+  grid-template-columns: .8fr 1.2fr;
 }
 
 /* the live map fills its box; the cream behind it is what shows while it loads.

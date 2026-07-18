@@ -336,16 +336,6 @@
 
   // "14 Smith St, Monroe, NY 10950" → { street1, city, state, zip_code }.
   // Four comma parts means an apartment line: street2 rides along.
-  function parseAddress(line) {
-    const parts = String(line || "").split(",").map((s) => s.trim()).filter(Boolean);
-    if (parts.length < 3) return null;
-    const tail = parts[parts.length - 1].match(/^([A-Za-z]{2})\s+(\d{5}(?:-\d{4})?)$/);
-    if (!tail) return null;
-    const city = parts[parts.length - 2];
-    const street1 = parts[0];
-    const street2 = parts.length > 3 ? parts.slice(1, parts.length - 2).join(", ") : undefined;
-    return { street1, ...(street2 ? { street2 } : {}), city, state: tail[1].toUpperCase(), zip_code: tail[2] };
-  }
 
   function formatAddress(a) {
     if (!a || !a.street1) return "";
@@ -354,17 +344,49 @@
 
   function initStep2() {
     if (!requireAuth()) return;
-    const field = $("#addr");
+    const field = $("#addr");            // hidden: the composed one-line form (map + sync contract)
     const form = $("form.panel");
     const btn = $(".content .btn");
     const status = $(".formnote", form);
     const list = $(".addrlist", form);
+    const streetEl = $("#addr-street", form);
+    const aptEl = $("#addr-apt", form);
+    const cityEl = $("#addr-city", form);
+    const stateEl = $("#addr-state", form);
+    const zipEl = $("#addr-zip", form);
+    const parts = [streetEl, aptEl, cityEl, stateEl, zipEl];
 
     let saved = [];      // every address on the account (API)
     let picked = null;   // the chosen saved address, or null = typing a new one
 
     function fmtSaved(a) {
       return `${a.street1}${a.street2 ? " " + a.street2 : ""}, ${a.city}, ${a.state} ${a.zip_code}`;
+    }
+
+    /* The structured fields are the source of truth; the hidden #addr gets the
+       composed line so the map preview keeps working unchanged. */
+    function fillParts(a) {
+      streetEl.value = a.street1 || "";
+      aptEl.value = a.street2 || "";
+      cityEl.value = a.city || "";
+      stateEl.value = a.state || "NY";
+      zipEl.value = a.zip_code || "";
+    }
+
+    function readParts() {
+      return {
+        street1: streetEl.value.trim(),
+        street2: aptEl.value.trim() || undefined,
+        city: cityEl.value.trim(),
+        state: stateEl.value.trim().toUpperCase(),
+        zip_code: zipEl.value.trim(),
+      };
+    }
+
+    function syncMap(instant) {
+      const p = readParts();
+      field.value = p.street1 && p.city ? `${p.street1}, ${p.city}, ${p.state} ${p.zip_code}`.trim() : "";
+      field.dispatchEvent(new Event(instant ? "change" : "input"));
     }
 
     function renderList() {
@@ -380,8 +402,8 @@
         if (picked && picked.id === a.id) { b.classList.add("is-on"); b.setAttribute("aria-pressed", "true"); }
         b.addEventListener("click", () => {
           picked = a;
-          field.value = fmtSaved(a);
-          field.dispatchEvent(new Event("change"));   // the map follows
+          fillParts(a);
+          syncMap(true);
           note(status, "");
           renderList();
         });
@@ -392,25 +414,32 @@
       other.className = "choice choice--addr";
       other.innerHTML = `<span>Somewhere else</span><small>type a new address</small>`;
       if (!picked) { other.classList.add("is-on"); other.setAttribute("aria-pressed", "true"); }
-      other.addEventListener("click", () => { picked = null; field.value = ""; renderList(); field.focus(); });
+      other.addEventListener("click", () => {
+        picked = null;
+        fillParts({ state: "NY" });
+        syncMap(true);
+        renderList();
+        streetEl.focus();
+      });
       list.appendChild(other);
     }
 
     // Every address on the account becomes a pick-one cell; the default (or
-    // the flow's previous pick) starts selected. Editing the field by hand
+    // the flow's previous pick) starts selected. Editing any field by hand
     // un-picks — typing means "somewhere else".
     api.clientAddresses().then((rows) => {
       saved = rows || [];
       const prev = flow.read().address_id;
       picked = (prev && saved.find((a) => a.id === prev))
         || saved.find((a) => a.is_default) || saved[0] || null;
-      if (picked) { field.value = fmtSaved(picked); field.dispatchEvent(new Event("change")); }
+      if (picked) { fillParts(picked); syncMap(true); }
       renderList();
-    }).catch(() => { /* older backend or expired token — the manual field stands */ });
+    }).catch(() => { /* older backend or expired token — the manual fields stand */ });
 
-    field.addEventListener("input", () => {
-      if (picked && field.value !== fmtSaved(picked)) { picked = null; renderList(); }
-    });
+    parts.forEach((el) => el && el.addEventListener("input", () => {
+      if (picked) { picked = null; renderList(); }
+      syncMap(false);
+    }));
 
     async function confirmAddress() {
       // A saved address was validated when it was added — confirm and move on.
@@ -421,8 +450,10 @@
         });
         return goto("day");
       }
-      const parsed = parseAddress(field.value);
-      if (!parsed) return note(status, "Please write it as: street, city, state ZIP — e.g. 14 Smith St, Monroe, NY 10950.", true);
+      const parsed = readParts();
+      if (!parsed.street1 || !parsed.city || parsed.state.length !== 2 || !/^\d{5}$/.test(parsed.zip_code)) {
+        return note(status, "Please fill in the street, city, two-letter state and 5-digit ZIP.", true);
+      }
       await busy(btn, "Checking…", async () => {
         try {
           const res = await api.validateAddress({ street1: parsed.street1, city: parsed.city, state: parsed.state, zip_code: parsed.zip_code });
