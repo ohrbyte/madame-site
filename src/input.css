@@ -1565,6 +1565,14 @@ body:has(.doc) .stage {
     max-width: 92%;
   }
 
+  /* The desktop dials size the copy column as a fraction of the viewport
+     (--cw ~38-44%) — on a phone that is a ribbon. max-width above always
+     meant "near-full on small screens"; this finishes the thought. */
+  body>.content {
+    left: 4%;
+    width: 92%;
+  }
+
   .panel {
     width: min(100%, 92%);
   }

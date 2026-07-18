@@ -189,3 +189,48 @@ body[data-page="step-2"] .addrlist .choice {
 body[data-page="step-2"] .addrlist .choice small {
   display: block;
 }
+
+/* ---- the column must FIT the screen -----------------------------------
+   Saved addresses + structured fields + map made this taller than many
+   viewports, pushing Book Now below the fold. The column gets a bottom
+   bound, the panel becomes a shrinkable flex column whose ADDRESS LIST
+   scrolls internally (the fields and map never squash), and the panel
+   itself scrolls as a last resort on tiny screens — so headline, panel and
+   Book Now always share the screen, at any size or orientation. */
+body[data-page="step-2"] .content {
+  bottom: max(1.4rem, 5vh);
+}
+
+body[data-page="step-2"] form.panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(237, 227, 198, .55) transparent;
+}
+
+body[data-page="step-2"] .addrlist {
+  flex: 0 1 auto;
+  min-height: 6.2rem;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(237, 227, 198, .55) transparent;
+}
+
+body[data-page="step-2"] .addr {
+  flex: none;
+}
+
+/* portrait / phone: the fields and the map stack, the map as a shallow
+   strip so the button stays in reach */
+@media (max-width: 760px) {
+  body[data-page="step-2"] .addr {
+    grid-template-columns: 1fr;
+  }
+
+  body[data-page="step-2"] .addr-map {
+    aspect-ratio: 2.4;
+    width: 100%;
+  }
+}
