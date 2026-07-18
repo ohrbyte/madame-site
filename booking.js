@@ -1126,7 +1126,7 @@
         const strip = document.createElement("span");
         strip.className = "booking-confirm";
         const q = document.createElement("span");
-        q.textContent = "This also clears the booking list shown on this device.";
+        q.textContent = "Sign out?";
         const yes = document.createElement("button");
         yes.type = "button";
         yes.className = "booking-act booking-act--cancel";
