@@ -1016,9 +1016,24 @@
     let stripe = null;
     let card = null;
     let chosenHours = 0;
+    let customOn = false;      // the "pick your own" stepper is active
+    let customHours = 12;
     let turnstileToken = null;
 
-    const HOUR_CHOICES = [2, 4, 6, 10];
+    const HOUR_CHOICES = [4, 6, 10, 20];
+    const hoursBox = $(".gift-hours", form);
+    const hoursValue = $("[data-gift-hours]", form);
+    const hoursMinus = $(".hours-step--minus", form);
+    const hoursPlus = $(".hours-step--plus", form);
+
+    function renderCustom() {
+      if (!hoursBox) return;
+      hoursBox.hidden = !customOn;
+      if (!customOn) return;
+      hoursValue.textContent = `${customHours} ${customHours === 1 ? "hour" : "hours"}`;
+      hoursMinus.disabled = customHours <= config.min_hours;
+      hoursPlus.disabled = customHours >= config.max_hours;
+    }
 
     function renderAmounts() {
       amounts.innerHTML = "";
@@ -1027,11 +1042,36 @@
         b.type = "button";
         b.className = "choice";
         b.innerHTML = `<span>${money(h * config.hourly_rate)}</span><small>${h} hours</small>`;
-        if (h === chosenHours) { b.classList.add("is-on"); b.setAttribute("aria-pressed", "true"); }
-        b.addEventListener("click", () => { chosenHours = h; renderAmounts(); });
+        if (!customOn && h === chosenHours) { b.classList.add("is-on"); b.setAttribute("aria-pressed", "true"); }
+        b.addEventListener("click", () => { customOn = false; chosenHours = h; renderAmounts(); renderCustom(); });
         amounts.appendChild(b);
       });
+      // Any amount between the backend's bounds, an hour at a time.
+      const custom = document.createElement("button");
+      custom.type = "button";
+      custom.className = "choice";
+      custom.innerHTML = customOn
+        ? `<span>${money(chosenHours * config.hourly_rate)}</span><small>${chosenHours} hours</small>`
+        : `<span>Pick your own</span><small>${config.min_hours}–${config.max_hours} hours</small>`;
+      if (customOn) { custom.classList.add("is-on"); custom.setAttribute("aria-pressed", "true"); }
+      custom.addEventListener("click", () => {
+        customOn = true;
+        chosenHours = customHours;
+        renderAmounts();
+        renderCustom();
+      });
+      amounts.appendChild(custom);
     }
+
+    function setCustomHours(next) {
+      customHours = Math.min(config.max_hours, Math.max(config.min_hours, next));
+      chosenHours = customHours;
+      renderAmounts();
+      renderCustom();
+    }
+
+    if (hoursMinus) hoursMinus.addEventListener("click", () => setCustomHours(customHours - 1));
+    if (hoursPlus) hoursPlus.addEventListener("click", () => setCustomHours(customHours + 1));
 
     async function mountCard() {
       stripe = await getStripe(config.stripe_publishable_key);

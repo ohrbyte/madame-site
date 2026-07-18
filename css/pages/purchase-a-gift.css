@@ -49,3 +49,32 @@ body[data-page="purchase-a-gift"] .turnstile-box {
 body[data-page="purchase-a-gift"] form[data-stage="done"] .turnstile-box {
   display: none;
 }
+
+/* the fifth cell — "pick your own" — spans the row under the presets */
+body[data-page="purchase-a-gift"] .amounts .choice:last-child {
+  grid-column: 1 / -1;
+}
+
+/* the custom stepper (shown only while the custom cell is chosen) */
+body[data-page="purchase-a-gift"] .gift-hours {
+  display: flex;
+  align-items: center;
+  gap: .7rem;
+  margin: 0 0 1.1rem;
+}
+
+body[data-page="purchase-a-gift"] .gift-hours[hidden] {
+  display: none;
+}
+
+body[data-page="purchase-a-gift"] .gift-hours .hours-step {
+  width: 2.1em;
+  aspect-ratio: 1;
+  padding: 0;
+}
+
+body[data-page="purchase-a-gift"] .hours-value {
+  font-weight: 700;
+  min-width: 6ch;
+  text-align: center;
+}

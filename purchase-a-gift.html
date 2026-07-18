@@ -62,6 +62,14 @@
         <button type="button" class="choice">£200</button>
       </div>
 
+      <!-- Wired (booking.js): the "pick your own" stepper, shown when the
+           custom cell is chosen. Bounds come from the backend's gift config. -->
+      <div class="hours gift-hours" role="group" aria-label="Choose how many hours" hidden>
+        <button class="choice hours-step hours-step--minus" type="button" aria-label="One hour less">&minus;</button>
+        <span class="hours-value" data-gift-hours>12 hours</span>
+        <button class="choice hours-step hours-step--plus" type="button" aria-label="One hour more">+</button>
+      </div>
+
       <div class="fields fields--2">
         <div class="field">
           <label for="gift-to">Who's it for?</label>
