@@ -106,6 +106,8 @@
     register: (data) => call("/public/clients/register", { method: "POST", body: data, auth: true }),
     me: () => call("/public/clients/me", { auth: true }),
     updateAddress: (address) => call("/public/clients/address", { method: "PUT", body: address, auth: true }),
+    clientAddresses: () => call("/public/clients/addresses", { auth: true }),
+    addClientAddress: (address) => call("/public/clients/addresses", { method: "POST", body: address, auth: true }),
     validateAddress: (address) => call("/public/locations/validate-address", { method: "POST", body: address }),
 
     // Bookings
@@ -114,6 +116,7 @@
     estimate: (input) => call("/public/bookings/estimate", { method: "POST", body: input, auth: true }),
     book: (input) => call("/public/bookings", { method: "POST", body: input, auth: true }),
     bookRecurring: (input) => call("/public/bookings/recurring", { method: "POST", body: input, auth: true }),
+    bookingStatus: (id) => call(`/public/bookings/${encodeURIComponent(id)}`, { auth: true }),
     confirmPayment: (bookingId) => call("/public/bookings/confirm-payment", { method: "POST", body: { booking_id: bookingId }, auth: true }),
 
     // Gift cards (public, unauthenticated purchase)

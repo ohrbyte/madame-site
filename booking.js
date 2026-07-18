@@ -8,8 +8,8 @@
    single-page reference implementation this is ported from, so the state that
    used to live in one in-memory object rides in sessionStorage between pages:
 
-     sessionStorage.madame_flow   { date, hours, slot, frequency_weeks,
-                                    notes, address, estimate, booking }
+     sessionStorage.madame_flow   { date, hours, slot, frequency_weeks, notes,
+                                    address, address_id, estimate, booking }
      localStorage.public_client_token   the client JWT (owned by api.js)
      localStorage.madame_bookings       bookings made on THIS device — the
                                         public API has no list endpoint, so
@@ -358,18 +358,69 @@
     const form = $("form.panel");
     const btn = $(".content .btn");
     const status = $(".formnote", form);
+    const list = $(".addrlist", form);
 
-    // Returning client: their saved address is the confirmation this screen
-    // asks for. (The map follows via the change event app.js listens for.)
-    api.me().then((me) => {
-      const saved = formatAddress(me && me.address);
-      if (saved && !field.value) {
-        field.value = saved;
-        field.dispatchEvent(new Event("change"));
-      }
-    }).catch(() => { /* token may have expired mid-session */ });
+    let saved = [];      // every address on the account (API)
+    let picked = null;   // the chosen saved address, or null = typing a new one
+
+    function fmtSaved(a) {
+      return `${a.street1}${a.street2 ? " " + a.street2 : ""}, ${a.city}, ${a.state} ${a.zip_code}`;
+    }
+
+    function renderList() {
+      if (!list) return;
+      list.innerHTML = "";
+      if (!saved.length) { list.hidden = true; return; }
+      list.hidden = false;
+      saved.forEach((a) => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "choice choice--addr";
+        b.innerHTML = `<span>${a.street1}</span><small>${a.city}, ${a.state}</small>`;
+        if (picked && picked.id === a.id) { b.classList.add("is-on"); b.setAttribute("aria-pressed", "true"); }
+        b.addEventListener("click", () => {
+          picked = a;
+          field.value = fmtSaved(a);
+          field.dispatchEvent(new Event("change"));   // the map follows
+          note(status, "");
+          renderList();
+        });
+        list.appendChild(b);
+      });
+      const other = document.createElement("button");
+      other.type = "button";
+      other.className = "choice choice--addr";
+      other.innerHTML = `<span>Somewhere else</span><small>type a new address</small>`;
+      if (!picked) { other.classList.add("is-on"); other.setAttribute("aria-pressed", "true"); }
+      other.addEventListener("click", () => { picked = null; field.value = ""; renderList(); field.focus(); });
+      list.appendChild(other);
+    }
+
+    // Every address on the account becomes a pick-one cell; the default (or
+    // the flow's previous pick) starts selected. Editing the field by hand
+    // un-picks — typing means "somewhere else".
+    api.clientAddresses().then((rows) => {
+      saved = rows || [];
+      const prev = flow.read().address_id;
+      picked = (prev && saved.find((a) => a.id === prev))
+        || saved.find((a) => a.is_default) || saved[0] || null;
+      if (picked) { field.value = fmtSaved(picked); field.dispatchEvent(new Event("change")); }
+      renderList();
+    }).catch(() => { /* older backend or expired token — the manual field stands */ });
+
+    field.addEventListener("input", () => {
+      if (picked && field.value !== fmtSaved(picked)) { picked = null; renderList(); }
+    });
 
     async function confirmAddress() {
+      // A saved address was validated when it was added — confirm and move on.
+      if (picked) {
+        flow.patch({
+          address: { street1: picked.street1, street2: picked.street2, city: picked.city, state: picked.state, zip_code: picked.zip_code },
+          address_id: picked.id,
+        });
+        return goto("day");
+      }
       const parsed = parseAddress(field.value);
       if (!parsed) return note(status, "Please write it as: street, city, state ZIP — e.g. 14 Smith St, Monroe, NY 10950.", true);
       await busy(btn, "Checking…", async () => {
@@ -378,8 +429,16 @@
           if (!res || !res.is_in_service_area) {
             return note(status, "Sorry — that address is outside our service area.", true);
           }
-          await api.updateAddress(parsed);
-          flow.patch({ address: parsed });
+          if (saved.length) {
+            // The account already has addresses — ADD this one. Overwriting
+            // the default in place (the old single-address behaviour) would
+            // silently clobber an address the client still uses.
+            const added = await api.addClientAddress(parsed);
+            flow.patch({ address: parsed, address_id: added && added.id });
+          } else {
+            await api.updateAddress(parsed);
+            flow.patch({ address: parsed, address_id: undefined });
+          }
           goto("day");
         } catch (err) {
           note(status, formatErr(err), true);
@@ -637,7 +696,7 @@
     }
 
     async function loadEstimate() {
-      const est = await api.estimate({ date: state.date, start_time: state.slot.start_time, hours: state.hours });
+      const est = await api.estimate({ date: state.date, start_time: state.slot.start_time, hours: state.hours, address_id: state.address_id });
       review.innerHTML = "";
       reviewRow("When", `${designDate(state.date)}, ${state.slot.start_formatted || state.slot.start_time}`);
       if (freq > 0) reviewRow("Repeats", freq === 1 ? `Every ${weekdayName(state.date)}` : `Every ${freq} weeks on ${weekdayName(state.date)}s`);
@@ -751,6 +810,7 @@
               language: "English",
               payment_method_id: pmId,
               notes,
+              address_id: state.address_id,
             });
             record = {
               id: r.first_booking_id || r.id,
@@ -770,6 +830,7 @@
               payment_method_id: pmId,
               language: "English",
               notes,
+              address_id: state.address_id,
             });
             let final = result;
             if (result && result.requires_action) {
@@ -857,6 +918,23 @@
       what.textContent = `Home clean · ${r.hours}h${r.amount ? ` · ${money(r.amount)}` : ""}${r.recurring ? ` · ${freqPhrase(r.recurring)}` : ""}`;
       li.append(when, what);
       list.appendChild(li);
+    });
+
+    // These records are device-local, so an office-side cancellation never
+    // reached them — ask the backend for each booking's real status and mark
+    // the ones that moved on. Best effort: signed out or offline leaves the
+    // list as it was.
+    records.slice(0, 12).forEach(async (r, i) => {
+      try {
+        const s = await api.bookingStatus(r.id);
+        if (s && s.status && s.status !== "scheduled") {
+          const li = list.children[i];
+          if (!li) return;
+          li.classList.add(`booking--${s.status}`);
+          const what = li.querySelector(".booking-what");
+          if (what) what.textContent += ` · ${s.status}`;
+        }
+      } catch { /* noop */ }
     });
   }
 

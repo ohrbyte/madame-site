@@ -173,3 +173,20 @@ body[data-page="step-2"] .btn {
     min-height: 3.5rem;
   }
 }
+/* ---- wired additions (booking.js) ------------------------------------- */
+
+/* every address on the account, pick-one — same cells as the paylist */
+body[data-page="step-2"] .addrlist {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .45rem;
+  margin: 0 0 .9rem;
+}
+
+body[data-page="step-2"] .addrlist .choice {
+  padding: .55em .4em;
+}
+
+body[data-page="step-2"] .addrlist .choice small {
+  display: block;
+}

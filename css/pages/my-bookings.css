@@ -55,3 +55,13 @@ body[data-page="my-bookings"] .booking--empty {
   grid-template-columns: 1fr;
   opacity: .85;
 }
+
+/* records whose booking moved on server-side (status reconciliation) */
+body[data-page="my-bookings"] .booking--cancelled {
+  opacity: .5;
+}
+
+body[data-page="my-bookings"] .booking--cancelled .booking-when {
+  text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
+}

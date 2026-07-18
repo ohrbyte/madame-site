@@ -64,6 +64,10 @@
       <h2>Confirm your address.</h2>
       <p>We need to verify your address is in our service area</p>
 
+      <!-- Wired (booking.js): every address on the account, pick-one; the last
+           cell reveals the manual field below. Hidden until the API answers. -->
+      <div class="addrlist" role="group" aria-label="Your saved addresses" hidden></div>
+
       <div class="addr">
         <label class="visually-hidden" for="addr">Address</label>
         <input class="addr-field" id="addr" name="addr" type="text" autocomplete="street-address"
