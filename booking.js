@@ -663,12 +663,18 @@
     const payList = $(".paylist", panel);
     const stripeBox = $(".stripe-box", panel);
     const notesEl = $("#booking-notes", panel);
+    const languageEl = $("#booking-language", panel);
     const freq = state.frequency_weeks || 0;
 
-    // Special instructions ride the flow state so back-navigation keeps them.
+    // Special instructions and language ride the flow state so
+    // back-navigation keeps them.
     if (notesEl) {
       notesEl.value = state.notes || "";
       notesEl.addEventListener("input", () => flow.patch({ notes: notesEl.value }));
+    }
+    if (languageEl) {
+      languageEl.value = state.language || "English";
+      languageEl.addEventListener("change", () => flow.patch({ language: languageEl.value }));
     }
 
     if (freq > 0) {
@@ -798,6 +804,7 @@
           note(status, "");
           const pmId = await ensurePaymentMethod();
           const notes = (notesEl && notesEl.value.trim()) || undefined;
+          const language = (languageEl && languageEl.value) || "English";
           let record;
           if (freq > 0) {
             // A series: no charge now, so no 3DS dance — the chosen card is
@@ -807,7 +814,7 @@
               start_time: state.slot.start_time,
               hours: state.hours,
               frequency_weeks: freq,
-              language: "English",
+              language,
               payment_method_id: pmId,
               notes,
               address_id: state.address_id,
@@ -828,7 +835,7 @@
               start_time: state.slot.start_time,
               hours: state.hours,
               payment_method_id: pmId,
-              language: "English",
+              language,
               notes,
               address_id: state.address_id,
             });

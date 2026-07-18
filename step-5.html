@@ -61,9 +61,20 @@
         <dd class="review-total">£72.00</dd>
       </dl>
 
-      <!-- Wired (booking.js): rides to the backend as `notes` on create —
-           the office sees it on the booking's detail page. -->
+      <!-- Wired (booking.js): language rides as `language` on create (drives
+           which cleaners can be assigned); notes ride as `notes` — the office
+           sees them on the booking's detail page. -->
       <div class="fields">
+        <div class="field">
+          <label for="booking-language">Your lady speaks</label>
+          <select id="booking-language" name="booking-language">
+            <option value="English" selected>English</option>
+            <option value="Spanish">Spanish</option>
+            <option value="Georgian">Georgian</option>
+            <option value="Polish">Polish</option>
+            <option value="Ukrainian">Ukrainian</option>
+          </select>
+        </div>
         <div class="field">
           <label for="booking-notes">Special instructions</label>
           <textarea id="booking-notes" name="booking-notes" rows="2"
