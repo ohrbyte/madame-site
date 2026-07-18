@@ -245,6 +245,14 @@
       radio.addEventListener("change", refreshSubmit);
     });
 
+    /* Where signing in lands you. Booking is the default; pages that sent the
+       visitor here to re-authenticate (my-bookings after the session lapsed)
+       say so with ?next= — allowlisted, never echoed blindly. */
+    function authDestination() {
+      const next = new URLSearchParams(window.location.search).get("next");
+      return next === "my-bookings" ? "my-bookings" : "address";
+    }
+
     async function afterAuth() {
       if (isNewClient()) {
         if (lede) lede.textContent = "Lovely to meet you — what should we call you?";
@@ -252,7 +260,7 @@
         stage("name");
         return;
       }
-      goto("address");
+      goto(authDestination());
     }
 
     /* The phone field wears a live mask — (845) 576-6740 — so what you see is
@@ -313,7 +321,7 @@
           const claims = api.claims() || {};
           const res = await api.register({ name, phone: claims.phone || undefined, email: claims.email || undefined, tos_accepted: true });
           if (res && res.access_token) api.setToken(res.access_token);
-          goto("address");
+          goto(authDestination());
         }
       } catch (err) {
         note(status, formatErr(err), true);
@@ -1169,11 +1177,34 @@
       li.appendChild(actions);
     }
 
+    // Managing a booking needs a live session, and sessions lapse — say so,
+    // once, instead of silently going read-only (which reads as "the site is
+    // broken"). The button carries ?next= so signing in lands back here.
+    function offerSignin() {
+      if (list.parentElement.querySelector(".booking-signin")) return;
+      const p = document.createElement("p");
+      p.className = "formnote booking-signin";
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "booking-act";
+      btn.textContent = "Sign in";
+      btn.addEventListener("click", () => goto("sign-in?next=my-bookings"));
+      p.append("Sign back in to change or cancel a clean. ", btn);
+      list.before(p);
+    }
+
+    const claims = api.claims();
+    if (!claims || (claims.exp && claims.exp * 1000 <= Date.now())) {
+      offerSignin();
+      return;
+    }
+
     // These records are device-local, so an office-side cancellation never
     // reached them — ask the backend for each booking's real status and mark
     // the ones that moved on. Scheduled future one-time cleans get their
     // Change / Cancel actions once the backend confirms them. Best effort:
-    // signed out or offline leaves the list read-only.
+    // offline leaves the list read-only; a 401 means the session died
+    // server-side (and api.js just dropped the token), so offer sign-in.
     records.slice(0, 12).forEach(async (r, i) => {
       try {
         const s = await api.bookingStatus(r.id);
@@ -1187,7 +1218,9 @@
           && new Date(`${r.date}T23:59:59`) > new Date()) {
           addActions(li, r);
         }
-      } catch { /* noop */ }
+      } catch (err) {
+        if (err && err.status === 401) offerSignin();
+      }
     });
   }
 

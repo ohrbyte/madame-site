@@ -105,3 +105,15 @@ body[data-page="my-bookings"] .booking-confirm {
   gap: .6rem;
   font-size: clamp(.68rem, .9vw, .8rem);
 }
+
+/* the lapsed-session note — a quiet line above the list, button inline */
+body[data-page="my-bookings"] .booking-signin {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  margin: 0 0 .8rem;
+}
+
+body[data-page="my-bookings"] .booking-signin .booking-act {
+  white-space: nowrap;
+}
