@@ -1104,9 +1104,15 @@ a:focus-visible>.inkline--rest::after {
   transition: border-color .2s ease;
 }
 
-.field>input::placeholder {
+.field>input::placeholder,
+.field>textarea::placeholder {
   color: var(--blue);
   opacity: .45;
+}
+
+/* multi-line fields keep the panel's shape — long text scrolls inside */
+.field>textarea {
+  resize: none;
 }
 
 .field>input:focus-visible,

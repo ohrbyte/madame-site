@@ -61,6 +61,16 @@
         <dd class="review-total">£72.00</dd>
       </dl>
 
+      <!-- Wired (booking.js): rides to the backend as `notes` on create —
+           the office sees it on the booking's detail page. -->
+      <div class="fields">
+        <div class="field">
+          <label for="booking-notes">Special instructions</label>
+          <textarea id="booking-notes" name="booking-notes" rows="2"
+            placeholder="Gate code, pets, what to focus on — anything your lady should know."></textarea>
+        </div>
+      </div>
+
       <h3 class="pay-title">How would you like to pay?</h3>
       <div class="paylist" role="group" aria-label="Choose a payment method"></div>
       <div class="stripe-box" hidden></div>

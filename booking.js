@@ -9,7 +9,7 @@
    used to live in one in-memory object rides in sessionStorage between pages:
 
      sessionStorage.madame_flow   { date, hours, slot, frequency_weeks,
-                                    address, estimate, booking }
+                                    notes, address, estimate, booking }
      localStorage.public_client_token   the client JWT (owned by api.js)
      localStorage.madame_bookings       bookings made on THIS device — the
                                         public API has no list endpoint, so
@@ -603,7 +603,14 @@
     const confirmBtn = $(".btn", panel);
     const payList = $(".paylist", panel);
     const stripeBox = $(".stripe-box", panel);
+    const notesEl = $("#booking-notes", panel);
     const freq = state.frequency_weeks || 0;
+
+    // Special instructions ride the flow state so back-navigation keeps them.
+    if (notesEl) {
+      notesEl.value = state.notes || "";
+      notesEl.addEventListener("input", () => flow.patch({ notes: notesEl.value }));
+    }
 
     if (freq > 0) {
       // A series never charges at confirm — each visit is billed to the chosen
@@ -731,6 +738,7 @@
         try {
           note(status, "");
           const pmId = await ensurePaymentMethod();
+          const notes = (notesEl && notesEl.value.trim()) || undefined;
           let record;
           if (freq > 0) {
             // A series: no charge now, so no 3DS dance — the chosen card is
@@ -742,6 +750,7 @@
               frequency_weeks: freq,
               language: "English",
               payment_method_id: pmId,
+              notes,
             });
             record = {
               id: r.first_booking_id || r.id,
@@ -760,6 +769,7 @@
               hours: state.hours,
               payment_method_id: pmId,
               language: "English",
+              notes,
             });
             let final = result;
             if (result && result.requires_action) {
