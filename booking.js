@@ -543,16 +543,26 @@
       });
     }
 
+    /* The old grid stays visible (dimmed) while fresh availability loads —
+       blanking it on every stepper click made the section look like it was
+       restarting. Rapid clicks fire overlapping requests; the token makes
+       the LAST one win so a slow older response can't overwrite a newer one. */
+    let slotsReq = 0;
     async function refreshSlots() {
-      grid.innerHTML = "";
+      const req = ++slotsReq;
+      grid.setAttribute("aria-busy", "true");
       note(status, "Checking who's free…");
       try {
-        slots = (await api.availableSlots(state.date, hours)) || [];
+        const fresh = (await api.availableSlots(state.date, hours)) || [];
+        if (req !== slotsReq) return;
+        slots = fresh;
         note(status, slots.length ? "" : "No one is free that day for that long — try another day or fewer hours.", !slots.length);
         if (!slots.some((s) => s.start_time === selectedStart)) { selectedStart = ""; flow.patch({ slot: null }); }
         renderSlots();
       } catch (err) {
-        note(status, formatErr(err), true);
+        if (req === slotsReq) note(status, formatErr(err), true);
+      } finally {
+        if (req === slotsReq) grid.removeAttribute("aria-busy");
       }
     }
 
