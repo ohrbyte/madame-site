@@ -87,3 +87,11 @@ body[data-page="step-4"] .timegrid[aria-busy="true"] {
   opacity: .55;
   pointer-events: none;
 }
+
+/* past cleaners — same pick-one cells; "No preference" leads */
+body[data-page="step-4"] .ladypick {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: .45rem;
+  margin: 0 0 1.1rem;
+}

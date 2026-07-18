@@ -113,6 +113,7 @@
     // Bookings
     bookingRules: () => call("/public/bookings/rules"),
     availableSlots: (date, hours) => call("/public/bookings/available-slots", { query: { date, hours }, auth: true }),
+    pastCleaners: () => call("/public/bookings/past-cleaners", { auth: true }),
     estimate: (input) => call("/public/bookings/estimate", { method: "POST", body: input, auth: true }),
     book: (input) => call("/public/bookings", { method: "POST", body: input, auth: true }),
     bookRecurring: (input) => call("/public/bookings/recurring", { method: "POST", body: input, auth: true }),

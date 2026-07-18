@@ -9,6 +9,7 @@
    used to live in one in-memory object rides in sessionStorage between pages:
 
      sessionStorage.madame_flow   { date, hours, slot, frequency_weeks, notes,
+                                    preferred_cleaner_id, preferred_cleaner_name,
                                     address, address_id, estimate, booking }
      localStorage.public_client_token   the client JWT (owned by api.js)
      localStorage.madame_bookings       bookings made on THIS device — the
@@ -586,6 +587,40 @@
     ];
     let frequency = state.frequency_weeks || 0;
 
+    /* Past cleaners — a returning client can ask for a lady they've had
+       before. The whole section stays hidden when there are none. */
+    const ladyLine = $(".ladypick-line", panel);
+    const ladyBox = $(".ladypick", panel);
+    let ladies = [];
+    let preferredId = state.preferred_cleaner_id || "";
+
+    function renderLadies() {
+      if (!ladyBox || !ladies.length) return;
+      ladyLine.hidden = false;
+      ladyBox.hidden = false;
+      ladyBox.innerHTML = "";
+      const cells = [{ id: "", first_name: "No preference" }].concat(ladies);
+      cells.forEach((l) => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "choice";
+        b.textContent = l.first_name;
+        if (l.id === preferredId) { b.classList.add("is-on"); b.setAttribute("aria-pressed", "true"); }
+        b.addEventListener("click", () => {
+          preferredId = l.id;
+          flow.patch({ preferred_cleaner_id: l.id || undefined, preferred_cleaner_name: l.id ? l.first_name : undefined });
+          renderLadies();
+        });
+        ladyBox.appendChild(b);
+      });
+    }
+
+    api.pastCleaners().then((rows) => {
+      ladies = rows || [];
+      if (preferredId && !ladies.some((l) => l.id === preferredId)) preferredId = "";
+      renderLadies();
+    }).catch(() => { /* section stays hidden */ });
+
     function renderFreq() {
       freqBox.innerHTML = "";
       FREQ_CHOICES.forEach((f) => {
@@ -723,6 +758,7 @@
     let methods = [];
     let estimateOk = false;
     let coveredByCredit = false;   // one-time, fully paid by gift balance
+    let preferredBusy = false;     // chosen past cleaner isn't free for this slot
 
     function reviewRow(dt, dd, cls) {
       const dtEl = document.createElement("dt");
@@ -734,10 +770,11 @@
     }
 
     async function loadEstimate() {
-      const est = await api.estimate({ date: state.date, start_time: state.slot.start_time, hours: state.hours, address_id: state.address_id });
+      const est = await api.estimate({ date: state.date, start_time: state.slot.start_time, hours: state.hours, address_id: state.address_id, preferred_cleaner_id: state.preferred_cleaner_id });
       review.innerHTML = "";
       reviewRow("When", `${designDate(state.date)}, ${state.slot.start_formatted || state.slot.start_time}`);
       if (freq > 0) reviewRow("Repeats", freq === 1 ? `Every ${weekdayName(state.date)}` : `Every ${freq} weeks on ${weekdayName(state.date)}s`);
+      if (state.preferred_cleaner_name) reviewRow("Your lady", state.preferred_cleaner_name);
       reviewRow("Where", formatAddress(state.address) || "Your saved address");
       reviewRow("What", `Home clean · ${est.hours || state.hours} hours (${money(est.rate_per_hour)}/hr)`);
       if (est.taxi_fee > 0) reviewRow("Travel fee", money(est.taxi_fee));
@@ -761,6 +798,15 @@
         covered.className = "paynote";
         covered.textContent = "No card needed — your gift credit covers this clean.";
         payList.before(covered);
+      }
+      // The busy heads-up: booking still works, but the customer must know a
+      // substitute steps in — continuing past this note IS the acknowledgment
+      // (accept_substitute) the backend requires.
+      preferredBusy = est.preferred_cleaner_available === false;
+      if (preferredBusy) {
+        note(status,
+          `${state.preferred_cleaner_name} isn't free at this time — pick another time to keep her, or continue and we'll send another great lady.`,
+          true);
       }
       flow.patch({ estimate: est });
       estimateOk = true;
@@ -872,6 +918,8 @@
               payment_method_id: pmId,
               notes,
               address_id: state.address_id,
+              preferred_cleaner_id: state.preferred_cleaner_id,
+              accept_substitute: preferredBusy || undefined,
             });
             record = {
               id: r.first_booking_id || r.id,
@@ -892,6 +940,8 @@
               language,
               notes,
               address_id: state.address_id,
+              preferred_cleaner_id: state.preferred_cleaner_id,
+              accept_substitute: preferredBusy || undefined,
             });
             let final = result;
             if (result && result.requires_action) {
