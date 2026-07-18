@@ -494,6 +494,8 @@
     const grid = $(".cal-grid", panel);
     const continueBtn = $(".btn", panel);
     const status = $(".formnote", panel);
+
+    if (flow.read().edit) note(status, "Changing your clean — pick the new day.");
     const prevBtn = $(".cal-nav-prev", panel);
     const nextBtn = $(".cal-nav-next", panel);
 
@@ -576,6 +578,18 @@
 
     heading.textContent = designDate(state.date);
 
+    /* Edit mode: this visit is re-picking date/time/hours for an EXISTING
+       booking (flow.edit from my-bookings). The backend previews the 24h
+       late fees; pressing again confirms and applies. Frequency and the
+       past-cleaner pick don't apply to an edit and stay hidden. */
+    const editing = state.edit || null;
+    let previewed = null;
+    function invalidatePreview() {
+      if (!editing) return;
+      previewed = null;
+      continueBtn.textContent = "Review change";
+    }
+
     // How often — 0 keeps the flow one-time, anything else books a series
     // repeating on the picked day's weekday. Every 3 weeks exists on the phone
     // line but not here; four cells is what the card wears well.
@@ -615,13 +629,21 @@
       });
     }
 
-    api.pastCleaners().then((rows) => {
-      ladies = rows || [];
-      if (preferredId && !ladies.some((l) => l.id === preferredId)) preferredId = "";
-      renderLadies();
-    }).catch(() => { /* section stays hidden */ });
+    if (!editing) {
+      api.pastCleaners().then((rows) => {
+        ladies = rows || [];
+        if (preferredId && !ladies.some((l) => l.id === preferredId)) preferredId = "";
+        renderLadies();
+      }).catch(() => { /* section stays hidden */ });
+    }
 
     function renderFreq() {
+      if (editing) {
+        freqBox.hidden = true;
+        const freqLine = freqBox.previousElementSibling;
+        if (freqLine && freqLine.tagName === "P") freqLine.hidden = true;
+        return;
+      }
       freqBox.innerHTML = "";
       FREQ_CHOICES.forEach((f) => {
         const b = document.createElement("button");
@@ -662,6 +684,7 @@
           selectedStart = slot.start_time;
           flow.patch({ slot, hours });
           note(status, "");
+          invalidatePreview();
           renderSlots();
         });
         grid.appendChild(b);
@@ -694,6 +717,7 @@
     function setHours(next) {
       hours = Math.min(rules.max_hours, Math.max(rules.min_hours, next));
       flow.patch({ hours });
+      invalidatePreview();
       renderHours();
       refreshSlots();
     }
@@ -701,9 +725,62 @@
     minus.addEventListener("click", () => setHours(hours - 1));
     plus.addEventListener("click", () => setHours(hours + 1));
 
-    continueBtn.addEventListener("click", (e) => {
-      if (!flow.read().slot) { e.preventDefault(); note(status, "Pick a start time first.", true); }
-    });
+    if (editing) {
+      continueBtn.textContent = "Review change";
+      continueBtn.addEventListener("click", async (e) => {
+        e.preventDefault();
+        const st = flow.read();
+        if (!st.slot) return note(status, "Pick a start time first.", true);
+        const body = { date: st.date, start_time: st.slot.start_time, hours };
+        if (!previewed) {
+          await busy(continueBtn, "Checking…", async () => {
+            try {
+              const p = await api.modifyPreview(editing.id, body);
+              if (!p || p.valid === false) {
+                return note(status, (p && p.error_message) || "That change isn't possible — try another time.", true);
+              }
+              previewed = p;
+              const bits = (p.fees || []).map((f) => f.message);
+              if (p.cleaner_unavailable) bits.push("Your usual lady isn't free then — another great lady will cover it.");
+              if (p.new_total != null) bits.push(`New total: ${money(p.new_total)}.`);
+              bits.push("Press again to confirm.");
+              note(status, bits.join(" "));
+            } catch (err) {
+              note(status, formatErr(err), true);
+            }
+          });
+          // busy() restores the label it saved on entry, so the new label
+          // must land AFTER it settles.
+          if (previewed) continueBtn.textContent = "Confirm change";
+          return;
+        }
+        await busy(continueBtn, "Applying…", async () => {
+          try {
+            await api.modifyBooking(editing.id, body);
+            try {
+              const recs = JSON.parse(localStorage.getItem(RECORDS_KEY) || "[]");
+              const rec = recs.find((x) => x.id === editing.id);
+              if (rec) {
+                rec.date = st.date;
+                rec.start = st.slot.start_formatted || st.slot.start_time;
+                rec.hours = hours;
+                if (previewed.new_total != null) rec.amount = previewed.new_total;
+              }
+              localStorage.setItem(RECORDS_KEY, JSON.stringify(recs));
+            } catch { /* records are a nicety */ }
+            flow.clear();
+            goto("my-bookings");
+          } catch (err) {
+            note(status, formatErr(err), true);
+            invalidatePreview();
+          }
+        });
+      });
+    } else {
+      continueBtn.addEventListener("click", (e) => {
+        if (!flow.read().slot) { e.preventDefault(); note(status, "Pick a start time first.", true); }
+      });
+    }
 
     api.bookingRules().catch(() => rules).then((r) => {
       if (r && r.min_hours) rules = r;
@@ -1031,19 +1108,84 @@
       list.appendChild(li);
     });
 
+    /* A future one-time clean can be changed or cancelled right here. The
+       backend previews the 24h late fees (cancellation / hour-removal) and
+       charges them on apply — the site only ever repeats what it says.
+       (Recurring series records don't get actions yet — their this-vs-future
+       scope deserves its own flow.) */
+    function addActions(li, r) {
+      const actions = document.createElement("span");
+      actions.className = "booking-actions";
+      const change = document.createElement("button");
+      change.type = "button";
+      change.className = "booking-act";
+      change.textContent = "Change";
+      change.addEventListener("click", () => {
+        flow.clear();
+        flow.patch({ edit: { id: r.id, hours: r.hours }, hours: r.hours });
+        goto("day");
+      });
+      const cancel = document.createElement("button");
+      cancel.type = "button";
+      cancel.className = "booking-act booking-act--cancel";
+      cancel.textContent = "Cancel";
+      cancel.addEventListener("click", async () => {
+        if (actions.querySelector(".booking-confirm")) return;
+        let feeLine = "";
+        try {
+          const p = await api.cancelPreview(r.id);
+          if (p && p.fee_applies) feeLine = ` A ${money(p.fee_amount)} late-cancellation fee applies.`;
+        } catch { /* previewless confirm still works */ }
+        const strip = document.createElement("span");
+        strip.className = "booking-confirm";
+        const q = document.createElement("span");
+        q.textContent = `Cancel this clean?${feeLine}`;
+        const yes = document.createElement("button");
+        yes.type = "button";
+        yes.className = "booking-act booking-act--cancel";
+        yes.textContent = feeLine ? "Yes, cancel & pay the fee" : "Yes, cancel";
+        yes.addEventListener("click", async () => {
+          yes.disabled = true;
+          try {
+            await api.cancelBooking(r.id);
+            li.classList.add("booking--cancelled");
+            const what = li.querySelector(".booking-what");
+            if (what) what.textContent += " · cancelled";
+            actions.remove();
+          } catch (err) {
+            q.textContent = formatErr(err);
+            yes.disabled = false;
+          }
+        });
+        const no = document.createElement("button");
+        no.type = "button";
+        no.className = "booking-act";
+        no.textContent = "Keep it";
+        no.addEventListener("click", () => strip.remove());
+        strip.append(q, yes, no);
+        actions.appendChild(strip);
+      });
+      actions.append(change, cancel);
+      li.appendChild(actions);
+    }
+
     // These records are device-local, so an office-side cancellation never
     // reached them — ask the backend for each booking's real status and mark
-    // the ones that moved on. Best effort: signed out or offline leaves the
-    // list as it was.
+    // the ones that moved on. Scheduled future one-time cleans get their
+    // Change / Cancel actions once the backend confirms them. Best effort:
+    // signed out or offline leaves the list read-only.
     records.slice(0, 12).forEach(async (r, i) => {
       try {
         const s = await api.bookingStatus(r.id);
+        const li = list.children[i];
+        if (!li) return;
         if (s && s.status && s.status !== "scheduled") {
-          const li = list.children[i];
-          if (!li) return;
           li.classList.add(`booking--${s.status}`);
           const what = li.querySelector(".booking-what");
           if (what) what.textContent += ` · ${s.status}`;
+        } else if (s && s.status === "scheduled" && !r.recurring
+          && new Date(`${r.date}T23:59:59`) > new Date()) {
+          addActions(li, r);
         }
       } catch { /* noop */ }
     });

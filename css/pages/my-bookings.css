@@ -65,3 +65,43 @@ body[data-page="my-bookings"] .booking--cancelled .booking-when {
   text-decoration: line-through;
   text-decoration-thickness: 1.5px;
 }
+
+/* Change / Cancel on a future one-time clean */
+body[data-page="my-bookings"] .booking-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .6rem;
+  margin-top: .35rem;
+}
+
+body[data-page="my-bookings"] .booking-act {
+  font: inherit;
+  font-size: clamp(.68rem, .9vw, .8rem);
+  font-weight: 600;
+  color: #fff;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: .25em;
+  opacity: .85;
+}
+
+body[data-page="my-bookings"] .booking-act--cancel {
+  color: var(--pink-soft);
+}
+
+body[data-page="my-bookings"] .booking-act:disabled {
+  opacity: .4;
+  cursor: default;
+}
+
+body[data-page="my-bookings"] .booking-confirm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .6rem;
+  font-size: clamp(.68rem, .9vw, .8rem);
+}

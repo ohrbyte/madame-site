@@ -118,6 +118,10 @@
     book: (input) => call("/public/bookings", { method: "POST", body: input, auth: true }),
     bookRecurring: (input) => call("/public/bookings/recurring", { method: "POST", body: input, auth: true }),
     bookingStatus: (id) => call(`/public/bookings/${encodeURIComponent(id)}`, { auth: true }),
+    modifyPreview: (id, input) => call(`/public/bookings/${encodeURIComponent(id)}/preview`, { method: "POST", body: input, auth: true }),
+    modifyBooking: (id, input) => call(`/public/bookings/${encodeURIComponent(id)}/modify`, { method: "PUT", body: input, auth: true }),
+    cancelPreview: (id) => call(`/public/bookings/${encodeURIComponent(id)}/cancel-preview`, { method: "POST", auth: true }),
+    cancelBooking: (id) => call(`/public/bookings/${encodeURIComponent(id)}/cancel`, { method: "PUT", body: {}, auth: true }),
     confirmPayment: (bookingId) => call("/public/bookings/confirm-payment", { method: "POST", body: { booking_id: bookingId }, auth: true }),
 
     // Gift cards (public, unauthenticated purchase)
