@@ -722,6 +722,7 @@
     let selectedPm = "";      // a saved payment_method_id, or "new"
     let methods = [];
     let estimateOk = false;
+    let coveredByCredit = false;   // one-time, fully paid by gift balance
 
     function reviewRow(dt, dd, cls) {
       const dtEl = document.createElement("dt");
@@ -740,7 +741,27 @@
       reviewRow("Where", formatAddress(state.address) || "Your saved address");
       reviewRow("What", `Home clean · ${est.hours || state.hours} hours (${money(est.rate_per_hour)}/hr)`);
       if (est.taxi_fee > 0) reviewRow("Travel fee", money(est.taxi_fee));
-      reviewRow(freq > 0 ? "Total per visit" : "Total", money(est.total_amount), "review-total");
+      // Gift credit spends automatically on one-time cleans (recurring visits
+      // bill the card in full), so the bold number is what the card REALLY
+      // pays — a gifted customer shouldn't brace for a charge that isn't coming.
+      if (freq === 0 && est.credit_applied > 0) {
+        reviewRow("Total", money(est.total_amount));
+        reviewRow("Gift credit", `−${money(est.credit_applied)}`);
+        reviewRow("Your card pays", money(est.amount_due), "review-total");
+      } else {
+        reviewRow(freq > 0 ? "Total per visit" : "Total", money(est.total_amount), "review-total");
+      }
+      coveredByCredit = freq === 0 && est.credit_applied > 0 && est.amount_due === 0;
+      if (coveredByCredit) {
+        const payTitle = $(".pay-title", panel);
+        if (payTitle) payTitle.hidden = true;
+        payList.hidden = true;
+        stripeBox.hidden = true;
+        const covered = document.createElement("p");
+        covered.className = "paynote";
+        covered.textContent = "No card needed — your gift credit covers this clean.";
+        payList.before(covered);
+      }
       flow.patch({ estimate: est });
       estimateOk = true;
     }
@@ -833,7 +854,9 @@
       await busy(confirmBtn, "Booking…", async () => {
         try {
           note(status, "");
-          const pmId = await ensurePaymentMethod();
+          // Fully-credited one-time cleans need no card at all — the backend
+          // charges nothing. Everything else (incl. every series) collects one.
+          const pmId = coveredByCredit ? undefined : await ensurePaymentMethod();
           const notes = (notesEl && notesEl.value.trim()) || undefined;
           const language = (languageEl && languageEl.value) || "English";
           let record;
