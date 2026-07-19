@@ -1249,6 +1249,11 @@
       rows.forEach((r) => list.appendChild(rowFor(r)));
     }
 
+    // First paint / signed-out fallback shows only rows that can still be
+    // "Upcoming" — past-dated device records were rendering under that
+    // heading until (or unless) the reconcile hid them.
+    const localTodayKey = new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York" }).format(new Date());
+    records = records.filter((r) => r.date >= localTodayKey);
     renderList(records, "No bookings on this device yet — your next clean will show up here.");
 
     /* A future one-time clean can be changed or cancelled right here. The
