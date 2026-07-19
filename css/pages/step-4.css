@@ -72,6 +72,13 @@ body[data-page="step-4"] .panel {
   flex-direction: column;
   max-height: 100%;
   min-height: 0;
+  /* Last resort (step-2's pattern): when the FIXED content alone — freq +
+     past-cleaner rows + hours — outgrows the screen, the times list is
+     already at its minimum, so without this the tail of the grid pours
+     straight past the card onto the page. The panel scrolls instead. */
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(237, 227, 198, .55) transparent;
 }
 
 body[data-page="step-4"] .timegrid {
