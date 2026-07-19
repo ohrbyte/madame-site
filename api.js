@@ -65,7 +65,10 @@
     if (!response.ok) {
       const message = (data && typeof data === "object" && (data.message || data.title)) || response.statusText;
       const code = (data && typeof data === "object" && data.code) || `HTTP_${response.status}`;
-      if (response.status === 401) setToken(null);
+      // Some endpoints reject a bad/expired token as 400 InvalidToken rather
+      // than 401 — either way the stored session is dead weight: drop it so
+      // pages see "signed out" instead of retrying a corpse.
+      if (response.status === 401 || code === "InvalidToken") setToken(null);
       throw new ApiError(response.status, message, { code, body: data });
     }
     return data;

@@ -457,7 +457,14 @@
         || saved.find((a) => a.is_default) || saved[0] || null;
       if (picked) { fillParts(picked); syncMap(true); }
       renderList();
-    }).catch(() => { /* older backend or expired token — the manual fields stand */ });
+    }).catch((err) => {
+      // A dead session here used to fall back silently to the bare manual
+      // form — which reads as "my addresses are gone". A 401 means the token
+      // died server-side (api.js just cleared it): go sign in; that flow
+      // returns here with the account loaded. Anything else (offline, older
+      // backend) keeps the manual fields as the graceful floor.
+      if (err && (err.status === 401 || err.code === "InvalidToken")) return goto("sign-in");
+    });
 
     parts.forEach((el) => el && el.addEventListener("input", () => {
       if (picked) { picked = null; renderList(); }
