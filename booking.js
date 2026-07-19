@@ -150,7 +150,9 @@
 
   /* A magic-link click lands back with ?token=… (on whichever page the email
      pointed at). Verify it, keep the JWT, scrub the URL. Runs on every page.
-     Returns "ok" (signed in), "failed" (link dead — say so), or false. */
+     Returns "ok" (signed in), "failed" (link dead — say so), "no-account"
+     (link valid but the email matches no client), or false. */
+  let magicLinkNoAccount = false;
   async function handleMagicLinkReturn() {
     const params = new URLSearchParams(location.search);
     const token = params.get("token");
@@ -164,6 +166,18 @@
     params.delete("token");
     const qs = params.toString();
     history.replaceState(null, "", location.pathname + (qs ? `?${qs}` : "") + location.hash);
+    // A verified link whose email matches no client mints a session that can
+    // reach nothing (every account call 401s). Riding it looks signed-in
+    // while showing zero bookings — the M Gluck trap. Drop it and steer to
+    // phone sign-in instead.
+    if (!failed) {
+      const c = api.claims();
+      if (c && c.type === "client" && !c.client_id) {
+        magicLinkNoAccount = true;
+        api.setToken(null);
+        return "no-account";
+      }
+    }
     // "ok" only when THIS link signed us in — a failed verify with an old
     // token still stored must report the failure, not ride the corpse.
     return failed ? "failed" : (api.getToken() ? "ok" : false);
@@ -313,6 +327,10 @@
     handleMagicLinkReturn().then((result) => {
       if (result === "failed") {
         note(status, "That sign-in link is invalid or has already been used — request a new one below.", true);
+        return;
+      }
+      if (result === "no-account") {
+        note(status, "That email isn't linked to any account yet — sign in with the phone number you used when booking.", true);
         return;
       }
       if (result === "ok" || hasLiveSession()) afterAuth();
@@ -1198,10 +1216,26 @@
     // browser, so a public computer keeps both for whoever sits down next.
     // One quiet link wipes them — two-press, because the device list is the
     // only copy (there's no server list to restore it from).
+    // Masked session identity: enough for a household to tell WHOSE account
+    // this device is in ("that's my number" vs "that's the landline"), never
+    // enough to be worth reading off a public computer's screen.
+    function maskedIdentity() {
+      const c = api.getToken() && api.claims();
+      if (!c) return null;
+      if (c.phone && /\d{4}$/.test(c.phone)) return `•••-${c.phone.slice(-4)}`;
+      if (c.email && c.email.includes("@")) {
+        const [u, d] = c.email.split("@");
+        return `${u.slice(0, 1)}•••@${d}`;
+      }
+      return null;
+    }
+
     function addSignout() {
       if (!api.getToken() && !records.length) return;
       const wrap = document.createElement("p");
       wrap.className = "booking-signout";
+      const who = maskedIdentity();
+      if (who) wrap.append(`Signed in as ${who} — not you? `);
       const link = document.createElement("button");
       link.type = "button";
       link.className = "signout-link";
@@ -1368,9 +1402,11 @@
       btn.className = "booking-act";
       btn.textContent = "Sign in";
       btn.addEventListener("click", () => goto("sign-in?next=my-bookings"));
-      p.append(records.length
-        ? "Sign back in to change or cancel a clean. "
-        : "Have cleans booked? Sign in to see them. ", btn);
+      p.append(magicLinkNoAccount
+        ? "That email isn't linked to any account yet — sign in with the phone number you used when booking. "
+        : records.length
+          ? "Sign back in to change or cancel a clean. "
+          : "Have cleans booked? Sign in to see them. ", btn);
       list.before(p);
     }
 
