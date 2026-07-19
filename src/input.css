@@ -1133,6 +1133,22 @@ a:focus-visible>.inkline--rest::after {
    pick one of many. So they share one control here, and each page only
    arranges them (see .cal / .timegrid / .amounts in css/pages/*.css).
    ========================================================= */
+/* Taps must never arm the phone's double-tap zoom: two quick presses on a
+   pick-cell (cleaner, time, day) were zooming the page. `manipulation`
+   keeps panning and pinch-zoom but drops double-tap-to-zoom, and taps
+   register without the 300ms disambiguation wait. Applied to every
+   interactive primitive. */
+.choice,
+.btn,
+.booking-act,
+.authsubmit,
+.ulink,
+.eyebrow,
+.signout-link,
+.hours-step {
+  touch-action: manipulation;
+}
+
 .choice {
   font: inherit;
   font-size: clamp(.72rem, 1vw, .88rem);
