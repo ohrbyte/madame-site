@@ -86,3 +86,24 @@ body[data-page="step-5"] .creditpick {
   gap: .45rem;
   margin: 0 0 .9rem;
 }
+
+/* ---- the panel must FIT the screen (the step-2/step-4 pattern) ---------
+   Review rows + the gift-credit choice + language + notes + a stack of
+   saved cards outgrew many viewports, and this fixed column cannot scroll —
+   the Confirm button simply fell off the page. The panel caps itself to the
+   column's height and scrolls INTERNALLY; its children keep their natural
+   height (flex:none) so nothing squashes. */
+body[data-page="step-5"] .panel {
+  display: flex;
+  flex-direction: column;
+  max-height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(237, 227, 198, .55) transparent;
+  overscroll-behavior: contain;
+}
+
+body[data-page="step-5"] .panel > * {
+  flex: none;
+}
