@@ -892,26 +892,62 @@
       review.append(dtEl, ddEl);
     }
 
+    // The credit choice — two pick-cells under the summary. Default: spend
+    // credit first (what nearly everyone wants); the alternative keeps the
+    // balance untouched and bills the card in full.
+    function renderCreditChoice() {
+      let box = $(".creditpick", panel);
+      if (!box) {
+        const line = document.createElement("p");
+        line.className = "creditpick-line";
+        line.textContent = "Your gift credit:";
+        box = document.createElement("div");
+        box.className = "creditpick";
+        box.setAttribute("role", "group");
+        box.setAttribute("aria-label", "Use gift credit");
+        review.after(line, box);
+      }
+      box.innerHTML = "";
+      [{ on: true, label: freq > 0 ? "Use it toward visits" : "Use it now" },
+       { on: false, label: "Save it for later" }].forEach((c) => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "choice";
+        b.textContent = c.label;
+        if (useCredit === c.on) { b.classList.add("is-on"); b.setAttribute("aria-pressed", "true"); }
+        b.addEventListener("click", () => {
+          if (useCredit === c.on) return;
+          useCredit = c.on;
+          loadEstimate().catch((err) => note(status, formatErr(err), true));
+        });
+        box.appendChild(b);
+      });
+    }
+
     async function loadEstimate() {
-      const est = await api.estimate({ date: state.date, start_time: state.slot.start_time, hours: state.hours, address_id: state.address_id, preferred_cleaner_id: state.preferred_cleaner_id });
+      const est = await api.estimate({ date: state.date, start_time: state.slot.start_time, hours: state.hours, address_id: state.address_id, preferred_cleaner_id: state.preferred_cleaner_id, use_credit: useCredit });
       review.innerHTML = "";
+      // Remember the credit available even after toggling it off (the estimate
+      // reports 0 then) so the choice row stays visible.
+      if (est.credit_applied > 0) creditAvailable = est.credit_applied;
       reviewRow("When", `${designDate(state.date)}, ${state.slot.start_formatted || state.slot.start_time}`);
       if (freq > 0) reviewRow("Repeats", freq === 1 ? `Every ${weekdayName(state.date)}` : `Every ${freq} weeks on ${weekdayName(state.date)}s`);
       if (state.preferred_cleaner_name) reviewRow("Your lady", state.preferred_cleaner_name);
       reviewRow("Where", formatAddress(state.address) || "Your saved address");
       reviewRow("What", `Home clean · ${est.hours || state.hours} hours (${money(est.rate_per_hour)}/hr)`);
       if (est.taxi_fee > 0) reviewRow("Travel fee", money(est.taxi_fee));
-      // Gift credit spends automatically on one-time cleans (recurring visits
-      // bill the card in full), so the bold number is what the card REALLY
-      // pays — a gifted customer shouldn't brace for a charge that isn't coming.
-      if (freq === 0 && est.credit_applied > 0) {
+      // Gift credit spends before the card BY DEFAULT — one-time cleans at
+      // create, recurring visits at each charge — unless the customer flips
+      // the choice below. The bold number is what the card REALLY pays.
+      if (est.credit_applied > 0) {
         reviewRow("Total", money(est.total_amount));
-        reviewRow("Gift credit", `−${money(est.credit_applied)}`);
+        reviewRow("Gift credit", `−${money(est.credit_applied)}${freq > 0 ? " per visit while it lasts" : ""}`);
         reviewRow("Your card pays", money(est.amount_due), "review-total");
       } else {
         reviewRow(freq > 0 ? "Total per visit" : "Total", money(est.total_amount), "review-total");
       }
-      coveredByCredit = freq === 0 && est.credit_applied > 0 && est.amount_due === 0;
+      if (creditAvailable > 0) renderCreditChoice();
+      coveredByCredit = freq === 0 && useCredit && est.credit_applied > 0 && est.amount_due === 0;
       if (coveredByCredit) {
         const payTitle = $(".pay-title", panel);
         if (payTitle) payTitle.hidden = true;
@@ -1044,6 +1080,7 @@
               preferred_cleaner_id: state.preferred_cleaner_id,
               accept_substitute: preferredBusy || undefined,
               allow_overlap: overlapOk || undefined,
+              use_credit: useCredit,
             });
             record = {
               id: r.first_booking_id || r.id,
@@ -1067,6 +1104,7 @@
               preferred_cleaner_id: state.preferred_cleaner_id,
               accept_substitute: preferredBusy || undefined,
               allow_overlap: overlapOk || undefined,
+              use_credit: useCredit,
             });
             let final = result;
             if (result && result.requires_action) {
@@ -1111,6 +1149,8 @@
     }
 
     let overlapOk = false;
+    let useCredit = true;
+    let creditAvailable = 0;
     confirmBtn.addEventListener("click", (e) => { e.preventDefault(); confirmBooking(); });
 
     loadEstimate().catch((err) => note(status, formatErr(err), true));

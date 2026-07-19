@@ -72,3 +72,17 @@ body[data-page="step-5"] .paynote {
   font-size: clamp(.68rem, .95vw, .82rem);
   opacity: .75;
 }
+
+/* the gift-credit choice — same pick-one cells as everything else */
+body[data-page="step-5"] .creditpick-line {
+  margin: .2rem 0 .35rem;
+  font-size: clamp(.72rem, 1.15vw, .92rem);
+  opacity: .9;
+}
+
+body[data-page="step-5"] .creditpick {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .45rem;
+  margin: 0 0 .9rem;
+}
