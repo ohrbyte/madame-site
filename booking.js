@@ -1148,16 +1148,7 @@
       list.parentElement.appendChild(wrap);
     }
 
-    list.innerHTML = "";
-    if (!records.length) {
-      const li = document.createElement("li");
-      li.className = "booking booking--empty";
-      li.textContent = "No bookings on this device yet — your next clean will show up here.";
-      list.appendChild(li);
-      addSignout();
-      return;
-    }
-    records.forEach((r) => {
+    function rowFor(r) {
       const li = document.createElement("li");
       li.className = "booking";
       const when = document.createElement("span");
@@ -1167,8 +1158,22 @@
       what.className = "booking-what";
       what.textContent = `Home clean · ${r.hours}h${r.amount ? ` · ${money(r.amount)}` : ""}${r.recurring ? ` · ${freqPhrase(r.recurring)}` : ""}`;
       li.append(when, what);
-      list.appendChild(li);
-    });
+      return li;
+    }
+
+    function renderList(rows, emptyText) {
+      list.innerHTML = "";
+      if (!rows.length) {
+        const li = document.createElement("li");
+        li.className = "booking booking--empty";
+        li.textContent = emptyText;
+        list.appendChild(li);
+        return;
+      }
+      rows.forEach((r) => list.appendChild(rowFor(r)));
+    }
+
+    renderList(records, "No bookings on this device yet — your next clean will show up here.");
 
     /* A future one-time clean can be changed or cancelled right here. The
        backend previews the 24h late fees (cancellation / hour-removal) and
@@ -1248,33 +1253,75 @@
     }
 
     if (!hasLiveSession()) {
-      offerSignin();
+      if (records.length) offerSignin();
+      addSignout();
       return;
     }
 
-    // These records are device-local, so an office-side cancellation never
-    // reached them — ask the backend for each booking's real status and mark
-    // the ones that moved on. Scheduled future one-time cleans get their
-    // Change / Cancel actions once the backend confirms them. Best effort:
-    // offline leaves the list read-only; a 401 means the session died
-    // server-side (and api.js just dropped the token), so offer sign-in.
-    records.slice(0, 12).forEach(async (r, i) => {
-      try {
-        const s = await api.bookingStatus(r.id);
-        const li = list.children[i];
-        if (!li) return;
-        if (s && s.status && s.status !== "scheduled") {
-          li.classList.add(`booking--${s.status}`);
-          const what = li.querySelector(".booking-what");
-          if (what) what.textContent += ` · ${s.status}`;
-        } else if (s && s.status === "scheduled" && !r.recurring
-          && new Date(`${r.date}T23:59:59`) > new Date()) {
-          addActions(li, r);
+    // Fallback for when the account list can't be fetched: the device records
+    // are all we have, so ask the backend for each one's real status and mark
+    // the ones that moved on (an office-side cancellation never reached them).
+    function reconcileDeviceRows() {
+      records.slice(0, 12).forEach(async (r, i) => {
+        try {
+          const s = await api.bookingStatus(r.id);
+          const li = list.children[i];
+          if (!li) return;
+          if (s && s.status && s.status !== "scheduled") {
+            li.classList.add(`booking--${s.status}`);
+            const what = li.querySelector(".booking-what");
+            if (what) what.textContent += ` · ${s.status}`;
+          } else if (s && s.status === "scheduled" && !r.recurring
+            && new Date(`${r.date}T23:59:59`) > new Date()) {
+            addActions(li, r);
+          }
+        } catch (err) {
+          if (err && err.status === 401) offerSignin();
         }
+      });
+    }
+
+    // Signed in, the ACCOUNT is the source of truth: the backend lists every
+    // booking tied to this client — made on any device, through the IVR, or by
+    // the office — with statuses included, so the device records are only the
+    // instant first paint (and the signed-out fallback). Upcoming first, then
+    // the recent past.
+    (async () => {
+      try {
+        const server = await api.listBookings();
+        const now = new Date();
+        const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+        const rows = ((server && server.bookings) || []).map((b) => ({
+          id: b.id,
+          date: b.date,
+          start: b.start_time,
+          hours: b.hours,
+          amount: b.amount,
+          recurring: b.frequency_weeks || 0,
+          status: b.status,
+        }));
+        const upcoming = rows.filter((r) => r.date >= todayKey);
+        // Recent history is context, not the point — cap it so the list
+        // stays a glance, not an archive.
+        const past = rows.filter((r) => r.date < todayKey).reverse().slice(0, 6);
+        const ordered = upcoming.concat(past);
+        renderList(ordered, "No bookings yet — your next clean will show up here.");
+        ordered.forEach((r, i) => {
+          const li = list.children[i];
+          if (!li) return;
+          if (r.status && r.status !== "scheduled") {
+            li.classList.add(`booking--${r.status}`);
+            const what = li.querySelector(".booking-what");
+            if (what) what.textContent += ` · ${r.status}`;
+          } else if (r.status === "scheduled" && !r.recurring && r.date >= todayKey) {
+            addActions(li, r);
+          }
+        });
       } catch (err) {
         if (err && err.status === 401) offerSignin();
+        else reconcileDeviceRows();
       }
-    });
+    })();
 
     addSignout();
   }

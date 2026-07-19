@@ -118,6 +118,7 @@
     book: (input) => call("/public/bookings", { method: "POST", body: input, auth: true }),
     bookRecurring: (input) => call("/public/bookings/recurring", { method: "POST", body: input, auth: true }),
     bookingStatus: (id) => call(`/public/bookings/${encodeURIComponent(id)}`, { auth: true }),
+    listBookings: () => call("/public/bookings", { auth: true }),
     modifyPreview: (id, input) => call(`/public/bookings/${encodeURIComponent(id)}/preview`, { method: "POST", body: input, auth: true }),
     modifyBooking: (id, input) => call(`/public/bookings/${encodeURIComponent(id)}/modify`, { method: "PUT", body: input, auth: true }),
     cancelPreview: (id) => call(`/public/bookings/${encodeURIComponent(id)}/cancel-preview`, { method: "POST", auth: true }),

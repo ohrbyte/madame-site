@@ -145,3 +145,22 @@ body[data-page="my-bookings"] .signout-link:hover,
 body[data-page="my-bookings"] .signout-link:focus-visible {
   opacity: 1;
 }
+
+/* ---- the account list must FIT the screen (step-4's pattern) -----------
+   Signed in, the list is the whole account history — it can outgrow a
+   short viewport. The panel becomes a shrinkable flex column and the LIST
+   scrolls internally; heading, button and sign-out always stay on screen. */
+body[data-page="my-bookings"] .panel {
+  display: flex;
+  flex-direction: column;
+  max-height: 100%;
+  min-height: 0;
+}
+
+body[data-page="my-bookings"] .bookings {
+  flex: 0 1 auto;
+  min-height: 8rem;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(237, 227, 198, .55) transparent;
+}
