@@ -80,6 +80,17 @@
     return new Intl.DateTimeFormat("en-GB", { weekday: "long" }).format(new Date(Date.UTC(y, m - 1, d, 12)));
   }
 
+  // Business-day "today" as yyyy-mm-dd, built from NAMED date parts. Never
+  // derive this from a locale's format() string: on browsers missing the
+  // requested locale data (Samsung Internet, Gmail's in-app WebView), the
+  // en-CA one-liner fell back to M/D/YYYY, every `date >= todayKey` compare
+  // went false, and the Upcoming list rendered empty on those phones.
+  function easternTodayKey() {
+    const parts = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date());
+    const m = Object.fromEntries(parts.filter((p) => p.type !== "literal").map((p) => [p.type, p.value]));
+    return `${m.year}-${m.month}-${m.day}`;
+  }
+
   // Cadence in prose: 1 → "every week", 2 → "every 2 weeks".
   function freqPhrase(weeks) {
     return weeks === 1 ? "every week" : `every ${weeks} weeks`;
@@ -1252,7 +1263,7 @@
     // First paint / signed-out fallback shows only rows that can still be
     // "Upcoming" — past-dated device records were rendering under that
     // heading until (or unless) the reconcile hid them.
-    const localTodayKey = new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York" }).format(new Date());
+    const localTodayKey = easternTodayKey();
     records = records.filter((r) => r.date >= localTodayKey);
     renderList(records, "No bookings on this device yet — your next clean will show up here.");
 
@@ -1400,8 +1411,8 @@
         const server = await api.listBookings();
         // "Today" is the business's day (Eastern), not the browser's — a
         // customer checking from another timezone must see the same cutoff
-        // the fees and the backend use. en-CA formats as yyyy-mm-dd.
-        const todayKey = new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York" }).format(new Date());
+        // the fees and the backend use.
+        const todayKey = easternTodayKey();
         // The panel says Upcoming and means it: only scheduled, today-or-
         // future cleans. Cancelled and completed history stays off the list
         // (the office dashboard is the archive).
