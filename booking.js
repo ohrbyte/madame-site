@@ -754,6 +754,7 @@
         const st = flow.read();
         if (!st.slot) return note(status, "Pick a start time first.", true);
         const body = { date: st.date, start_time: st.slot.start_time, hours };
+        if (editing.recurring) body.recurring_scope = "selected_only";
         if (!previewed) {
           await busy(continueBtn, "Checking…", async () => {
             try {
@@ -1189,7 +1190,7 @@
       change.textContent = "Change";
       change.addEventListener("click", () => {
         flow.clear();
-        flow.patch({ edit: { id: r.id, hours: r.hours }, hours: r.hours });
+        flow.patch({ edit: { id: r.id, hours: r.hours, recurring: !!r.recurring }, hours: r.hours });
         goto("day");
       });
       const cancel = document.createElement("button");
@@ -1206,7 +1207,7 @@
         const strip = document.createElement("span");
         strip.className = "booking-confirm";
         const q = document.createElement("span");
-        q.textContent = `Cancel this clean?${feeLine}`;
+        q.textContent = `${r.recurring ? "Cancel this visit? The rest of your series stays." : "Cancel this clean?"}${feeLine}`;
         const yes = document.createElement("button");
         yes.type = "button";
         yes.className = "booking-act booking-act--cancel";
@@ -1304,10 +1305,12 @@
           status: b.status,
         })).filter((r) => r.status === "scheduled" && r.date >= todayKey);
         renderList(ordered, "No upcoming cleans — book your next one below.");
+        // Every row is ONE visit, so per-row actions are unambiguous: a
+        // recurring row's Change/Cancel touches that visit only (the backend
+        // scopes synthetic ids to selected_only) — the series itself stays.
         ordered.forEach((r, i) => {
           const li = list.children[i];
-          if (!li) return;
-          if (!r.recurring) addActions(li, r);
+          if (li) addActions(li, r);
         });
       } catch (err) {
         if (err && err.status === 401) offerSignin();
