@@ -234,3 +234,11 @@ body[data-page="step-2"] .addr {
     width: 100%;
   }
 }
+
+
+/* touch: same scroll containment as the time page — a drag that starts in
+   the address list or panel never rubber-bands the page behind it */
+body[data-page="step-2"] .addrlist,
+body[data-page="step-2"] form.panel {
+  overscroll-behavior: contain;
+}

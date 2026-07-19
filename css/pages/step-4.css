@@ -102,3 +102,14 @@ body[data-page="step-4"] .ladypick {
   gap: .45rem;
   margin: 0 0 1.1rem;
 }
+
+
+/* ---- touch: a drag that starts in the panel STAYS in the panel ----------
+   When the times list (or the panel's own last-resort scroll) hit their
+   bounds mid-gesture, the browser chained the scroll to the page and the
+   BACKGROUND rubber-banded instead — "pulling the back screen". Contain
+   stops the chain: a finger on this section only ever scrolls this section. */
+body[data-page="step-4"] .timegrid,
+body[data-page="step-4"] .panel {
+  overscroll-behavior: contain;
+}
