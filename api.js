@@ -101,7 +101,9 @@
     // round-trip too. The backend validates the host.
     sendMagicLink: (email) => call("/public/auth/email/send", {
       method: "POST",
-      body: { email, return_url: `${location.origin}${location.pathname}` },
+      // Keep the query string — ?next=my-bookings must survive the email
+      // round-trip or the re-auth lands in the booking flow instead.
+      body: { email, return_url: `${location.origin}${location.pathname}${location.search}` },
     }),
     verifyMagicLink: (token) => call("/public/auth/email/verify", { query: { token } }),
 
@@ -125,7 +127,7 @@
     modifyPreview: (id, input) => call(`/public/bookings/${encodeURIComponent(id)}/preview`, { method: "POST", body: input, auth: true }),
     modifyBooking: (id, input) => call(`/public/bookings/${encodeURIComponent(id)}/modify`, { method: "PUT", body: input, auth: true }),
     cancelPreview: (id) => call(`/public/bookings/${encodeURIComponent(id)}/cancel-preview`, { method: "POST", auth: true }),
-    cancelBooking: (id) => call(`/public/bookings/${encodeURIComponent(id)}/cancel`, { method: "PUT", body: {}, auth: true }),
+    cancelBooking: (id, scope) => call(`/public/bookings/${encodeURIComponent(id)}/cancel`, { method: "PUT", body: scope ? { recurring_scope: scope } : {}, auth: true }),
     confirmPayment: (bookingId) => call("/public/bookings/confirm-payment", { method: "POST", body: { booking_id: bookingId }, auth: true }),
 
     // Gift cards (public, unauthenticated purchase)

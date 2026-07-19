@@ -153,7 +153,9 @@
     params.delete("token");
     const qs = params.toString();
     history.replaceState(null, "", location.pathname + (qs ? `?${qs}` : "") + location.hash);
-    return api.getToken() ? "ok" : (failed ? "failed" : false);
+    // "ok" only when THIS link signed us in — a failed verify with an old
+    // token still stored must report the failure, not ride the corpse.
+    return failed ? "failed" : (api.getToken() ? "ok" : false);
   }
 
   function isNewClient() {
@@ -191,6 +193,10 @@
   function initStep1() {
     const form = $("form.panel");
     if (!form) return;
+    // Entering here means a FRESH flow ("Click to hire" / "Book another
+    // clean") — an abandoned Change's edit state must not leak into it, or
+    // the new booking silently MOVES the old one.
+    if (flow.read().edit) flow.patch({ edit: undefined });
     const lede = $(".panel-lede", form);
     const authnote = $(".authnote", form);
     const authalt = $(".authalt", form);
@@ -367,6 +373,10 @@
 
   function initStep2() {
     if (!requireAuth()) return;
+    // Same stale-edit guard as step-1: the address page is never part of a
+    // Change (edits go day → time → review), so arriving here means a fresh
+    // booking flow.
+    if (flow.read().edit) flow.patch({ edit: undefined });
     const field = $("#addr");            // hidden: the composed one-line form (map + sync contract)
     const form = $("form.panel");
     const btn = $(".content .btn");
@@ -761,6 +771,12 @@
         const st = flow.read();
         if (!st.slot) return note(status, "Pick a start time first.", true);
         const body = { date: st.date, start_time: st.slot.start_time, hours };
+        // A booking made by phone can be a half-hour length the stepper can't
+        // express — keep its EXACT minutes unless the customer deliberately
+        // changed the hours (then whole hours are what they chose).
+        if (editing.minutes && editing.minutes !== editing.hours * 60 && hours === editing.hours) {
+          body.duration_minutes = editing.minutes;
+        }
         if (editing.recurring) body.recurring_scope = "selected_only";
         if (!previewed) {
           await busy(continueBtn, "Checking…", async () => {
@@ -1142,6 +1158,7 @@
         yes.addEventListener("click", () => {
           api.setToken(null);
           localStorage.removeItem(RECORDS_KEY);
+          flow.clear();
           window.location.reload();
         });
         const no = document.createElement("button");
@@ -1164,7 +1181,8 @@
       when.innerHTML = `<strong>${shortDate(r.date)}</strong> · ${r.start}`;
       const what = document.createElement("span");
       what.className = "booking-what";
-      what.textContent = `Home clean · ${r.hours}h${r.amount ? ` · ${money(r.amount)}` : ""}${r.recurring ? ` · ${freqPhrase(r.recurring)}` : ""}`;
+      const lenH = r.minutes ? (r.minutes % 60 ? (r.minutes / 60).toFixed(1).replace(/\.0$/, "") : r.minutes / 60) : r.hours;
+      what.textContent = `Home clean · ${lenH}h${r.amount ? ` · ${money(r.amount)}` : ""}${r.recurring ? ` · ${freqPhrase(r.recurring)}` : ""}`;
       li.append(when, what);
       return li;
     }
@@ -1197,7 +1215,7 @@
       change.textContent = "Change";
       change.addEventListener("click", () => {
         flow.clear();
-        flow.patch({ edit: { id: r.id, hours: r.hours, recurring: !!r.recurring }, hours: r.hours });
+        flow.patch({ edit: { id: r.id, hours: r.hours, minutes: r.minutes || r.hours * 60, recurring: !!r.recurring }, hours: r.hours });
         goto("day");
       });
       const cancel = document.createElement("button");
@@ -1214,31 +1232,59 @@
         const strip = document.createElement("span");
         strip.className = "booking-confirm";
         const q = document.createElement("span");
-        q.textContent = `${r.recurring ? "Cancel this visit? The rest of your series stays." : "Cancel this clean?"}${feeLine}`;
-        const yes = document.createElement("button");
-        yes.type = "button";
-        yes.className = "booking-act booking-act--cancel";
-        yes.textContent = feeLine ? "Yes, cancel & pay the fee" : "Yes, cancel";
-        yes.addEventListener("click", async () => {
-          yes.disabled = true;
-          try {
-            await api.cancelBooking(r.id);
-            li.classList.add("booking--cancelled");
-            const what = li.querySelector(".booking-what");
-            if (what) what.textContent += " · cancelled";
-            actions.remove();
-          } catch (err) {
-            q.textContent = formatErr(err);
-            yes.disabled = false;
-          }
-        });
+        q.textContent = r.recurring
+          ? `Cancel just this visit, or the whole series from here?${feeLine}`
+          : `Cancel this clean?${feeLine}`;
+
+        // One cancel per press: the chosen scope goes to the backend, which
+        // owns the semantics (selected_only = exception on that date;
+        // selected_and_future = the series ends at that visit).
+        const cancelButtons = [];
+        function cancelBtn(label, scope) {
+          const b = document.createElement("button");
+          b.type = "button";
+          b.className = "booking-act booking-act--cancel";
+          b.textContent = label;
+          b.addEventListener("click", async () => {
+            cancelButtons.forEach((x) => { x.disabled = true; });
+            try {
+              await api.cancelBooking(r.id, scope);
+              if (scope === "selected_and_future") {
+                // Sibling visits of this series must vanish too — refetch.
+                window.location.reload();
+                return;
+              }
+              li.classList.add("booking--cancelled");
+              const what = li.querySelector(".booking-what");
+              if (what) what.textContent += " · cancelled";
+              actions.remove();
+            } catch (err) {
+              q.textContent = formatErr(err);
+              cancelButtons.forEach((x) => { x.disabled = false; });
+            }
+          });
+          cancelButtons.push(b);
+          return b;
+        }
+
         const no = document.createElement("button");
         no.type = "button";
         no.className = "booking-act";
         no.textContent = "Keep it";
         no.addEventListener("click", () => strip.remove());
-        strip.append(q, yes, no);
+
+        if (r.recurring) {
+          strip.append(q,
+            cancelBtn("Just this visit", undefined),
+            cancelBtn("This + all future visits", "selected_and_future"),
+            no);
+        } else {
+          strip.append(q,
+            cancelBtn(feeLine ? "Yes, cancel & pay the fee" : "Yes, cancel", undefined),
+            no);
+        }
         actions.appendChild(strip);
+        strip.scrollIntoView({ block: "nearest" });
       });
       actions.append(change, cancel);
       li.appendChild(actions);
@@ -1297,8 +1343,10 @@
     (async () => {
       try {
         const server = await api.listBookings();
-        const now = new Date();
-        const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+        // "Today" is the business's day (Eastern), not the browser's — a
+        // customer checking from another timezone must see the same cutoff
+        // the fees and the backend use. en-CA formats as yyyy-mm-dd.
+        const todayKey = new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York" }).format(new Date());
         // The panel says Upcoming and means it: only scheduled, today-or-
         // future cleans. Cancelled and completed history stays off the list
         // (the office dashboard is the archive).
@@ -1307,6 +1355,7 @@
           date: b.date,
           start: b.start_time,
           hours: b.hours,
+          minutes: b.duration_minutes || (b.hours * 60),
           amount: b.amount,
           recurring: b.frequency_weeks || 0,
           status: b.status,

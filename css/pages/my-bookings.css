@@ -164,3 +164,44 @@ body[data-page="my-bookings"] .bookings {
   scrollbar-width: thin;
   scrollbar-color: rgba(237, 227, 198, .55) transparent;
 }
+
+/* ---- short viewports (landscape phones): the fixed column must scroll ----
+   The flex fit keeps the panel on screen down to ~short-laptop heights, but
+   below that the button and sign-out row fell off a page that CANNOT scroll
+   (the column is position:fixed). Same escape hatch as the About page:
+   the column itself scrolls, safe-centred where supported. */
+@media (max-height: 480px) {
+  body[data-page="my-bookings"] .content--fill {
+    justify-content: center;
+    justify-content: safe center;
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+
+  body[data-page="my-bookings"] .panel {
+    max-height: none;
+  }
+}
+
+/* ---- phones: the actions must be tappable ----
+   The shared clamp bottomed out near 11px text in a 16px-tall hit area —
+   fine for a mouse, hopeless for thumbs. Mirrors the 760px touch-target
+   pass the rest of the chrome got. */
+@media (max-width: 760px) {
+  body[data-page="my-bookings"] .booking-act {
+    font-size: 14px;
+    min-height: 34px;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  body[data-page="my-bookings"] .booking-confirm {
+    font-size: 13px;
+  }
+}
+
+/* a just-cancelled row: the row dims, but the word "cancelled" is the one
+   part that must stay readable */
+body[data-page="my-bookings"] .booking--cancelled .booking-what {
+  opacity: 1;
+}
