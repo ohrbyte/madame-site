@@ -1043,6 +1043,7 @@
               address_id: state.address_id,
               preferred_cleaner_id: state.preferred_cleaner_id,
               accept_substitute: preferredBusy || undefined,
+              allow_overlap: overlapOk || undefined,
             });
             record = {
               id: r.first_booking_id || r.id,
@@ -1065,6 +1066,7 @@
               address_id: state.address_id,
               preferred_cleaner_id: state.preferred_cleaner_id,
               accept_substitute: preferredBusy || undefined,
+              allow_overlap: overlapOk || undefined,
             });
             let final = result;
             if (result && result.requires_action) {
@@ -1096,11 +1098,19 @@
           flow.patch({ booking: record });
           goto("all-set");
         } catch (err) {
+          // The same-client overlap gate: surface the clash and arm a second
+          // press to book anyway (mirrors the busy-cleaner heads-up).
+          if (err && err.code === "ClientBookingOverlap" && !overlapOk) {
+            overlapOk = true;
+            note(status, `${err.message} Press again to book it anyway.`, true);
+            return;
+          }
           note(status, formatErr(err), true);
         }
       });
     }
 
+    let overlapOk = false;
     confirmBtn.addEventListener("click", (e) => { e.preventDefault(); confirmBooking(); });
 
     loadEstimate().catch((err) => note(status, formatErr(err), true));
