@@ -1435,22 +1435,15 @@ body[data-page="about"]>.topbar::before {
      87.3dvh) and step-3 (a sliver from 99.4dvh). step-6's crossing sits
      entirely below the viewport; steps 2/4/5 end inside the frame. */
   /* The corner-bleed continues the SAME hand past the frame's bottom-right, so
-     its box must track whatever the in-frame hand does. index's hand was
-     re-solved (see the wide-mode block above) and dropped ~5cqh; its
-     continuation drops with it. The window sits at top:75%, so cb-top is
-     always main-top minus 75 (here -14.75 - 75 = -89.75). step-1 still uses
-     the stale box, so it keeps the old numbers — split out below. */
-  body[data-page="index"] .cb-hand {
+     its box tracks the in-frame hand. index and step-1 both show the re-solved
+     landing-hand.webp, which dropped ~5cqh; their continuation drops with it.
+     The window sits at top:75%, so cb-top is main-top minus 75
+     (-14.75 - 75 = -89.75), and cb-height matches the solved 165.05. */
+  body[data-page="index"] .cb-hand,
+  body[data-page="step-1"] .cb-hand {
     left: calc(-82.21 * var(--fw));
     top: -89.75dvh;
     height: 165.05dvh;
-    width: auto;
-  }
-
-  body[data-page="step-1"] .cb-hand {
-    left: calc(-82.21 * var(--fw));
-    top: -94.99dvh;
-    height: 165.2dvh;
     width: auto;
   }
 

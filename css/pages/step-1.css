@@ -11,12 +11,18 @@ body[data-page="step-1"] {
      url() is relative to THIS file (css/pages/), not to dist/. */
   --front-span: url("../../assets/weave/landing.webp");
 
-  /* ART — converted from this page's PSD coords (was --hand-l/-t/-w:
-     17.795% / -19.989% / 100%). The canvas aspect is unchanged, so the
-     conversion to the right-anchored dials is exact arithmetic. */
-  --hand-nudge: 5.5cqw;
-  --hand-top: -19.99cqh;
-  --hand-h: 165.2cqh;
+  /* ART — the PSD manifest recorded this box as --hand-l/-t/-w:
+     17.795% / -19.989% / 100%, but the asset (landing-hand.webp) was later
+     re-cropped VERTICALLY, so that top is stale: the ink sat ~5cqh too high.
+     Re-solved by template-matching the asset into the design reference (four
+     independent solvers agreeing to 1.3px; see the landing wide-mode block in
+     src/input.css for the full derivation). left/width were unchanged by the
+     re-crop (17.803 / 99.96 — matching the manifest); only the top moved,
+     -19.99 -> -14.75cqh. Applied at ALL aspects: the hand's canvas position is
+     crop-independent, so standard 16:9 shows the same corrected hand, cropped. */
+  --hand-nudge: 5.54cqw;
+  --hand-top: -14.75cqh;
+  --hand-h: 165.05cqh;
 
   /* no --glow-* dials: this page has no .layer-glow img (see step-1.html) */
 
