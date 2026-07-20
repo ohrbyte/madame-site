@@ -7,11 +7,20 @@
   <title>Madame — What about the time</title>
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>M</text></svg>">
-  <link rel="stylesheet" href="dist/styles.css?v=32">
-  <link rel="stylesheet" href="css/pages/step-4.css?v=32">
+  <link rel="stylesheet" href="dist/styles.css?v=33">
+  <link rel="stylesheet" href="css/pages/step-4.css?v=33">
   <!-- Marks JS as available BEFORE first paint, so the entrance animation
        can hide the copy. Without this the page would render blank if app.js
        ever failed to load. Must stay inline and in <head>. -->
+  <!-- Neulis (typographer.io): real Neulis Sans (bold copy) + Neulis Cursive
+       (the drawn script letters). AFTER the stylesheets on purpose so its
+       @font-face wins over the local placeholders; the family names match what
+       --font-sans / --font-script already reference, so nothing else changes.
+       Poppins still covers the moment before load / if typographer is blocked.
+       The beacon is the vendor's usage ping (part of their embed). -->
+  <link rel="preconnect" href="https://typographer.io/">
+  <link rel="stylesheet" href="https://typographer.io/1/users/02b7d759fbe8d67db08522dd60b7fa571724db3249cfdf2340ad1fee5ef8c97c/9dd83ed47a64af60968c355e57fce691a07632116488f97fde26235f1e27522b/css?token=15142aca44">
+  <script type="module">try{navigator.sendBeacon("https://use.typographer.io/1/users/02b7d759fbe8d67db08522dd60b7fa571724db3249cfdf2340ad1fee5ef8c97c/9dd83ed47a64af60968c355e57fce691a07632116488f97fde26235f1e27522b/css?token=15142aca44")}catch{}</script>
   <script>document.documentElement.classList.add("js")</script>
 </head>
 
@@ -109,9 +118,9 @@
     </div>
   </div>
 
-  <script src="api.js?v=32"></script>
-  <script src="app.js?v=32"></script>
-  <script src="booking.js?v=32"></script>
+  <script src="api.js?v=33"></script>
+  <script src="app.js?v=33"></script>
+  <script src="booking.js?v=33"></script>
 </body>
 
 </html>

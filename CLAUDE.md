@@ -132,9 +132,13 @@ line: quiet info, pink error), `.stripe-box` (cream well for Stripe iframes),
 `aria-busy` for in-flight actions. Pink means "this one" (and errors); cream wells on
 blue; no new colors. Dates render American-style ("Friday, July 17"), built from fixed name tables in booking.js (no Intl locale — a missing-locale format() is what broke the Upcoming date filter once).
 
-Fonts: Neulis Sans/Cursive are Adobe-synced and absent — drop files into fonts/ per
-fonts/README.txt and the site picks them up; until then Poppins stands in, and a few
-page CSS files carry fallback-size corrections marked for deletion once Neulis lands.
+Fonts: Neulis Sans (bold/body) + Neulis Cursive (the drawn `.script` letters) load
+from typographer.io via a `<link>` in every page's `<head>` (added AFTER the
+stylesheets so its `@font-face` wins). `--font-sans` / `--font-script` name those
+families; **Poppins** (self-hosted, OFL) is the fallback if typographer is
+unreachable. The old local `@font-face` pointing at `fonts/Neulis*` were removed —
+they shadowed the hosted fonts. A few page CSS files may still carry Poppins-era
+fallback-size corrections marked for deletion.
 
 ## Legacy / reference
 

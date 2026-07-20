@@ -68,76 +68,13 @@
   src: url("../fonts/Poppins-Bold.ttf") format("truetype");
 }
 
-/* ---------- Neulis Sans ---------- */
-@font-face {
-  font-family: "Neulis Sans";
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-  src: url("../fonts/NeulisSans-Regular.woff2") format("woff2"),
-    url("../fonts/NeulisSans-Regular.woff") format("woff"),
-    url("../fonts/NeulisSans-Regular.otf") format("opentype"),
-    url("../fonts/NeulisSans-Regular.ttf") format("truetype");
-}
-
-@font-face {
-  font-family: "Neulis Sans";
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-  src: url("../fonts/NeulisSans-Medium.woff2") format("woff2"),
-    url("../fonts/NeulisSans-Medium.woff") format("woff"),
-    url("../fonts/NeulisSans-Medium.otf") format("opentype"),
-    url("../fonts/NeulisSans-Medium.ttf") format("truetype");
-}
-
-@font-face {
-  font-family: "Neulis Sans";
-  font-weight: 600;
-  font-style: normal;
-  font-display: swap;
-  src: url("../fonts/NeulisSans-SemiBold.woff2") format("woff2"),
-    url("../fonts/NeulisSans-SemiBold.woff") format("woff"),
-    url("../fonts/NeulisSans-SemiBold.otf") format("opentype"),
-    url("../fonts/NeulisSans-SemiBold.ttf") format("truetype");
-}
-
-@font-face {
-  font-family: "Neulis Sans";
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-  src: url("../fonts/NeulisSans-Bold.woff2") format("woff2"),
-    url("../fonts/NeulisSans-Bold.woff") format("woff"),
-    url("../fonts/NeulisSans-Bold.otf") format("opentype"),
-    url("../fonts/NeulisSans-Bold.ttf") format("truetype");
-}
-
-@font-face {
-  font-family: "Neulis Sans";
-  font-weight: 800;
-  font-style: normal;
-  font-display: swap;
-  src: url("../fonts/NeulisSans-ExtraBold.woff2") format("woff2"),
-    url("../fonts/NeulisSans-ExtraBold.woff") format("woff"),
-    url("../fonts/NeulisSans-ExtraBold.otf") format("opentype"),
-    url("../fonts/NeulisSans-ExtraBold.ttf") format("truetype");
-}
-
-/* ---------- Neulis Cursive (the script accent letters) ---------- */
-@font-face {
-  font-family: "Neulis Cursive";
-  font-weight: 400 700;
-  font-style: normal;
-  font-display: swap;
-  src: url("../fonts/NeulisCursive-Regular.woff2") format("woff2"),
-    url("../fonts/NeulisCursive-Regular.woff") format("woff"),
-    url("../fonts/NeulisCursive-Regular.otf") format("opentype"),
-    url("../fonts/NeulisCursive-Regular.ttf") format("truetype"),
-    url("../fonts/NeulisCursive.woff2") format("woff2"),
-    url("../fonts/NeulisCursive.otf") format("opentype");
-}
-
+/* ---------- Neulis (Sans + Cursive) ----------
+   The real fonts load from typographer.io via a <link> in each page's <head>
+   (added there so its @font-face wins). The old local @font-face blocks pointed
+   at ../fonts/Neulis*.{woff2,otf,ttf} that were never added — kept only as
+   dead shadows that stopped the hosted fonts from resolving, so they're gone.
+   --font-sans / --font-script still name "Neulis Sans" / "Neulis Cursive";
+   Poppins remains the fallback if typographer is unreachable. */
 
 /* ---------- Site + landing styles ---------- */
 /* ===========================================================
