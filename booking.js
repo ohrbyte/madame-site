@@ -951,6 +951,22 @@
 
     api.bookingRules().catch(() => rules).then((r) => {
       if (r && r.min_hours) rules = r;
+      // Cleaner languages are configured in the dashboard, so the picker is
+      // built from what the API reports rather than a list shipped here that
+      // would drift the moment the office added one.
+      if (languageEl && r && Array.isArray(r.languages) && r.languages.length) {
+        const chosen = flow.read().language;
+        languageEl.innerHTML = "";
+        r.languages.forEach((name) => {
+          const opt = document.createElement("option");
+          opt.value = name;
+          opt.textContent = name;
+          languageEl.appendChild(opt);
+        });
+        // Keep the customer's pick if it's still offered, else fall to the first.
+        languageEl.value = r.languages.includes(chosen) ? chosen : r.languages[0];
+        flow.patch({ language: languageEl.value });
+      }
       setHours(hours || rules.min_hours);
     });
   }
@@ -1916,7 +1932,7 @@
   // built as with the served one; if behind, reload once. The sessionStorage
   // guard means a mis-bumped version file costs one reload per wake, never a
   // loop. scripts/bump-version.sh keeps the three markers in step.
-  const SITE_VERSION = "37";
+  const SITE_VERSION = "38";
   let hiddenAt = 0;
   async function healIfStale() {
     try {

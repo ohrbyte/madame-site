@@ -7,8 +7,8 @@
   <title>Madame — What about the time</title>
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>M</text></svg>">
-  <link rel="stylesheet" href="dist/styles.css?v=37">
-  <link rel="stylesheet" href="css/pages/step-4.css?v=37">
+  <link rel="stylesheet" href="dist/styles.css?v=38">
+  <link rel="stylesheet" href="css/pages/step-4.css?v=38">
   <!-- Marks JS as available BEFORE first paint, so the entrance animation
        can hide the copy. Without this the page would render blank if app.js
        ever failed to load. Must stay inline and in <head>. -->
@@ -82,6 +82,12 @@
       <div class="fields">
         <div class="field">
           <label for="booking-language">Your lady speaks</label>
+          <!-- Options come from the office's Settings list (booking.js fills
+               them from /public/bookings/rules), so adding a language in the
+               dashboard offers it here with no site change. The options below
+               are the markup-shipped fallback — same pattern as the time grid
+               and gift amounts — used only before/without JS, or if the API
+               doesn't report a list. JS always replaces them. -->
           <select id="booking-language" name="booking-language">
             <option value="English" selected>English</option>
             <option value="Spanish">Spanish</option>
@@ -118,9 +124,9 @@
     </div>
   </div>
 
-  <script src="api.js?v=37"></script>
-  <script src="app.js?v=37"></script>
-  <script src="booking.js?v=37"></script>
+  <script src="api.js?v=38"></script>
+  <script src="app.js?v=38"></script>
+  <script src="booking.js?v=38"></script>
 </body>
 
 </html>
