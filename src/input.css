@@ -1670,3 +1670,62 @@ body[data-page="about"]>.topbar::before {
   }
 }
 
+
+/* ---- session sign-out (booking.js mounts it on every page) -------------
+   "Signed in as •••-1234 — not you? Sign out on this device", with a
+   two-press confirm. Colour INHERITS: white inside the blue panel, ink on
+   the cream info pages. my-bookings' page css keeps its earlier
+   panel-scoped copies — same look, higher specificity, no conflict. */
+.booking-signout {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .6rem;
+  margin: .9rem 0 0;
+  font-size: clamp(.68rem, .9vw, .8rem);
+}
+
+.signout-link {
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  font-size: clamp(.68rem, .9vw, .8rem);
+  color: inherit;
+  opacity: .65;
+  text-decoration: underline;
+  text-underline-offset: .25em;
+}
+
+.signout-link:hover,
+.signout-link:focus-visible { opacity: 1; }
+
+.booking-confirm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .6rem;
+  font-size: clamp(.68rem, .9vw, .8rem);
+}
+
+.booking-act {
+  font: inherit;
+  font-size: clamp(.68rem, .9vw, .8rem);
+  font-weight: 600;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: .25em;
+  opacity: .85;
+}
+
+.booking-act--cancel { color: var(--pink); }
+.booking-act:disabled { opacity: .4; cursor: default; }
+
+/* On the landing's footer bar the sign-out line sits beside the utility
+   links — same row, same rhythm, its own breathing room. */
+.botbar .booking-signout { margin: 0 0 0 1.6rem; }

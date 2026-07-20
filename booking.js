@@ -1393,29 +1393,11 @@
     // browser, so a public computer keeps both for whoever sits down next.
     // One quiet link wipes them — two-press, because the device list is the
     // only copy (there's no server list to restore it from).
-    // Masked session identity: enough for a household to tell WHOSE account
-    // this device is in ("that's my number" vs "that's the landline"), never
-    // enough to be worth reading off a public computer's screen.
-    function maskedIdentity() {
-      const c = api.getToken() && api.claims();
-      if (!c) return null;
-      // A session with no account behind it (is_new token) isn't "signed in
-      // as" anyone — showing an identity next to a sign-in prompt reads as
-      // the site contradicting itself.
-      if (!c.client_id) return null;
-      if (c.phone && /\d{4}$/.test(c.phone)) return `•••-${c.phone.slice(-4)}`;
-      if (c.email && c.email.includes("@")) {
-        const [u, d] = c.email.split("@");
-        return `${u.slice(0, 1)}•••@${d}`;
-      }
-      return null;
-    }
-
     function addSignout() {
       if (!api.getToken() && !records.length) return;
       const wrap = document.createElement("p");
       wrap.className = "booking-signout";
-      const who = maskedIdentity();
+      const who = sessionIdentity();
       if (who) wrap.append(`Signed in as ${who} — not you? `);
       const link = document.createElement("button");
       link.type = "button";
@@ -1434,6 +1416,8 @@
         yes.addEventListener("click", () => {
           api.setToken(null);
           localStorage.removeItem(RECORDS_KEY);
+          sessionStorage.removeItem("madame_pending_confirm");
+          sessionStorage.removeItem("madame_pending_gift");
           flow.clear();
           window.location.reload();
         });
@@ -1882,6 +1866,69 @@
     }).catch((err) => note(status, formatErr(err), true));
   }
 
+  /* ---------- session sign-out, on every page ---------- */
+
+  // Masked session identity — enough to recognise WHOSE account this device
+  // is in, never worth reading off a shared screen. Account-less (is_new)
+  // sessions show nothing.
+  function sessionIdentity() {
+    const c = api.getToken() && api.claims();
+    if (!c || !c.client_id) return null;
+    if (c.phone && /\d{4}$/.test(c.phone)) return `•••-${c.phone.slice(-4)}`;
+    if (c.email && c.email.includes("@")) {
+      const [u, d] = c.email.split("@");
+      return `${u.slice(0, 1)}•••@${d}`;
+    }
+    return null;
+  }
+
+  // Sessions last 30 days and public computers keep them — every page must
+  // offer the way out, not just my-bookings (which mounts its own richer
+  // version that also covers device records).
+  function mountSignout() {
+    if (!api.getToken()) return;
+    if (document.querySelector(".booking-signout")) return;
+    const wrap = document.createElement("p");
+    wrap.className = "booking-signout";
+    const who = sessionIdentity();
+    if (who) wrap.append(`Signed in as ${who} — not you? `);
+    const link = document.createElement("button");
+    link.type = "button";
+    link.className = "signout-link";
+    link.textContent = "Sign out on this device";
+    link.addEventListener("click", () => {
+      if (wrap.querySelector(".booking-confirm")) return;
+      const strip = document.createElement("span");
+      strip.className = "booking-confirm";
+      const q = document.createElement("span");
+      q.textContent = "Sign out?";
+      const yes = document.createElement("button");
+      yes.type = "button";
+      yes.className = "booking-act booking-act--cancel";
+      yes.textContent = "Sign out";
+      yes.addEventListener("click", () => {
+        api.setToken(null);
+        localStorage.removeItem(RECORDS_KEY);
+        // Half-finished payment resumptions die with the session.
+        sessionStorage.removeItem("madame_pending_confirm");
+        sessionStorage.removeItem("madame_pending_gift");
+        flow.clear();
+        window.location.reload();
+      });
+      const no = document.createElement("button");
+      no.type = "button";
+      no.className = "booking-act";
+      no.textContent = "Keep";
+      no.addEventListener("click", () => strip.remove());
+      strip.append(q, yes, no);
+      wrap.appendChild(strip);
+    });
+    wrap.appendChild(link);
+    const host = document.querySelector(".panel") || document.querySelector(".botbar")
+      || document.querySelector(".content") || document.querySelector(".doc") || document.body;
+    host.appendChild(wrap);
+  }
+
   /* ---------- dispatch ---------- */
 
   const inits = {
@@ -1897,9 +1944,10 @@
 
   async function boot() {
     // A magic link can land on any page; steps handle it in their own init.
-    if (!inits[page]) { await handleMagicLinkReturn(); return; }
+    if (!inits[page]) { await handleMagicLinkReturn(); mountSignout(); return; }
     if (page !== "step-1") await handleMagicLinkReturn();
     inits[page]();
+    if (page !== "my-bookings") mountSignout();
   }
 
   if (document.readyState !== "loading") boot();
