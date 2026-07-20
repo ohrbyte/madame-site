@@ -7,8 +7,8 @@
   <title>Madame — Which day works</title>
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>M</text></svg>">
-  <link rel="stylesheet" href="dist/styles.css?v=40">
-  <link rel="stylesheet" href="css/pages/step-3.css?v=40">
+  <link rel="stylesheet" href="dist/styles.css?v=41">
+  <link rel="stylesheet" href="css/pages/step-3.css?v=41">
   <!-- Marks JS as available BEFORE first paint, so the entrance animation
        can hide the copy. Without this the page would render blank if app.js
        ever failed to load. Must stay inline and in <head>. -->
@@ -47,10 +47,13 @@
     <!-- The cursive letters are the "h" of which and the "r" of works — the
          customer circled exactly those in red in Design/instructions.docx.
          Everything else is Neulis Sans. This is per-letter and not guessable:
-         follow the design file, don't infer it from the word. -->
+         follow the design file, don't infer it from the word.
+         "works" sits flat (no descender), so the stroke stays LEVEL — the
+         same rule as About / gift / all-set. An arced stroke under straight
+         letters reads as a mistake. -->
     <h1 class="headline anim" style="--d:.1s">whic<span class="script">h</span> day <span
         class="mark underline">wo<span class="script">r</span>ks<svg viewBox="0 0 200 22" preserveAspectRatio="none">
-          <path class="accent" style="--len:240" d="M5 14 C 55 5, 150 5, 196 12" />
+          <path class="accent" style="--len:210;stroke-width:4.7" d="M2 9 C 65 7, 135 11, 198 12" />
         </svg></span>?</h1>
 
     <!-- Styled, not wired: the days are real buttons, but nothing is selected in
@@ -114,10 +117,10 @@
     </div>
   </div>
 
-  <script src="api.js?v=40"></script>
-  <script src="app.js?v=40"></script>
-  <script src="booking-availability.js?v=40"></script>
-  <script src="booking.js?v=40"></script>
+  <script src="api.js?v=41"></script>
+  <script src="app.js?v=41"></script>
+  <script src="booking-availability.js?v=41"></script>
+  <script src="booking.js?v=41"></script>
 </body>
 
 </html>
