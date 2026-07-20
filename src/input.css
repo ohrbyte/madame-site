@@ -1314,13 +1314,24 @@ body[data-page="about"]>.topbar::before {
        right so the arm reads from the right edge of the narrower window; the
        design's poster draws the OTHER photo of the same motif — the arm
        rising from the ground — which index.html's <picture> swaps in at this
-       same breakpoint. These are its PSD box dials, verbatim from step-1
-       (the page that always shows that photo at design position). Pages with
-       their own hands override all three in their page css, so this reaches
-       the landing alone. */
-    --hand-nudge: 5.5cqw;
-    --hand-top: -19.99cqh;
-    --hand-h: 165.2cqh;
+       same breakpoint.
+
+       These WERE copied verbatim from step-1's manifest box, but that box was
+       stale: the asset (assets/landing-hand.webp) was re-cropped, so its ink
+       no longer sits where the manifest says. Template-matching the asset into
+       the design reference (2048x954, four independent solvers agreeing to
+       1.3px, MAD a sharp local minimum) put the true box at, in canvas units:
+       right edge 17.76cqw past the canvas (= --art-right -23.3 + 5.54 nudge),
+       top -14.75cqh, height 165.05cqh. Scale and horizontal were already right
+       to <1px; the asset was sitting ~5cqh too HIGH. Corrected here for the
+       landing; step-1 shows the same asset at the same (stale) box in its own
+       css and carries the same offset — corrected there separately.
+
+       Pages with their own hands override all three in their page css, so this
+       reaches the landing alone. */
+    --hand-nudge: 5.54cqw;
+    --hand-top: -14.75cqh;
+    --hand-h: 165.05cqh;
   }
 
   /* Poster chrome scales with the poster. The panels and their buttons stay
@@ -1423,7 +1434,19 @@ body[data-page="about"]>.topbar::before {
      right edge: the landing and step-1 (same photo, same box: crossing from
      87.3dvh) and step-3 (a sliver from 99.4dvh). step-6's crossing sits
      entirely below the viewport; steps 2/4/5 end inside the frame. */
-  body[data-page="index"] .cb-hand,
+  /* The corner-bleed continues the SAME hand past the frame's bottom-right, so
+     its box must track whatever the in-frame hand does. index's hand was
+     re-solved (see the wide-mode block above) and dropped ~5cqh; its
+     continuation drops with it. The window sits at top:75%, so cb-top is
+     always main-top minus 75 (here -14.75 - 75 = -89.75). step-1 still uses
+     the stale box, so it keeps the old numbers — split out below. */
+  body[data-page="index"] .cb-hand {
+    left: calc(-82.21 * var(--fw));
+    top: -89.75dvh;
+    height: 165.05dvh;
+    width: auto;
+  }
+
   body[data-page="step-1"] .cb-hand {
     left: calc(-82.21 * var(--fw));
     top: -94.99dvh;
