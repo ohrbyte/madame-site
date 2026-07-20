@@ -7,8 +7,8 @@
   <title>Madame — Ready to roll</title>
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>M</text></svg>">
-  <link rel="stylesheet" href="dist/styles.css?v=29">
-  <link rel="stylesheet" href="css/pages/step-1.css?v=29">
+  <link rel="stylesheet" href="dist/styles.css?v=30">
+  <link rel="stylesheet" href="css/pages/step-1.css?v=30">
   <!-- Marks JS as available BEFORE first paint, so the entrance animation
        can hide the copy. Without this the page would render blank if app.js
        ever failed to load. Must stay inline and in <head>. -->
@@ -91,6 +91,10 @@
       <p class="formnote" hidden></p>
 
       <p class="authnote">We sent a login link to —<br>Check your inbox and click the link to sign in.</p>
+      <!-- Wired (booking.js): visible on the code stage only. SMS can lag —
+           without this, the only escape was "use a different number", which
+           restarts the whole dance. The server honours the NEWEST code. -->
+      <a class="authresend" href="#" hidden>Didn't get the text? Send a new code</a>
       <a class="authalt" href="#">Use a different email</a>
 
       <!-- The submit. Hidden until the field holds something sendable (a full
@@ -104,9 +108,9 @@
     </form>
   </div>
 
-  <script src="api.js?v=29"></script>
-  <script src="app.js?v=29"></script>
-  <script src="booking.js?v=29"></script>
+  <script src="api.js?v=30"></script>
+  <script src="app.js?v=30"></script>
+  <script src="booking.js?v=30"></script>
 </body>
 
 </html>

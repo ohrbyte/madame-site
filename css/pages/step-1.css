@@ -167,3 +167,18 @@ body[data-page="step-1"] .panel[data-sent="true"] .authalt {
 body[data-page="step-1"] .authsubmit {
   margin-top: 1.1em;
 }
+
+/* the resend link — the authalt's quieter sibling, shown on the code stage */
+body[data-page="step-1"] .authresend {
+  color: var(--pink-soft);
+  text-decoration: underline;
+  text-underline-offset: .25em;
+  text-decoration-thickness: 2px;
+  transition: color .2s ease;
+  margin-right: 1.2em;
+}
+
+body[data-page="step-1"] .authresend:hover,
+body[data-page="step-1"] .authresend:focus-visible {
+  color: #fff;
+}

@@ -240,6 +240,7 @@
     const lede = $(".panel-lede", form);
     const authnote = $(".authnote", form);
     const authalt = $(".authalt", form);
+    const authresend = $(".authresend", form);
     const phoneField = $("#signin-phone", form);
     const emailField = $("#signin-email", form);
     const codeField = $("#signin-code", form);
@@ -366,6 +367,7 @@
             await submitBusy(null, () => api.sendSmsOtp(pendingPhone));
             if (authnote) authnote.innerHTML = `We sent a code to <strong>${pendingPhone}</strong> —<br>type it in above to sign in.`;
             if (authalt) authalt.textContent = "Use a different number";
+            if (authresend) authresend.hidden = false;
             stage("code");
           } else {
             const email = emailField.value.trim();
@@ -404,7 +406,32 @@
       e.preventDefault();
       pendingPhone = "";
       if (codeField) codeField.value = "";
+      if (authresend) authresend.hidden = true;
       stage("start");
+    });
+
+    // SMS can lag or vanish; a fresh code is one tap, not a restart. A short
+    // client-side cooldown keeps tap-tap-tap from burning the server's
+    // send cap (3 codes per 10 minutes) — and only the NEWEST code verifies,
+    // which the confirmation line says out loud.
+    let lastResendAt = 0;
+    if (authresend) authresend.addEventListener("click", async (e) => {
+      e.preventDefault();
+      if (!pendingPhone) return;
+      if (Date.now() - lastResendAt < 30 * 1000) {
+        return note(status, "A new code is already on its way — give it a few more seconds.", false);
+      }
+      await busy(authresend, "Sending…", async () => {
+        try {
+          await api.sendSmsOtp(pendingPhone);
+          lastResendAt = Date.now();
+          if (codeField) codeField.value = "";
+          refreshSubmit();
+          note(status, "New code sent — use the newest text.", false);
+        } catch (err) {
+          note(status, formatErr(err), true);
+        }
+      });
     });
 
     refreshSubmit();
@@ -1354,8 +1381,47 @@
       }
     }
 
+    // A redirect-based payment method (bank wallets and friends) leaves the
+    // page during confirmSetup and comes BACK here with the result in the
+    // URL. Finish what the redirect started — dropping it silently forced
+    // the customer to re-enter a method that had already verified.
+    async function handleSetupRedirect() {
+      const params = new URLSearchParams(location.search);
+      const secret = params.get("setup_intent_client_secret");
+      if (!secret) return;
+      ["setup_intent", "setup_intent_client_secret", "redirect_status"].forEach((k) => params.delete(k));
+      const qs = params.toString();
+      history.replaceState(null, "", location.pathname + (qs ? `?${qs}` : "") + location.hash);
+      try {
+        await ensureStripe();
+        const { setupIntent } = await stripe.retrieveSetupIntent(secret);
+        if (!setupIntent || setupIntent.status !== "succeeded") {
+          if (setupIntent && setupIntent.status === "requires_payment_method")
+            note(status, "That payment method didn't go through — pick a card below and try again.", true);
+          return;
+        }
+        const pmId = typeof setupIntent.payment_method === "string"
+          ? setupIntent.payment_method
+          : setupIntent.payment_method && setupIntent.payment_method.id;
+        if (!pmId) return;
+        try {
+          const saved = await api.addPaymentMethod(pmId);
+          selectedPm = pmId;
+          if (saved && saved.payment_method_id) methods.push(saved);
+          stripeBox.hidden = true;
+          renderMethods();
+          note(status, "Payment method added — press Confirm to book.", false);
+        } catch {
+          // Same resume rule as a failed save after confirmSetup: the intent
+          // is spent, so the next Confirm retries ONLY the save.
+          pendingSavePmId = pmId;
+          note(status, "Your payment method was verified — press Confirm to finish.", false);
+        }
+      } catch { /* leave the normal pay UI in charge */ }
+    }
+
     loadEstimate().catch(onEstimateError);
-    loadMethods();
+    loadMethods().then(handleSetupRedirect);
   }
 
   /* ================================================================
@@ -1875,7 +1941,7 @@
   // built as with the served one; if behind, reload once. The sessionStorage
   // guard means a mis-bumped version file costs one reload per wake, never a
   // loop. scripts/bump-version.sh keeps the three markers in step.
-  const SITE_VERSION = "29";
+  const SITE_VERSION = "30";
   let hiddenAt = 0;
   async function healIfStale() {
     try {
