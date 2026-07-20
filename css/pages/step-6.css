@@ -34,6 +34,6 @@ body[data-page="step-6"] .actions {
 body[data-page="step-6"] .mark.circle > svg {
   width: 158%;
 }
-body[data-page="step-6"] .mark.circle {
-  margin-right: .3em;
-}
+/* Right margin comes from the shared .mark.circle rule (.5em, measured to
+   cover the ring's spill) — the bigger 158% ring here spills ~.37em, well
+   inside that, so no page-specific override is needed. */

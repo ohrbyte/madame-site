@@ -654,12 +654,16 @@ body>.content--fill {
    The margin buys the ring its own room. It is not part of .mark.circle>svg
    because the box, not the drawing, is what has to reserve the space.
 
-   .16em, measured: the design leaves 8px between the ring and the next word at
-   its 2048px canvas — just clear, not a gap. .35em was enough to stop the
-   collision but pushed "in a click." nearly 3x too far away, which read as a
-   hole in the headline. Only the spill needs covering, not more. */
+   MEASURED AGAIN once real Neulis landed (the old .16em was tuned against the
+   Poppins stand-in): the ring spills 14px past "Clean" and 12px past "time"
+   while .16em only reserved ~5px — so the ring cut ~9px into the "i" of "in"
+   and ~6px into the "?" again. The spill is a share of the WORD's width (16%
+   of it, since the ring is 132%), which on the longest circled word works out
+   at ~.47em. .5em covers that with barely a hair to spare, so the ring lands
+   JUST clear of its neighbour rather than leaving a hole — the gap you see is
+   margin minus spill, not the margin itself. */
 .mark.circle {
-  margin: 0 .16em;
+  margin: 0 .5em;
 }
 
 /* ...but not on the left when the circled word opens the line, or the whole
