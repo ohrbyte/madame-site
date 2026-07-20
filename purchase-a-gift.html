@@ -7,8 +7,8 @@
   <title>Madame — Purchase a gift</title>
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>M</text></svg>">
-  <link rel="stylesheet" href="dist/styles.css?v=30">
-  <link rel="stylesheet" href="css/pages/purchase-a-gift.css?v=30">
+  <link rel="stylesheet" href="dist/styles.css?v=31">
+  <link rel="stylesheet" href="css/pages/purchase-a-gift.css?v=31">
   <!-- Marks JS as available BEFORE first paint, so the entrance animation
        can hide the copy. Without this the page would render blank if app.js
        ever failed to load. Must stay inline and in <head>. -->
@@ -55,11 +55,15 @@
       <h2>Choose an amount</h2>
       <p>They pick the day. You look thoughtful.</p>
 
-      <div class="amounts">
-        <button type="button" class="choice">£40</button>
-        <button type="button" class="choice is-on">£80</button>
-        <button type="button" class="choice">£120</button>
-        <button type="button" class="choice">£200</button>
+      <!-- Neutral pre-load labels — booking.js (renderAmounts) rebuilds these
+           with the real $ price over each hour count once the config loads.
+           Shipping £ amounts flashed a British version before the swap; the
+           hour counts don't change, so they carry the wait honestly. -->
+      <div class="amounts" aria-busy="true">
+        <button type="button" class="choice">4 hours</button>
+        <button type="button" class="choice is-on">6 hours</button>
+        <button type="button" class="choice">10 hours</button>
+        <button type="button" class="choice">20 hours</button>
       </div>
 
       <!-- Wired (booking.js): the "pick your own" stepper, shown when the
@@ -109,9 +113,9 @@
     </form>
   </div>
 
-  <script src="api.js?v=30"></script>
-  <script src="app.js?v=30"></script>
-  <script src="booking.js?v=30"></script>
+  <script src="api.js?v=31"></script>
+  <script src="app.js?v=31"></script>
+  <script src="booking.js?v=31"></script>
 </body>
 
 </html>

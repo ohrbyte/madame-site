@@ -1033,6 +1033,7 @@
     async function loadEstimate() {
       const est = await api.estimate({ date: state.date, start_time: state.slot.start_time, hours: state.hours, address_id: state.address_id, preferred_cleaner_id: state.preferred_cleaner_id, use_credit: useCredit, language: state.language || undefined });
       review.innerHTML = "";
+      review.removeAttribute("aria-busy");
       // Remember the credit available even after toggling it off (the estimate
       // reports 0 then) so the choice row stays visible.
       if (est.credit_applied > 0) creditAvailable = est.credit_applied;
@@ -1772,6 +1773,7 @@
 
     function renderAmounts() {
       amounts.innerHTML = "";
+      amounts.removeAttribute("aria-busy");
       HOUR_CHOICES.filter((h) => h >= config.min_hours && h <= config.max_hours).forEach((h) => {
         const b = document.createElement("button");
         b.type = "button";
@@ -1941,7 +1943,7 @@
   // built as with the served one; if behind, reload once. The sessionStorage
   // guard means a mis-bumped version file costs one reload per wake, never a
   // loop. scripts/bump-version.sh keeps the three markers in step.
-  const SITE_VERSION = "30";
+  const SITE_VERSION = "31";
   let hiddenAt = 0;
   async function healIfStale() {
     try {

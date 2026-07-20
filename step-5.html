@@ -7,8 +7,8 @@
   <title>Madame — Ready to book</title>
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>M</text></svg>">
-  <link rel="stylesheet" href="dist/styles.css?v=30">
-  <link rel="stylesheet" href="css/pages/step-5.css?v=30">
+  <link rel="stylesheet" href="dist/styles.css?v=31">
+  <link rel="stylesheet" href="css/pages/step-5.css?v=31">
   <!-- Marks JS as available BEFORE first paint, so the entrance animation
        can hide the copy. Without this the page would render blank if app.js
        ever failed to load. Must stay inline and in <head>. -->
@@ -50,15 +50,19 @@
     <div class="panel anim" style="--d:.28s">
       <h2>Review &amp; confirm</h2>
 
-      <dl class="review">
+      <!-- Neutral loading skeleton — NOT sample data. booking.js replaces the
+           whole <dl> once the real estimate returns. It used to ship a London
+           address + a £ total, which flashed a "UK version" of the page before
+           the real values loaded. Nothing here asserts a place or a currency. -->
+      <dl class="review" aria-busy="true">
         <dt>When</dt>
-        <dd>Friday 17 July, 11:00</dd>
+        <dd>Loading your booking…</dd>
         <dt>Where</dt>
-        <dd>14 Ackroyd Road, London</dd>
+        <dd>Your saved address</dd>
         <dt>What</dt>
-        <dd>Regular clean · 2 bed · ~3 hours</dd>
+        <dd>Home clean</dd>
         <dt>Total</dt>
-        <dd class="review-total">£72.00</dd>
+        <dd class="review-total">—</dd>
       </dl>
 
       <!-- Wired (booking.js): the language was chosen on /time (it filters
@@ -83,9 +87,9 @@
     </div>
   </div>
 
-  <script src="api.js?v=30"></script>
-  <script src="app.js?v=30"></script>
-  <script src="booking.js?v=30"></script>
+  <script src="api.js?v=31"></script>
+  <script src="app.js?v=31"></script>
+  <script src="booking.js?v=31"></script>
 </body>
 
 </html>
