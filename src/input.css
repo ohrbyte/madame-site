@@ -1613,26 +1613,33 @@ body[data-page="about"]>.topbar::before {
    two-press confirm. Colour INHERITS: white inside the blue panel, ink on
    the cream info pages. my-bookings' page css keeps its earlier
    panel-scoped copies — same look, higher specificity, no conflict. */
-.booking-signout {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: .6rem;
-  margin: .9rem 0 0;
-  font-size: clamp(.68rem, .9vw, .8rem);
-}
-
+/* The sign-out button lives in the top-right of the topbar (mountSignout puts
+   it in the utility nav on the landing, else straight onto the topbar where
+   space-between pushes it to the corner). Styled to sit with the utility
+   links — same blue, same size — a plain one-press control, no confirm. */
 .signout-link {
   background: none;
   border: 0;
   padding: 0;
   cursor: pointer;
-  font: inherit;
-  font-size: clamp(.68rem, .9vw, .8rem);
-  color: inherit;
-  opacity: .65;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: clamp(.78rem, .95vw, .95rem);
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--blue);
+  opacity: .82;
   text-decoration: underline;
   text-underline-offset: .25em;
+  transition: opacity .25s ease;
+}
+
+/* When there's no topbar to host it, pin it to the corner ourselves. */
+body > .signout-link {
+  position: fixed;
+  top: max(1.1rem, 8.6%);
+  right: max(1.25rem, 5.9%);
+  z-index: 60;
 }
 
 .signout-link:hover,
@@ -1662,7 +1669,3 @@ body[data-page="about"]>.topbar::before {
 
 .booking-act--cancel { color: var(--pink); }
 .booking-act:disabled { opacity: .4; cursor: default; }
-
-/* On the landing's footer bar the sign-out line sits beside the utility
-   links — same row, same rhythm, its own breathing room. */
-.botbar .booking-signout { margin: 0 0 0 1.6rem; }

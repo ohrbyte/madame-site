@@ -1471,46 +1471,6 @@
     // browser, so a public computer keeps both for whoever sits down next.
     // One quiet link wipes them — two-press, because the device list is the
     // only copy (there's no server list to restore it from).
-    function addSignout() {
-      if (!api.getToken() && !records.length) return;
-      const wrap = document.createElement("p");
-      wrap.className = "booking-signout";
-      const who = sessionIdentity();
-      if (who) wrap.append(`Signed in as ${who} — not you? `);
-      const link = document.createElement("button");
-      link.type = "button";
-      link.className = "signout-link";
-      link.textContent = "Sign out on this device";
-      link.addEventListener("click", () => {
-        if (wrap.querySelector(".booking-confirm")) return;
-        const strip = document.createElement("span");
-        strip.className = "booking-confirm";
-        const q = document.createElement("span");
-        q.textContent = "Sign out?";
-        const yes = document.createElement("button");
-        yes.type = "button";
-        yes.className = "booking-act booking-act--cancel";
-        yes.textContent = "Sign out";
-        yes.addEventListener("click", () => {
-          api.setToken(null);
-          localStorage.removeItem(RECORDS_KEY);
-          sessionStorage.removeItem("madame_pending_confirm");
-          sessionStorage.removeItem("madame_pending_gift");
-          flow.clear();
-          window.location.reload();
-        });
-        const no = document.createElement("button");
-        no.type = "button";
-        no.className = "booking-act";
-        no.textContent = "Keep";
-        no.addEventListener("click", () => strip.remove());
-        strip.append(q, yes, no);
-        wrap.appendChild(strip);
-      });
-      wrap.appendChild(link);
-      list.parentElement.appendChild(wrap);
-    }
-
     function rowFor(r) {
       const li = document.createElement("li");
       li.className = "booking";
@@ -1667,7 +1627,6 @@
 
     if (!hasLiveSession()) {
       offerSignin();
-      addSignout();
       return;
     }
 
@@ -1740,7 +1699,6 @@
       }
     })();
 
-    addSignout();
   }
 
   /* ================================================================
@@ -1954,7 +1912,7 @@
   // built as with the served one; if behind, reload once. The sessionStorage
   // guard means a mis-bumped version file costs one reload per wake, never a
   // loop. scripts/bump-version.sh keeps the three markers in step.
-  const SITE_VERSION = "33";
+  const SITE_VERSION = "34";
   let hiddenAt = 0;
   async function healIfStale() {
     try {
@@ -1998,46 +1956,31 @@
   // version that also covers device records).
   function mountSignout() {
     if (!api.getToken()) return;
-    if (document.querySelector(".booking-signout")) return;
-    const wrap = document.createElement("p");
-    wrap.className = "booking-signout";
+    if (document.querySelector(".signout-link")) return;
     const who = sessionIdentity();
-    if (who) wrap.append(`Signed in as ${who} — not you? `);
     const link = document.createElement("button");
     link.type = "button";
     link.className = "signout-link";
-    link.textContent = "Sign out on this device";
+    link.textContent = "Sign out";
+    // Who this device is signed in as, on hover — the masked id is kept out
+    // of the compact top-right label but not lost.
+    if (who) link.title = `Signed in as ${who}`;
+    // One press, no confirm strip: a public-computer session is exactly what
+    // this exists to end, so it shouldn't take two taps.
     link.addEventListener("click", () => {
-      if (wrap.querySelector(".booking-confirm")) return;
-      const strip = document.createElement("span");
-      strip.className = "booking-confirm";
-      const q = document.createElement("span");
-      q.textContent = "Sign out?";
-      const yes = document.createElement("button");
-      yes.type = "button";
-      yes.className = "booking-act booking-act--cancel";
-      yes.textContent = "Sign out";
-      yes.addEventListener("click", () => {
-        api.setToken(null);
-        localStorage.removeItem(RECORDS_KEY);
-        // Half-finished payment resumptions die with the session.
-        sessionStorage.removeItem("madame_pending_confirm");
-        sessionStorage.removeItem("madame_pending_gift");
-        flow.clear();
-        window.location.reload();
-      });
-      const no = document.createElement("button");
-      no.type = "button";
-      no.className = "booking-act";
-      no.textContent = "Keep";
-      no.addEventListener("click", () => strip.remove());
-      strip.append(q, yes, no);
-      wrap.appendChild(strip);
+      api.setToken(null);
+      localStorage.removeItem(RECORDS_KEY);
+      sessionStorage.removeItem("madame_pending_confirm");
+      sessionStorage.removeItem("madame_pending_gift");
+      flow.clear();
+      window.location.reload();
     });
-    wrap.appendChild(link);
-    const host = document.querySelector(".panel") || document.querySelector(".botbar")
-      || document.querySelector(".content") || document.querySelector(".doc") || document.body;
-    host.appendChild(wrap);
+    // Top-right: into the topbar's right-hand nav if there is one (landing),
+    // else straight onto the topbar (space-between pushes it to the corner),
+    // else a fixed corner as a last resort.
+    const bar = document.querySelector(".topbar");
+    const host = bar ? (bar.querySelector(".utility") || bar) : document.body;
+    host.appendChild(link);
   }
 
   /* ---------- dispatch ---------- */
@@ -2058,7 +2001,7 @@
     if (!inits[page]) { await handleMagicLinkReturn(); mountSignout(); return; }
     if (page !== "step-1") await handleMagicLinkReturn();
     inits[page]();
-    if (page !== "my-bookings") mountSignout();
+    mountSignout();
   }
 
   if (document.readyState !== "loading") boot();
