@@ -37,3 +37,11 @@ body[data-page="step-6"] .mark.circle > svg {
 /* Right margin comes from the shared .mark.circle rule (.5em, measured to
    cover the ring's spill) — the bigger 158% ring here spills ~.37em, well
    inside that, so no page-specific override is needed. */
+
+/* The confirmation headline is set in the DRAWN face, per the design — the
+   whole "All set!", not just the opening A. .headline .script already points
+   at --font-script; this extends it to the rest of the line so the sans
+   letters ("ll set!") stop breaking the hand-lettered look. */
+body[data-page="step-6"] .headline {
+  font-family: var(--font-script);
+}
