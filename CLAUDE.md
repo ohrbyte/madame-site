@@ -130,7 +130,7 @@ slot, gift amount, saved card), `.field`/`.fields` (cream inputs on the card),
 `.btn`/`.eyebrow`, `.inkline` (the hand-drawn hover underline), `.formnote` (status
 line: quiet info, pink error), `.stripe-box` (cream well for Stripe iframes),
 `aria-busy` for in-flight actions. Pink means "this one" (and errors); cream wells on
-blue; no new colors. Dates render in the design's UK voice ("Friday 17 July").
+blue; no new colors. Dates render American-style ("Friday, July 17"), built from fixed name tables in booking.js (no Intl locale — a missing-locale format() is what broke the Upcoming date filter once).
 
 Fonts: Neulis Sans/Cursive are Adobe-synced and absent — drop files into fonts/ per
 fonts/README.txt and the site picks them up; until then Poppins stands in, and a few

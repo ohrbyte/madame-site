@@ -75,24 +75,35 @@
     return value.startsWith("+") ? value : `+${d}`;
   }
 
-  // "Friday 17 July" — the design writes dates UK-style, so we keep its voice.
-  function designDate(dateKey) {
+  // American date voice ("Friday, July 17"), built from fixed name tables — NO
+  // Intl locale, deliberately: relying on an installed locale's format() is
+  // exactly what broke the Upcoming filter on browsers missing en-CA data.
+  // A dateKey is always "yyyy-mm-dd", so the weekday comes from a noon-UTC
+  // Date (never crosses a day boundary) and month/day are read straight off.
+  const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const WEEKDAYS_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const MONTHS = ["January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"];
+  const MONTHS_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  function dowOf(dateKey) {
     const [y, m, d] = dateKey.split("-").map(Number);
-    const dt = new Date(Date.UTC(y, m - 1, d, 12));
-    const weekday = new Intl.DateTimeFormat("en-GB", { weekday: "long" }).format(dt);
-    const month = new Intl.DateTimeFormat("en-GB", { month: "long" }).format(dt);
-    return `${weekday} ${d} ${month}`;
+    return new Date(Date.UTC(y, m - 1, d, 12)).getUTCDay();
   }
 
+  // "Friday, July 17"
+  function designDate(dateKey) {
+    const [, m, d] = dateKey.split("-").map(Number);
+    return `${WEEKDAYS[dowOf(dateKey)]}, ${MONTHS[m - 1]} ${d}`;
+  }
+
+  // "Fri, Jul 17"
   function shortDate(dateKey) {
-    const [y, m, d] = dateKey.split("-").map(Number);
-    const dt = new Date(Date.UTC(y, m - 1, d, 12));
-    return new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "numeric", month: "short" }).format(dt);
+    const [, m, d] = dateKey.split("-").map(Number);
+    return `${WEEKDAYS_SHORT[dowOf(dateKey)]}, ${MONTHS_SHORT[m - 1]} ${d}`;
   }
 
   function weekdayName(dateKey) {
-    const [y, m, d] = dateKey.split("-").map(Number);
-    return new Intl.DateTimeFormat("en-GB", { weekday: "long" }).format(new Date(Date.UTC(y, m - 1, d, 12)));
+    return WEEKDAYS[dowOf(dateKey)];
   }
 
   // Business-day "today" as yyyy-mm-dd, built from NAMED date parts. Never
@@ -1943,7 +1954,7 @@
   // built as with the served one; if behind, reload once. The sessionStorage
   // guard means a mis-bumped version file costs one reload per wake, never a
   // loop. scripts/bump-version.sh keeps the three markers in step.
-  const SITE_VERSION = "31";
+  const SITE_VERSION = "32";
   let hiddenAt = 0;
   async function healIfStale() {
     try {
