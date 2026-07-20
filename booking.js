@@ -660,6 +660,16 @@
     const heading = $("h2", panel);
     const hoursLine = $("[data-hours-line]", panel);
     const hoursValue = $("[data-hours-value]", panel);
+    // Language filters WHO counts as free — changing it refetches the slots.
+    const languageEl = $("#booking-language", panel);
+    if (languageEl) {
+      languageEl.value = flow.read().language || "English";
+      flow.patch({ language: languageEl.value });
+      languageEl.addEventListener("change", () => {
+        flow.patch({ language: languageEl.value });
+        refreshSlots();
+      });
+    }
     const minus = $(".hours-step--minus", panel);
     const plus = $(".hours-step--plus", panel);
     const freqBox = $(".freq", panel);
@@ -792,15 +802,17 @@
       grid.setAttribute("aria-busy", "true");
       note(status, "Checking who's free…");
       try {
-        const fresh = (await api.availableSlots(state.date, hours)) || [];
+        const lang = (languageEl && languageEl.value) || "English";
+        const fresh = (await api.availableSlots(state.date, hours, lang)) || [];
         if (req !== slotsReq) return;
         slots = fresh;
         if (!slots.length) {
           // Say only things this page can actually do: fewer hours works
           // when the stepper isn't at minimum; another day means /day.
+          const who = lang === "English" ? "No one" : `No one who speaks ${lang}`;
           note(status, hours > rules.min_hours
-            ? "No one is free that day for that long — try fewer hours, or pick another day."
-            : "No one is free that day — pick another day.", true);
+            ? `${who} is free that day for that long — try fewer hours, or pick another day.`
+            : `${who} is free that day — pick another day.`, true);
           if (!$(".slots-day-link", panel || document)) {
             const back = document.createElement("button");
             back.type = "button";
@@ -923,7 +935,6 @@
     const payList = $(".paylist", panel);
     const stripeBox = $(".stripe-box", panel);
     const notesEl = $("#booking-notes", panel);
-    const languageEl = $("#booking-language", panel);
     const freq = state.frequency_weeks || 0;
 
     // Special instructions and language ride the flow state so
@@ -932,10 +943,7 @@
       notesEl.value = state.notes || "";
       notesEl.addEventListener("input", () => flow.patch({ notes: notesEl.value }));
     }
-    if (languageEl) {
-      languageEl.value = state.language || "English";
-      languageEl.addEventListener("change", () => flow.patch({ language: languageEl.value }));
-    }
+
 
     if (freq > 0) {
       // A series never charges at confirm — each visit is billed to the chosen
@@ -996,7 +1004,7 @@
     }
 
     async function loadEstimate() {
-      const est = await api.estimate({ date: state.date, start_time: state.slot.start_time, hours: state.hours, address_id: state.address_id, preferred_cleaner_id: state.preferred_cleaner_id, use_credit: useCredit });
+      const est = await api.estimate({ date: state.date, start_time: state.slot.start_time, hours: state.hours, address_id: state.address_id, preferred_cleaner_id: state.preferred_cleaner_id, use_credit: useCredit, language: state.language || undefined });
       review.innerHTML = "";
       // Remember the credit available even after toggling it off (the estimate
       // reports 0 then) so the choice row stays visible.
@@ -1006,6 +1014,7 @@
       if (state.preferred_cleaner_name) reviewRow("Your lady", state.preferred_cleaner_name);
       reviewRow("Where", formatAddress(state.address) || "Your saved address");
       reviewRow("What", `Home clean · ${est.hours || state.hours} hours (${money(est.rate_per_hour)}/hr)`);
+      if (state.language && state.language !== "English") reviewRow("She speaks", state.language);
       if (est.taxi_fee > 0) reviewRow("Travel fee", money(est.taxi_fee));
       // Gift credit spends before the card BY DEFAULT — one-time cleans at
       // create, recurring visits at each charge — unless the customer flips
@@ -1180,7 +1189,7 @@
           // charges nothing. Everything else (incl. every series) collects one.
           const pmId = coveredByCredit ? undefined : await ensurePaymentMethod();
           const notes = (notesEl && notesEl.value.trim()) || undefined;
-          const language = (languageEl && languageEl.value) || "English";
+          const language = state.language || "English";
           let record;
           if (freq > 0) {
             // A series: no charge now, so no 3DS dance — the chosen card is

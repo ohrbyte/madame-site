@@ -7,8 +7,8 @@
   <title>Madame — What about the time</title>
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>M</text></svg>">
-  <link rel="stylesheet" href="dist/styles.css?v=26">
-  <link rel="stylesheet" href="css/pages/step-4.css?v=26">
+  <link rel="stylesheet" href="dist/styles.css?v=27">
+  <link rel="stylesheet" href="css/pages/step-4.css?v=27">
   <!-- Marks JS as available BEFORE first paint, so the entrance animation
        can hide the copy. Without this the page would render blank if app.js
        ever failed to load. Must stay inline and in <head>. -->
@@ -65,6 +65,24 @@
       <p class="ladypick-line" hidden>Want a lady you've had before?</p>
       <div class="ladypick" role="group" aria-label="Preferred cleaner" hidden></div>
 
+      <!-- Wired (booking.js): the language filters WHO counts as available —
+           it lives here, with the other availability inputs, so a Georgian
+           speaker never picks a slot only an English-only cleaner can take
+           (that used to surface as a failure AFTER card entry). Rides the
+           flow state to /review and onto create. -->
+      <div class="fields">
+        <div class="field">
+          <label for="booking-language">Your lady speaks</label>
+          <select id="booking-language" name="booking-language">
+            <option value="English" selected>English</option>
+            <option value="Spanish">Spanish</option>
+            <option value="Georgian">Georgian</option>
+            <option value="Polish">Polish</option>
+            <option value="Ukrainian">Ukrainian</option>
+          </select>
+        </div>
+      </div>
+
       <p data-hours-line>How many hours do you need?</p>
 
       <div class="hours" role="group" aria-label="Choose how many hours">
@@ -91,9 +109,9 @@
     </div>
   </div>
 
-  <script src="api.js?v=26"></script>
-  <script src="app.js?v=26"></script>
-  <script src="booking.js?v=26"></script>
+  <script src="api.js?v=27"></script>
+  <script src="app.js?v=27"></script>
+  <script src="booking.js?v=27"></script>
 </body>
 
 </html>

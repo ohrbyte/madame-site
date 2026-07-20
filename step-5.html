@@ -7,8 +7,8 @@
   <title>Madame — Ready to book</title>
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>M</text></svg>">
-  <link rel="stylesheet" href="dist/styles.css?v=26">
-  <link rel="stylesheet" href="css/pages/step-5.css?v=26">
+  <link rel="stylesheet" href="dist/styles.css?v=27">
+  <link rel="stylesheet" href="css/pages/step-5.css?v=27">
   <!-- Marks JS as available BEFORE first paint, so the entrance animation
        can hide the copy. Without this the page would render blank if app.js
        ever failed to load. Must stay inline and in <head>. -->
@@ -61,20 +61,11 @@
         <dd class="review-total">£72.00</dd>
       </dl>
 
-      <!-- Wired (booking.js): language rides as `language` on create (drives
-           which cleaners can be assigned); notes ride as `notes` — the office
-           sees them on the booking's detail page. -->
+      <!-- Wired (booking.js): the language was chosen on /time (it filters
+           availability there); here it shows in the review rows and rides as
+           `language` on create. Notes ride as `notes` — the office sees them
+           on the booking's detail page. -->
       <div class="fields">
-        <div class="field">
-          <label for="booking-language">Your lady speaks</label>
-          <select id="booking-language" name="booking-language">
-            <option value="English" selected>English</option>
-            <option value="Spanish">Spanish</option>
-            <option value="Georgian">Georgian</option>
-            <option value="Polish">Polish</option>
-            <option value="Ukrainian">Ukrainian</option>
-          </select>
-        </div>
         <div class="field">
           <label for="booking-notes">Special instructions</label>
           <textarea id="booking-notes" name="booking-notes" rows="2"
@@ -92,9 +83,9 @@
     </div>
   </div>
 
-  <script src="api.js?v=26"></script>
-  <script src="app.js?v=26"></script>
-  <script src="booking.js?v=26"></script>
+  <script src="api.js?v=27"></script>
+  <script src="app.js?v=27"></script>
+  <script src="booking.js?v=27"></script>
 </body>
 
 </html>
