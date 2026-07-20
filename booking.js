@@ -1615,13 +1615,17 @@
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "booking-act";
-      btn.textContent = "Sign in";
       btn.addEventListener("click", () => goto("sign-in?next=my-bookings"));
-      p.append(magicLinkNoAccount
-        ? "That email isn't linked to any account yet — sign in with the phone number you used when booking. "
+      // The sentence IS the link — a trailing "Sign in" button next to a line
+      // that already says "Sign in to see them" is the same action twice. Only
+      // the actionable clause is clickable; the lead-in stays plain text.
+      const [lead, act] = magicLinkNoAccount
+        ? ["That email isn't linked to any account yet — ", "sign in with the phone number you used when booking."]
         : records.length
-          ? "Sign back in to change or cancel a clean. "
-          : "Have cleans booked? Sign in to see them. ", btn);
+          ? ["", "Sign back in to change or cancel a clean."]
+          : ["Have cleans booked? ", "Sign in to see them."];
+      btn.textContent = act;
+      p.append(lead, btn);
       list.before(p);
     }
 
@@ -1912,7 +1916,7 @@
   // built as with the served one; if behind, reload once. The sessionStorage
   // guard means a mis-bumped version file costs one reload per wake, never a
   // loop. scripts/bump-version.sh keeps the three markers in step.
-  const SITE_VERSION = "35";
+  const SITE_VERSION = "36";
   let hiddenAt = 0;
   async function healIfStale() {
     try {

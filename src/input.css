@@ -1629,9 +1629,13 @@ body[data-page="about"]>.topbar::before {
   white-space: nowrap;
   color: var(--blue);
   opacity: .82;
+  /* A straight underline, drawn at rest — not the hand-drawn .inkline: this is
+     chrome sitting in the corner of every page, and the wobbly stroke would
+     read as a headline accent. Hover turns the LETTERS pink (the site's
+     "this one" colour), the underline follows the text. */
   text-decoration: underline;
   text-underline-offset: .25em;
-  transition: opacity .25s ease;
+  transition: opacity .25s ease, color .25s ease;
 }
 
 /* When there's no topbar to host it, pin it to the corner ourselves. */
@@ -1643,7 +1647,10 @@ body > .signout-link {
 }
 
 .signout-link:hover,
-.signout-link:focus-visible { opacity: 1; }
+.signout-link:focus-visible {
+  opacity: 1;
+  color: var(--pink);
+}
 
 .booking-confirm {
   display: flex;

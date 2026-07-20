@@ -7,8 +7,8 @@
   <title>Madame — About &amp; Contact</title>
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>M</text></svg>">
-  <link rel="stylesheet" href="dist/styles.css?v=35">
-  <link rel="stylesheet" href="css/pages/about.css?v=35">
+  <link rel="stylesheet" href="dist/styles.css?v=36">
+  <link rel="stylesheet" href="css/pages/about.css?v=36">
   <!-- Marks JS as available BEFORE first paint, so the entrance animation
        can hide the copy. Without this the page would render blank if app.js
        ever failed to load. Must stay inline and in <head>. -->
@@ -47,10 +47,16 @@
   </header>
 
   <div class="content content--fill">
+    <!-- The stroke follows the LETTERS: "Madame" sits flat (no descender), so
+         this line stays level. The landing's "lady" keeps its downward sweep
+         because the script drops into the y — same rule, different word.
+         The full stop lives INSIDE the mark so it can't wrap to its own line
+         (it did once "Madame" got wider in real Neulis) and so the stroke
+         spans "Madame." the way the design draws it. -->
     <h1 class="headline anim" style="--d:.1s">Hello, we're <span class="mark underline"><span
-          class="script">Madame</span><svg viewBox="0 0 200 22" preserveAspectRatio="none">
-          <path class="accent" style="--len:210;stroke-width:4.7" d="M2 7 L90 7 L198 19" />
-        </svg></span>.</h1>
+          class="script">Madame</span>.<svg viewBox="0 0 200 22" preserveAspectRatio="none">
+          <path class="accent" style="--len:210;stroke-width:4.7" d="M2 9 C 65 7, 135 11, 198 12" />
+        </svg></span></h1>
     <!-- Copy transcribed from the owner's about/contact document, verbatim
          (one typo fixed: "smple" -> "simple"). -->
     <p class="subhead anim" style="--d:.25s">Madame is an innovative platform and service that provides
@@ -76,9 +82,9 @@
     </div>
   </div>
 
-  <script src="api.js?v=35"></script>
-  <script src="app.js?v=35"></script>
-  <script src="booking.js?v=35"></script>
+  <script src="api.js?v=36"></script>
+  <script src="app.js?v=36"></script>
+  <script src="booking.js?v=36"></script>
 </body>
 
 </html>

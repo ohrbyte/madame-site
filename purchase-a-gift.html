@@ -7,8 +7,8 @@
   <title>Madame — Purchase a gift</title>
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>M</text></svg>">
-  <link rel="stylesheet" href="dist/styles.css?v=35">
-  <link rel="stylesheet" href="css/pages/purchase-a-gift.css?v=35">
+  <link rel="stylesheet" href="dist/styles.css?v=36">
+  <link rel="stylesheet" href="css/pages/purchase-a-gift.css?v=36">
   <!-- Marks JS as available BEFORE first paint, so the entrance animation
        can hide the copy. Without this the page would render blank if app.js
        ever failed to load. Must stay inline and in <head>. -->
@@ -48,12 +48,17 @@
   </header>
 
   <div class="content content--fill">
-    <!-- Broken deliberately: .mark is nowrap, so left to itself the line breaks
-         before it and strands the full stop on its own line. -->
+    <!-- The <br> is deliberate: it sets the design's two-line break rather than
+         letting the nowrap .mark decide where the line turns. -->
+    <!-- Level stroke: this word sits flat (no descender), so the line stays
+         level — same rule as About. Words that drop into a descender (the
+         landing's "lady", my-bookings' "bookings") keep the downward sweep.
+         The full stop sits INSIDE the mark so it can't wrap alone and the
+         stroke spans the word + stop, as the design draws it. -->
     <h1 class="headline anim" style="--d:.1s">Give the gift<br>of <span class="mark underline"><span
-          class="script">clean</span><svg viewBox="0 0 200 22" preserveAspectRatio="none">
-          <path class="accent" style="--len:210;stroke-width:4.7" d="M2 7 L90 7 L198 19" />
-        </svg></span>.</h1>
+          class="script">clean</span>.<svg viewBox="0 0 200 22" preserveAspectRatio="none">
+          <path class="accent" style="--len:210;stroke-width:4.7" d="M2 9 C 65 7, 135 11, 198 12" />
+        </svg></span></h1>
 
     <!-- Wired (booking.js): the amounts are hours priced at the backend's
          hourly rate (GET /public/giftcards/config — the server enforces the
@@ -122,9 +127,9 @@
     </form>
   </div>
 
-  <script src="api.js?v=35"></script>
-  <script src="app.js?v=35"></script>
-  <script src="booking.js?v=35"></script>
+  <script src="api.js?v=36"></script>
+  <script src="app.js?v=36"></script>
+  <script src="booking.js?v=36"></script>
 </body>
 
 </html>

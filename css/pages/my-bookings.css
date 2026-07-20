@@ -106,16 +106,25 @@ body[data-page="my-bookings"] .booking-confirm {
   font-size: clamp(.68rem, .9vw, .8rem);
 }
 
-/* the lapsed-session note — a quiet line above the list, button inline */
+/* The lapsed-session note — a quiet line above the list. It reads as one
+   sentence whose actionable clause is the link, so it flows as TEXT (a flex
+   row would space the lead-in and the clause apart like two separate things). */
 body[data-page="my-bookings"] .booking-signin {
-  display: flex;
-  align-items: center;
-  gap: .6rem;
   margin: 0 0 .8rem;
 }
 
+/* Straight underline like the top-right sign-out, and the same hover: the
+   letters go pink (pink-soft here — it's on the blue panel). No nowrap: the
+   clause is a whole sentence now and has to be allowed to break. */
 body[data-page="my-bookings"] .booking-signin .booking-act {
-  white-space: nowrap;
+  text-align: left;
+  transition: color .25s ease, opacity .25s ease;
+}
+
+body[data-page="my-bookings"] .booking-signin .booking-act:hover,
+body[data-page="my-bookings"] .booking-signin .booking-act:focus-visible {
+  opacity: 1;
+  color: var(--pink-soft);
 }
 
 /* The sign-out button is the shared top-right topbar control now (see
