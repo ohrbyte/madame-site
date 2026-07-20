@@ -310,7 +310,9 @@
        say so with ?next= — allowlisted, never echoed blindly. */
     function authDestination() {
       const next = new URLSearchParams(window.location.search).get("next");
-      return next === "my-bookings" ? "my-bookings" : "address";
+      // Mid-flow pages bounce here when a session dies; flow state survives
+      // in sessionStorage, so landing back on the same step just works.
+      return ["my-bookings", "day", "time", "review"].includes(next) ? next : "address";
     }
 
     async function afterAuth() {
@@ -377,14 +379,20 @@
           const code = digits(codeField.value);
           if (code.length < 4) return note(status, "Enter the code from the text message.", true);
           const res = await submitBusy(null, () => api.verifySmsOtp(pendingPhone, code));
-          if (res && res.access_token) api.setToken(res.access_token);
+          // undefined = a second press while the first verify is in flight
+          // (busy() refuses re-entry). Walking on regardless navigated away
+          // mid-verify, aborting the fetch AFTER the server consumed the
+          // code — the customer typed the right code and still got dumped.
+          if (!res) return;
+          if (res.access_token) api.setToken(res.access_token);
           await afterAuth();
         } else if (st === "name") {
           const name = nameField.value.trim();
           if (!name) return note(status, "We do need something to call you.", true);
           const claims = api.claims() || {};
-          const res = await api.register({ name, phone: claims.phone || undefined, email: claims.email || undefined, tos_accepted: true });
-          if (res && res.access_token) api.setToken(res.access_token);
+          const res = await submitBusy(null, () => api.register({ name, phone: claims.phone || undefined, email: claims.email || undefined, tos_accepted: true }));
+          if (!res) return;
+          if (res.access_token) api.setToken(res.access_token);
           goto(authDestination());
         }
       } catch (err) {
@@ -787,10 +795,29 @@
         const fresh = (await api.availableSlots(state.date, hours)) || [];
         if (req !== slotsReq) return;
         slots = fresh;
-        note(status, slots.length ? "" : "No one is free that day for that long — try another day or fewer hours.", !slots.length);
+        if (!slots.length) {
+          // Say only things this page can actually do: fewer hours works
+          // when the stepper isn't at minimum; another day means /day.
+          note(status, hours > rules.min_hours
+            ? "No one is free that day for that long — try fewer hours, or pick another day."
+            : "No one is free that day — pick another day.", true);
+          if (!$(".slots-day-link", panel || document)) {
+            const back = document.createElement("button");
+            back.type = "button";
+            back.className = "choice slots-day-link";
+            back.textContent = "Pick another day";
+            back.addEventListener("click", () => goto("day"));
+            grid.after(back);
+          }
+        } else {
+          note(status, "");
+          const stale = $(".slots-day-link", panel || document);
+          if (stale) stale.remove();
+        }
         if (!slots.some((s) => s.start_time === selectedStart)) { selectedStart = ""; flow.patch({ slot: null }); }
         renderSlots();
       } catch (err) {
+        if (err && err.status === 401) return goto("sign-in?next=time");
         if (req === slotsReq) note(status, formatErr(err), true);
       } finally {
         if (req === slotsReq) grid.removeAttribute("aria-busy");
@@ -962,7 +989,7 @@
         b.addEventListener("click", () => {
           if (useCredit === c.on) return;
           useCredit = c.on;
-          loadEstimate().catch((err) => note(status, formatErr(err), true));
+          loadEstimate().catch(onEstimateError);
         });
         box.appendChild(b);
       });
@@ -992,15 +1019,28 @@
       }
       if (creditAvailable > 0) renderCreditChoice();
       coveredByCredit = freq === 0 && useCredit && est.credit_applied > 0 && est.amount_due === 0;
+      // This runs on every estimate reload (the credit toggle re-estimates),
+      // so both directions must be handled: hiding the payment section when
+      // credit covers everything AND bringing it back when the customer
+      // flips to "save it for later" — leaving it hidden dead-ended new
+      // customers on an invisible card form.
+      const payTitle = $(".pay-title", panel);
+      const coveredNote = $(".paynote", panel);
       if (coveredByCredit) {
-        const payTitle = $(".pay-title", panel);
         if (payTitle) payTitle.hidden = true;
         payList.hidden = true;
         stripeBox.hidden = true;
-        const covered = document.createElement("p");
-        covered.className = "paynote";
-        covered.textContent = "No card needed — your gift credit covers this clean.";
-        payList.before(covered);
+        if (!coveredNote) {
+          const covered = document.createElement("p");
+          covered.className = "paynote";
+          covered.textContent = "No card needed — your gift credit covers this clean.";
+          payList.before(covered);
+        }
+      } else {
+        if (payTitle) payTitle.hidden = false;
+        payList.hidden = false;
+        stripeBox.hidden = selectedPm !== "new";
+        if (coveredNote) coveredNote.remove();
       }
       // The busy heads-up: booking still works, but the customer must know a
       // substitute steps in — continuing past this note IS the acknowledgment
@@ -1067,14 +1107,41 @@
         renderMethods();
         if (selectedPm === "new") await mountPaymentElement();
       } catch (err) {
+        // One failed fetch used to permanently brick Confirm behind "Add a
+        // card first" with NO card UI on screen — always leave a way back in.
+        if (err && err.status === 401) return goto("sign-in?next=review");
         note(status, formatErr(err), true);
+        payList.innerHTML = "";
+        const retry = document.createElement("button");
+        retry.type = "button";
+        retry.className = "choice choice--pay";
+        retry.innerHTML = "<span>Couldn't load your cards — tap to try again</span>";
+        retry.addEventListener("click", () => { note(status, ""); loadMethods(); });
+        payList.appendChild(retry);
       }
     }
 
     /* A new card becomes a saved payment method BEFORE booking: confirm the
        SetupIntent, then tell the backend about the resulting pm id. */
+    // A card that passed Stripe's confirmSetup but whose save-to-account call
+    // failed. The SetupIntent is spent, so re-confirming it errors forever —
+    // the retry must re-attempt ONLY the save, with the same pm id.
+    let pendingSavePmId = null;
+
     async function ensurePaymentMethod() {
       if (selectedPm && selectedPm !== "new") return selectedPm;
+      if (pendingSavePmId) {
+        const pmId = pendingSavePmId;
+        const saved = await api.addPaymentMethod(pmId);
+        pendingSavePmId = null;
+        selectedPm = pmId;
+        if (saved && saved.payment_method_id) {
+          methods.push(saved);
+          stripeBox.hidden = true;
+          renderMethods();
+        }
+        return pmId;
+      }
       if (!elements) throw new Error("Add a card first.");
       const result = await stripe.confirmSetup({
         elements,
@@ -1085,7 +1152,13 @@
       const pmId = typeof result.setupIntent.payment_method === "string"
         ? result.setupIntent.payment_method
         : result.setupIntent.payment_method && result.setupIntent.payment_method.id;
-      const saved = await api.addPaymentMethod(pmId);
+      let saved;
+      try {
+        saved = await api.addPaymentMethod(pmId);
+      } catch (err) {
+        pendingSavePmId = pmId;
+        throw new Error("Your card was verified but we couldn't finish adding it — press Confirm again to continue.");
+      }
       // The SetupIntent is consumed now. If booking still fails (say the
       // recurring dup-guard), a retry must reuse the saved card — confirming
       // the spent intent again would error on every attempt after this.
@@ -1249,7 +1322,30 @@
     }
     confirmBtn.addEventListener("click", (e) => { e.preventDefault(); confirmBooking(); });
 
-    loadEstimate().catch((err) => note(status, formatErr(err), true));
+    // A failed estimate used to leave the static placeholder review on screen
+    // and Confirm permanently answering "still fetching your price" — no
+    // retry, no way forward. Clear the fake rows, say what happened, offer
+    // the way back in; a dead session goes to sign-in instead (flow state
+    // survives in sessionStorage, so they land right back here).
+    function onEstimateError(err) {
+      if (err && err.status === 401) return goto("sign-in?next=review");
+      review.innerHTML = "";
+      note(status, `${formatErr(err)} Your price couldn't be loaded.`, true);
+      if (!$(".estimate-retry", panel)) {
+        const retry = document.createElement("button");
+        retry.type = "button";
+        retry.className = "choice estimate-retry";
+        retry.textContent = "Tap to load your price again";
+        retry.addEventListener("click", () => {
+          retry.remove();
+          note(status, "");
+          loadEstimate().catch(onEstimateError);
+        });
+        review.after(retry);
+      }
+    }
+
+    loadEstimate().catch(onEstimateError);
     loadMethods();
   }
 
@@ -1294,6 +1390,10 @@
     function maskedIdentity() {
       const c = api.getToken() && api.claims();
       if (!c) return null;
+      // A session with no account behind it (is_new token) isn't "signed in
+      // as" anyone — showing an identity next to a sign-in prompt reads as
+      // the site contradicting itself.
+      if (!c.client_id) return null;
       if (c.phone && /\d{4}$/.test(c.phone)) return `•••-${c.phone.slice(-4)}`;
       if (c.email && c.email.includes("@")) {
         const [u, d] = c.email.split("@");
@@ -1556,7 +1656,16 @@
         });
       } catch (err) {
         if (err && err.status === 401) offerSignin();
-        else reconcileDeviceRows();
+        else {
+          // A silent non-401 failure left the page confidently claiming the
+          // customer has no bookings. Own the failure, then let the device
+          // records stand in as clearly-labelled second best.
+          const p = document.createElement("p");
+          p.className = "formnote formnote--err";
+          p.textContent = "We couldn't load your account's bookings just now — showing what was booked on this device. Reload the page to try again.";
+          list.before(p);
+          reconcileDeviceRows();
+        }
       }
     })();
 
@@ -1658,10 +1767,20 @@
 
     // The backend rejects purchases without a Turnstile token whenever it has
     // keys configured, so the widget must render exactly when config says so.
+    let turnstileWait = 0;
     function mountTurnstile() {
       const box = $("#turnstile", form);
       if (!box || !config.turnstile_site_key) return;
-      if (!window.turnstile) return setTimeout(mountTurnstile, 200);
+      if (!window.turnstile) {
+        // The challenge script can be blocked (ad-blocker, network). After a
+        // grace period stop pointing at a widget that will never appear.
+        turnstileWait += 200;
+        if (turnstileWait > 8000) {
+          note(status, "The security check couldn't load — refresh the page to try again, or call 845-212-4444 to order by phone.", true);
+          return;
+        }
+        return setTimeout(mountTurnstile, 200);
+      }
       box.hidden = false;
       window.turnstile.render(box, {
         sitekey: config.turnstile_site_key,
