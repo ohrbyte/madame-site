@@ -152,7 +152,7 @@
 
   /* The top band dissolves as it rises, so it flows up into the cream instead
      of ending on the asset's flat top edge. */
-  --swirl-fade: linear-gradient(to top, #000 66%, transparent 88%);
+  --swirl-fade: linear-gradient(to top, #000 75%, transparent 90%);
 
   /* Weave CONSTANTS — properties of swirl.webp itself, measured once offline
      (scripts/_weavefit.mjs). They describe the ASSET, so they are global and
@@ -1279,6 +1279,7 @@ body[data-page="about"]>.topbar::before {
 }
 
 @media (min-aspect-ratio: 3900/1816) {
+
   /* The hands sit at their PSD canvas positions at every aspect (the per-page
      --hand-nudge values reproduce the manifest boxes exactly at the base
      --art-right) — the ONE 16:9 concession in the art is the SWIRL, zoomed
@@ -1292,10 +1293,12 @@ body[data-page="about"]>.topbar::before {
      poster exactly as the design draws it. Hands, copy and weave anchors are
      untouched; the band mask re-fits itself from the same dials. */
   :root {
-    --swirl-nudge: 18.3cqw;   /* -23.3 + 18.3 = -5cqw — the PSD right edge */
+    --swirl-nudge: 18.3cqw;
+    /* -23.3 + 18.3 = -5cqw — the PSD right edge */
     --swirl-h-n: 153.47;
     --swirl-stretch: 1;
-    --swirl-drop: 0.27cqh;    /* registered centre is 54.27%, base is 54% */
+    --swirl-drop: 0.27cqh;
+    /* registered centre is 54.27%, base is 54% */
 
     /* 1% of the FRAME's width. The chrome type is clamp(min, X·vw, max) —
        fitted where viewport ≈ frame. Once the viewport outgrows the poster,
@@ -1303,7 +1306,8 @@ body[data-page="about"]>.topbar::before {
        type undersized (tall wide monitors); either way the text loses the
        design's proportion to the art. Swapping each fitted X·vw for X·--fw
        keeps the poster's own scale at any frame size. */
-    --fw: 2.1476dvh;          /* 100dvh · (3900/1816) / 100 */
+    --fw: 2.1476dvh;
+    /* 100dvh · (3900/1816) / 100 */
     --cgap: calc(1.9 * var(--fw));
 
     /* The landing's hand. In the 16:9 crop it is hand-landing.webp, tucked
@@ -1643,7 +1647,7 @@ body[data-page="about"]>.topbar::before {
 }
 
 /* When there's no topbar to host it, pin it to the corner ourselves. */
-body > .signout-link {
+body>.signout-link {
   position: fixed;
   top: max(1.1rem, 8.6%);
   right: max(1.25rem, 5.9%);
@@ -1678,5 +1682,11 @@ body > .signout-link {
   opacity: .85;
 }
 
-.booking-act--cancel { color: var(--pink); }
-.booking-act:disabled { opacity: .4; cursor: default; }
+.booking-act--cancel {
+  color: var(--pink);
+}
+
+.booking-act:disabled {
+  opacity: .4;
+  cursor: default;
+}
