@@ -36,9 +36,11 @@ Clean routes (rewritten to files by bs-config.js and mirrored in the VPS nginx m
 | `/purchase-a-gift` | purchase-a-gift.html | Anonymous gift purchase, amounts priced from the backend's hourly rate. |
 
 Links in HTML are RELATIVE (`href="day"`, not `/day`) so the same pages work mounted
-under a sub-path. Asset URLs carry `?v=2` — Cloudflare once edge-cached a 404 for 4h;
-bump the version only if you must bust an already-cached URL (new responses are
-`no-store` and never cached).
+under a sub-path. Version bumps go through `scripts/bump-version.sh` — it moves the
+HTML `?v=` strings, booking.js `SITE_VERSION`, and `version.txt` together. The last
+two power the stale-tab self-heal (booking.js): restored/woken tabs poll version.txt
+and reload once when behind, so a phone tab restored days later can't keep running
+old code. Never edit the three markers separately.
 
 ## How the art works
 

@@ -1866,6 +1866,38 @@
     }).catch((err) => note(status, formatErr(err), true));
   }
 
+  /* ---------- stale-tab self-heal ---------- */
+
+  // Mobile browsers restore backgrounded tabs from memory for days, so a tab
+  // keeps RUNNING old code while fetching fresh data — that's how an
+  // already-fixed bug kept "reproducing" on one phone for a whole evening.
+  // On every wake after a real absence, compare the version this file was
+  // built as with the served one; if behind, reload once. The sessionStorage
+  // guard means a mis-bumped version file costs one reload per wake, never a
+  // loop. scripts/bump-version.sh keeps the three markers in step.
+  const SITE_VERSION = "29";
+  let hiddenAt = 0;
+  async function healIfStale() {
+    try {
+      const lastHeal = Number(sessionStorage.getItem("madame_heal_at") || 0);
+      if (Date.now() - lastHeal < 10 * 60 * 1000) return;
+      const res = await fetch("version.txt", { cache: "no-store" });
+      if (!res.ok) return;
+      const live = (await res.text()).trim();
+      if (live && live !== SITE_VERSION) {
+        sessionStorage.setItem("madame_heal_at", String(Date.now()));
+        window.location.reload();
+      }
+    } catch { /* offline wake — leave the page alone */ }
+  }
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") { hiddenAt = Date.now(); return; }
+    // Only after a real absence — flicking between apps shouldn't reload.
+    if (hiddenAt && Date.now() - hiddenAt > 5 * 60 * 1000) healIfStale();
+  });
+  // A back/forward-cache restore IS the stale-tab case — check immediately.
+  window.addEventListener("pageshow", (e) => { if (e.persisted) healIfStale(); });
+
   /* ---------- session sign-out, on every page ---------- */
 
   // Masked session identity — enough to recognise WHOSE account this device
