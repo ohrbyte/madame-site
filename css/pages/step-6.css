@@ -24,3 +24,16 @@ body[data-page="step-6"] .actions {
   flex-wrap: wrap;
   gap: .6rem;
 }
+
+/* The ring circles a SHORT word with tall capitals ("All"), so the shared
+   132% width (tuned for wider words like "Clean"/"time") loops tight against
+   the letters. Give this instance more room so it encircles "All" generously.
+   Only the RIGHT margin grows — the circle opens the line (:first-child left
+   margin stays 0, ring oversailing the left edge as a hand-drawn one should),
+   and the extra right room keeps the wider spill clear of "set". */
+body[data-page="step-6"] .mark.circle > svg {
+  width: 158%;
+}
+body[data-page="step-6"] .mark.circle {
+  margin-right: .3em;
+}
