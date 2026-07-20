@@ -24,7 +24,22 @@
 
 (function () {
   const api = window.MadameApi;
-  if (!api) return;
+  if (!api) {
+    // api.js failed to load: every guard, availability check and payment call
+    // below is gone, but the static pages still walk a convincing-looking
+    // flow. Say so loudly instead of letting anyone "book" into the void.
+    const warn = () => {
+      const b = document.createElement("p");
+      b.className = "formnote";
+      b.setAttribute("role", "alert");
+      b.style.cssText = "position:fixed;top:0;left:0;right:0;z-index:9999;margin:0;padding:.6em 1em;background:#8c2440;color:#fff;text-align:center;font-size:.95em;";
+      b.textContent = "We couldn't load the booking system — please refresh the page. If it keeps happening, call 845-212-4444 to book.";
+      document.body.prepend(b);
+    };
+    if (document.readyState !== "loading") warn();
+    else document.addEventListener("DOMContentLoaded", warn);
+    return;
+  }
   const page = document.body.dataset.page || "";
 
   /* ---------- flow state (sessionStorage) ---------- */
@@ -1122,33 +1137,46 @@
               created: Date.now(),
             };
           } else {
-            const result = await api.book({
-              date: state.date,
-              start_time: state.slot.start_time,
-              hours: state.hours,
-              payment_method_id: pmId,
-              language,
-              notes,
-              address_id: state.address_id,
-              preferred_cleaner_id: state.preferred_cleaner_id,
-              accept_substitute: preferredBusy || undefined,
-              allow_overlap: overlapOk || undefined,
-              use_credit: useCredit,
-            });
-            let final = result;
-            if (result && result.requires_action) {
-              await ensureStripe();
-              const { error, paymentIntent } = await stripe.confirmCardPayment(
-                result.payment_intent_client_secret, undefined, { handleActions: true });
-              if (error) throw new Error(error.message);
-              // Manual capture: the charge is authorised now, captured on completion.
-              if (paymentIntent && paymentIntent.status !== "requires_capture") {
-                throw new Error(`Unexpected payment status: ${paymentIntent.status}`);
+            // Resume-first: if an earlier press already CREATED a booking and
+            // entered the 3-D Secure dance, finish THAT one — re-running
+            // api.book would mint a second booking (and the overlap warning's
+            // "book it anyway" would then talk the customer into confirming
+            // the duplicate).
+            let pendingConfirm = null;
+            try { pendingConfirm = JSON.parse(sessionStorage.getItem(PENDING_CONFIRM_KEY) || "null"); } catch { /* noop */ }
+            let final = null;
+            let bookedId = null;
+            if (pendingConfirm && pendingConfirm.booking_id) {
+              bookedId = pendingConfirm.booking_id;
+              final = await finishThreeDs(pendingConfirm.booking_id, pendingConfirm.client_secret);
+              if (!final) return; // message shown; the pending marker decides the next press
+            } else {
+              const result = await api.book({
+                date: state.date,
+                start_time: state.slot.start_time,
+                hours: state.hours,
+                payment_method_id: pmId,
+                language,
+                notes,
+                address_id: state.address_id,
+                preferred_cleaner_id: state.preferred_cleaner_id,
+                accept_substitute: preferredBusy || undefined,
+                allow_overlap: overlapOk || undefined,
+                use_credit: useCredit,
+              });
+              bookedId = result.booking_id;
+              final = result;
+              if (result && result.requires_action) {
+                sessionStorage.setItem(PENDING_CONFIRM_KEY, JSON.stringify({
+                  booking_id: result.booking_id,
+                  client_secret: result.payment_intent_client_secret,
+                }));
+                final = await finishThreeDs(result.booking_id, result.payment_intent_client_secret);
+                if (!final) return;
               }
-              final = await api.confirmPayment(result.booking_id);
             }
             record = {
-              id: final.id || result.booking_id,
+              id: final.id || bookedId,
               date: state.date,
               start: state.slot.start_formatted || state.slot.start_time,
               hours: state.hours,
@@ -1180,6 +1208,45 @@
     let overlapOk = false;
     let useCredit = true;
     let creditAvailable = 0;
+
+    // Survives a failed press: the booking id + client secret of a 3-D Secure
+    // attempt that hasn't reached confirmed yet. Cleared only on success or a
+    // definitive card decline — anything in between resumes instead of
+    // creating a second booking.
+    const PENDING_CONFIRM_KEY = "madame_pending_confirm";
+
+    // The 3-D Secure tail. Returns the confirmed booking, or null after
+    // showing the customer what to do next. The pending marker is the
+    // contract: while it exists, the next Confirm press finishes THIS
+    // attempt; once cleared, the next press starts fresh.
+    async function finishThreeDs(bookingId, clientSecret) {
+      if (clientSecret) {
+        await ensureStripe();
+        const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, undefined, { handleActions: true });
+        // A replayed secret whose challenge already finished comes back as an
+        // "unexpected state" error carrying the (authorised) intent — that's
+        // success for us, so judge by the intent, not the error.
+        const pi = paymentIntent || (error && error.payment_intent);
+        const authorised = pi && (pi.status === "requires_capture" || pi.status === "succeeded");
+        if ((error && !authorised) || (!error && pi && !authorised)) {
+          sessionStorage.removeItem(PENDING_CONFIRM_KEY);
+          note(status, `${(error && error.message) || "Your bank didn't approve the payment."} That attempt is set aside and won't be charged — press Confirm to try again (you can pick a different card).`, true);
+          return null;
+        }
+      }
+      try {
+        const final = await api.confirmPayment(bookingId);
+        sessionStorage.removeItem(PENDING_CONFIRM_KEY);
+        return final;
+      } catch (err) {
+        // The money side is done (authorised); only our confirm call failed.
+        // Keep the marker so the next press retries JUST this step — the
+        // backend replays it idempotently, so pressing again can't double-book
+        // or double-charge.
+        note(status, "Your payment went through, but we couldn't finish confirming the booking — press Confirm once more to complete it. You won't be charged twice.", true);
+        return null;
+      }
+    }
     confirmBtn.addEventListener("click", (e) => { e.preventDefault(); confirmBooking(); });
 
     loadEstimate().catch((err) => note(status, formatErr(err), true));
@@ -1196,6 +1263,11 @@
       sub.innerHTML = state.booking.recurring
         ? `Your regular clean is booked — <strong>${freqPhrase(state.booking.recurring)}</strong>, starting <strong>${designDate(state.booking.date)}</strong> at <strong>${state.booking.start}</strong>. We've sent the details to your phone.`
         : `Your booking is confirmed. We've sent the details to your phone — your cleaner will be there <strong>${designDate(state.booking.date)}</strong> at <strong>${state.booking.start}</strong>.`;
+    } else if (sub) {
+      // Landed here without a just-completed flow (direct visit, stale tab)
+      // — the static "pulling up your details" line would read as a hung
+      // confirmation, so point at the real list instead.
+      sub.innerHTML = `Nothing was just booked on this device. <a class="inkline" href="my-bookings">See my bookings</a> for what's scheduled.`;
     }
     // The flow is done; a fresh "Book another lady" starts clean (the JWT and
     // the device's booking records live in localStorage and survive this).
@@ -1328,7 +1400,19 @@
         try {
           const p = await api.cancelPreview(r.id);
           if (p && p.fee_applies) feeLine = ` A ${money(p.fee_amount)} late-cancellation fee applies.`;
-        } catch { /* previewless confirm still works */ }
+        } catch (err) {
+          // The preview is the ONLY place the late-cancellation fee is
+          // disclosed, and the backend charges it regardless of what was
+          // shown — cancelling blind can cost $25 with zero warning. Stop
+          // here instead of proceeding without the number.
+          if (err && err.status === 401) { offerSignin(); return; }
+          const warn = document.createElement("span");
+          warn.className = "booking-confirm";
+          warn.textContent = "Couldn't check whether a cancellation fee applies — nothing was cancelled. Please try again in a moment.";
+          actions.appendChild(warn);
+          setTimeout(() => warn.remove(), 7000);
+          return;
+        }
         const strip = document.createElement("span");
         strip.className = "booking-confirm";
         const q = document.createElement("span");
@@ -1499,6 +1583,9 @@
     let customOn = false;      // the "pick your own" stepper is active
     let customHours = 12;
     let turnstileToken = null;
+    // A captured-but-unrecorded 3-D Secure gift charge; while this exists,
+    // Send resumes the recording step instead of charging again.
+    const PENDING_GIFT_KEY = "madame_pending_gift";
 
     const HOUR_CHOICES = [4, 6, 10, 20];
     const hoursBox = $(".gift-hours", form);
@@ -1597,21 +1684,48 @@
       await busy(payBtn, "Sending…", async () => {
         try {
           note(status, "");
-          const pm = await stripe.createPaymentMethod({ type: "card", card });
-          if (pm.error) throw new Error(pm.error.message);
-          const payload = {
-            recipient_name: recipientName,
-            recipient_phone: digits(recipientPhone),
-            hours: chosenHours,
-            buyer_name: buyerName || undefined,
-            buyer_phone: digits(buyerPhone),
-            turnstile_token: turnstileToken || undefined,
-          };
-          let res = await api.giftPurchase({ ...payload, payment_method_id: pm.paymentMethod.id });
-          if (res && res.requires_action) {
-            const conf = await stripe.confirmCardPayment(res.client_secret);
-            if (conf.error) throw new Error(conf.error.message);
-            res = await api.giftConfirm({ ...payload, payment_intent_id: res.payment_intent_id });
+          // Resume-first: a 3-D Secure gift charge is CAPTURED the moment the
+          // bank challenge finishes — if our confirm call then failed, the
+          // buyer's money is already taken. Retrying must finish THAT charge
+          // (the backend replays it idempotently), never run a fresh one.
+          let pendingGift = null;
+          try { pendingGift = JSON.parse(sessionStorage.getItem(PENDING_GIFT_KEY) || "null"); } catch { /* noop */ }
+          let res;
+          if (pendingGift && pendingGift.payment_intent_id) {
+            try {
+              res = await api.giftConfirm({ ...pendingGift.payload, payment_intent_id: pendingGift.payment_intent_id });
+              sessionStorage.removeItem(PENDING_GIFT_KEY);
+            } catch (err) {
+              throw new Error("Your card was charged but the gift isn\'t recorded yet — press Send again to finish it. You won\'t be charged twice.");
+            }
+          } else {
+            const pm = await stripe.createPaymentMethod({ type: "card", card });
+            if (pm.error) throw new Error(pm.error.message);
+            const payload = {
+              recipient_name: recipientName,
+              recipient_phone: digits(recipientPhone),
+              hours: chosenHours,
+              buyer_name: buyerName || undefined,
+              buyer_phone: digits(buyerPhone),
+              turnstile_token: turnstileToken || undefined,
+            };
+            res = await api.giftPurchase({ ...payload, payment_method_id: pm.paymentMethod.id });
+            if (res && res.requires_action) {
+              const conf = await stripe.confirmCardPayment(res.client_secret);
+              if (conf.error) throw new Error(conf.error.message);
+              // From here the money is captured — remember the intent until
+              // the gift is recorded, so a confirm failure can be resumed.
+              sessionStorage.setItem(PENDING_GIFT_KEY, JSON.stringify({
+                payment_intent_id: res.payment_intent_id,
+                payload,
+              }));
+              try {
+                res = await api.giftConfirm({ ...payload, payment_intent_id: res.payment_intent_id });
+                sessionStorage.removeItem(PENDING_GIFT_KEY);
+              } catch (err) {
+                throw new Error("Your card was charged but the gift isn\'t recorded yet — press Send again to finish it. You won\'t be charged twice.");
+              }
+            }
           }
           form.dataset.stage = "done";
           const h2 = $("h2", form);

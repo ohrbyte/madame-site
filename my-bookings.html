@@ -7,8 +7,8 @@
   <title>Madame — My bookings</title>
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>M</text></svg>">
-  <link rel="stylesheet" href="dist/styles.css?v=24">
-  <link rel="stylesheet" href="css/pages/my-bookings.css?v=24">
+  <link rel="stylesheet" href="dist/styles.css?v=25">
+  <link rel="stylesheet" href="css/pages/my-bookings.css?v=25">
   <!-- Marks JS as available BEFORE first paint, so the entrance animation
        can hide the copy. Without this the page would render blank if app.js
        ever failed to load. Must stay inline and in <head>. -->
@@ -45,25 +45,20 @@
            list-bookings endpoint, so this shows the bookings made on THIS
            device (localStorage), newest first. The rows below are the no-JS
            fallback and get replaced on load. -->
+      <!-- No-JS / pre-JS fallback: never show invented bookings — a customer
+           once followed a fabricated row's "Reschedule" into booking a brand
+           new clean. booking.js replaces this with the real account list. -->
       <ul class="bookings">
-        <li class="booking">
-          <span class="booking-when"><strong>Thu 23 Jul</strong> · 10:00</span>
-          <span class="booking-what">Deep clean · 2 bed</span>
-          <a class="booking-edit inkline" href="day">Reschedule</a>
-        </li>
-        <li class="booking">
-          <span class="booking-when"><strong>Thu 6 Aug</strong> · 10:00</span>
-          <span class="booking-what">Regular clean · 2 bed</span>
-          <a class="booking-edit inkline" href="day">Reschedule</a>
-        </li>
+        <li class="booking booking--empty">Loading your bookings… If this doesn't change,
+          refresh the page — or call 845-212-4444 and we'll check for you.</li>
       </ul>
       <a class="btn" href="sign-in">Book another clean</a>
     </div>
   </div>
 
-  <script src="api.js?v=24"></script>
-  <script src="app.js?v=24"></script>
-  <script src="booking.js?v=24"></script>
+  <script src="api.js?v=25"></script>
+  <script src="app.js?v=25"></script>
+  <script src="booking.js?v=25"></script>
 </body>
 
 </html>

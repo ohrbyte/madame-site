@@ -7,8 +7,8 @@
   <title>Madame — All set</title>
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>M</text></svg>">
-  <link rel="stylesheet" href="dist/styles.css?v=24">
-  <link rel="stylesheet" href="css/pages/step-6.css?v=24">
+  <link rel="stylesheet" href="dist/styles.css?v=25">
+  <link rel="stylesheet" href="css/pages/step-6.css?v=25">
   <!-- Marks JS as available BEFORE first paint, so the entrance animation
        can hide the copy. Without this the page would render blank if app.js
        ever failed to load. Must stay inline and in <head>. -->
@@ -44,8 +44,13 @@
           <path class="accent" style="--len:240;--draw-delay:1.55s" d="M5 14 C 55 5, 150 5, 196 12" />
         </svg></span>!</h1>
 
-    <p class="subhead anim" style="--d:.3s">Your booking is confirmed. We've sent the details to your
-      phone — your cleaner will be there Friday at 11:00.</p>
+    <!-- No-JS / pre-JS fallback: NEVER claim success here. booking.js swaps
+         in the real confirmation (date, time, cadence) from the completed
+         flow; if this text is still visible, nothing was verified as booked. -->
+    <p class="subhead anim" style="--d:.3s">One moment — we're pulling up your booking details.
+      If this line doesn't change, your booking may <strong>not</strong> have gone through:
+      check <a class="inkline" href="my-bookings">my bookings</a> or call
+      <a class="inkline" href="tel:+18452124444">845-212-4444</a>.</p>
 
     <div class="actions anim" style="--d:.42s">
       <a class="btn" href="my-bookings">See my bookings</a>
@@ -53,9 +58,9 @@
     </div>
   </div>
 
-  <script src="api.js?v=24"></script>
-  <script src="app.js?v=24"></script>
-  <script src="booking.js?v=24"></script>
+  <script src="api.js?v=25"></script>
+  <script src="app.js?v=25"></script>
+  <script src="booking.js?v=25"></script>
 </body>
 
 </html>
