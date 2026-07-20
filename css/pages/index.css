@@ -37,16 +37,19 @@ body[data-page="index"] {
   }
 }
 
-/* Wide mode: land the copy on the poster's measured rows. The fitted
-   --ctop: 54.6% puts the COLUMN top at the design's pill-top row, but the
-   pill's own line-box leading pushes its rendered top ~1.2%H below that.
-   Dialed empirically so the RENDERED pill box top and the headline's cap
-   INK row (baseline-probe measured, Poppins metrics — re-measure when
-   Neulis lands) hit the poster's measured rows: pill 54.61%H, headline cap
-   65.41%H. */
+/* Wide mode: land the copy on the poster's measured rows — pill top 54.61%H,
+   headline cap-ink top 65.41%H, both measured off the design reference by
+   colour mask.
+
+   These were first dialled against Poppins, whose leading pushed the pill's
+   rendered top ~1.2%H below the column top and so needed --ctop pulled up to
+   53.4%. Real Neulis Sans doesn't: its rendered pill top lands ON the column
+   top, so the correction cancels and --ctop returns to the fitted 54.61%.
+   Re-measured after the Neulis switch; if the face changes again, re-measure
+   rather than nudging — the two numbers below are fitted, not chosen. */
 @media (min-aspect-ratio: 3900/1816) {
   body[data-page="index"] {
-    --ctop: 53.4%;
-    --cgap: calc(2.55 * var(--fw));
+    --ctop: 54.61%;
+    --cgap: calc(2.41 * var(--fw));
   }
 }
