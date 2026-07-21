@@ -8,9 +8,9 @@
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>M</text></svg>">
   <!-- The engine + every shared component. -->
-  <link rel="stylesheet" href="dist/styles.css?v=44">
+  <link rel="stylesheet" href="dist/styles.css?v=45">
   <!-- This page's dials only. Loaded second so it wins on cascade order. -->
-  <link rel="stylesheet" href="css/pages/index.css?v=44">
+  <link rel="stylesheet" href="css/pages/index.css?v=45">
   <!-- Marks JS as available BEFORE first paint, so the entrance animation
        can hide the copy. Without this the page would render blank if app.js
        ever failed to load. Must stay inline and in <head>. -->
@@ -76,7 +76,11 @@
 
   <div class="content">
     <a class="eyebrow anim" style="--d:.05s" href="sign-in">Click to hire</a>
-    <h1 class="headline anim" style="--d:.15s">Choose a <span class="mark underline"><span
+    <!-- The "s" of Choose is the one drawn letter in this word — the design sets
+         it in Neulis Cursive (its calligraphic thick/thin, teardrop tail), the
+         same single-decorative-letter convention as the other pages ("whic-h",
+         "wo-r-ks"). Everything else on this line is Neulis Sans except "lady". -->
+    <h1 class="headline anim" style="--d:.15s">Choo<span class="script">s</span>e a <span class="mark underline"><span
           class="script">lady</span><svg viewBox="0 0 200 22" preserveAspectRatio="none">
           <!-- Traced from the design (scripts/_fineprof.mjs): dead HORIZONTAL for the
                first 45% (under the "l" and "a"), then a distinct KNEE into a straight
@@ -97,9 +101,9 @@
     </nav>
   </footer>
 
-  <script src="api.js?v=44"></script>
-  <script src="app.js?v=44"></script>
-  <script src="booking.js?v=44"></script>
+  <script src="api.js?v=45"></script>
+  <script src="app.js?v=45"></script>
+  <script src="booking.js?v=45"></script>
 </body>
 
 </html>
