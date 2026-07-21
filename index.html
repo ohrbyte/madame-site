@@ -8,9 +8,9 @@
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>M</text></svg>">
   <!-- The engine + every shared component. -->
-  <link rel="stylesheet" href="dist/styles.css?v=47">
+  <link rel="stylesheet" href="dist/styles.css?v=48">
   <!-- This page's dials only. Loaded second so it wins on cascade order. -->
-  <link rel="stylesheet" href="css/pages/index.css?v=47">
+  <link rel="stylesheet" href="css/pages/index.css?v=48">
   <!-- Marks JS as available BEFORE first paint, so the entrance animation
        can hide the copy. Without this the page would render blank if app.js
        ever failed to load. Must stay inline and in <head>. -->
@@ -76,18 +76,16 @@
 
   <div class="content">
     <a class="eyebrow anim" style="--d:.05s" href="sign-in">Click to hire</a>
-    <!-- The "s" of Choose is the one drawn letter in this word — the design sets
-         it in Neulis Cursive (its calligraphic thick/thin, teardrop tail), the
-         same single-decorative-letter convention as the other pages ("whic-h",
-         "wo-r-ks"). Everything else on this line is Neulis Sans except "lady". -->
+    <!-- ONE drawn letter per drawn word (design convention, same as "whic-h" /
+         "wo-r-ks"): the "s" of Choose, and the "l" of each "lady" (its looped
+         cursive l). Everything else — including "a", "d", "y" — is Neulis Sans,
+         so the y has the design's straight sans descender, not a cursive loop. -->
     <h1 class="headline anim" style="--d:.15s">Choo<span class="script drawn-heavy">s</span>e a <span class="mark underline"><span
-          class="script">lady</span><svg viewBox="0 0 200 22" preserveAspectRatio="none">
-          <!-- Level all the way across (owner preference over the design's
-               knee-down): the stroke stays horizontal and runs straight through
-               the "y" descender stem instead of sloping down to follow it — the
-               same flat rule as About / gift / all-set. -->
-          <path class="accent" style="--len:210;stroke-width:4.7" d="M2 9 C 65 7, 135 11, 198 12" />
-        </svg></span><br>like a <span class="script">lady</span>.</h1>
+          class="script">l</span>ady<svg viewBox="0 0 200 22" preserveAspectRatio="none">
+          <!-- Follows the word neatly: one clean, gentle downward tilt tracking
+               the letters toward the y (design shape), no mid-word knee. -->
+          <path class="accent" style="--len:210;stroke-width:4.7" d="M2 8 L198 14" />
+        </svg></span><br>like a <span class="script">l</span>ady.</h1>
   </div>
 
   <!-- Colophon — info + legal, the lowest tier. Mirrors the masthead's insets so
@@ -100,9 +98,9 @@
     </nav>
   </footer>
 
-  <script src="api.js?v=47"></script>
-  <script src="app.js?v=47"></script>
-  <script src="booking.js?v=47"></script>
+  <script src="api.js?v=48"></script>
+  <script src="app.js?v=48"></script>
+  <script src="booking.js?v=48"></script>
 </body>
 
 </html>
