@@ -81,3 +81,13 @@ body[data-page="index"] .headline .drawn-heavy {
     font-size: calc(4.77 * var(--fw));
   }
 }
+
+/* Send the hand-drawn underline BEHIND the letters so the "y" descender (and any
+   other ink that dips into it) crosses in FRONT of the pink stroke, the way a
+   drawn line sits under the word. The stroke is below the baseline everywhere
+   else, so only the y-crossing changes. .mark is position:relative with no
+   z-index (no stacking context) and no background, so z-index:-1 lands the SVG
+   just under the blue text but still above the page. */
+body[data-page="index"] .mark.underline > svg {
+  z-index: -1;
+}
