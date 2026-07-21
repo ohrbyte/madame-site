@@ -27,6 +27,17 @@ body[data-page="index"] {
   --cleft: 12.3%;
 }
 
+/* HEADLINE WEIGHT — the landing poster sets "Choose a lady…" much lighter than
+   the shared .headline default (weight 800). Measured against the design: its
+   stroke-to-cap ratio is 0.169; weight 500 gives 0.173, 600 already 0.187, 800
+   an over-heavy 0.239. Scoped to the landing on purpose — the other pages'
+   headlines were checked against their own references at the shared weight and
+   are correct, so this must not leak onto them. Size is bumped in wide mode
+   below (the poster headline is ~11% taller than the old fit). */
+body[data-page="index"] .headline {
+  font-weight: 500;
+}
+
 /* Wide frames swap in the design's own hand (see index.html's <picture> and
    the wide-mode dials in src/input.css). --stripe-down: -1 above was fitted
    to hand-landing.webp's wrist; the design photo at its PSD box needs the
@@ -50,6 +61,12 @@ body[data-page="index"] {
 @media (min-aspect-ratio: 3900/1816) {
   body[data-page="index"] {
     --ctop: 54.61%;
-    --cgap: calc(2.41 * var(--fw));
+    --cgap: calc(2.46 * var(--fw));
+  }
+  /* Poster headline size: the design cap-height is 7.44%H; the old 4.3fw
+     rendered 6.70%H. 4.77fw lands 7.50%H. --cgap above is re-fitted for this
+     taller headline so the cap-ink top still hits the design's 65.41%H row. */
+  body[data-page="index"] .headline {
+    font-size: calc(4.77 * var(--fw));
   }
 }

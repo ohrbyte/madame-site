@@ -69,6 +69,31 @@ module.exports = {
     baseDir: ".",
     index: "index.html",
     middleware: [
+      // SECURITY GUARD (must stay first). baseDir is the working tree, so
+      // without this the public tunnel serves repo internals — including
+      // /.git/config, whose remote URL had a push credential embedded. 404
+      // anything that is not a deliverable: any dot-prefixed path segment
+      // (.git, .claude, .env, .gitignore), plus known internal files/dirs.
+      // Real pages (/step-1.html, /api.js, /dist/…, /css/…, /assets/…) have no
+      // dot-segment and pass straight through.
+      {
+        route: "",
+        handle: (req, res, next) => {
+          let p;
+          try { p = decodeURIComponent((req.url || "/").split("?")[0]); }
+          catch { p = (req.url || "/").split("?")[0]; }
+          const blocked =
+            /(^|\/)\.[^/]/.test(p) ||
+            /^\/(bs-config\.js|package(-lock)?\.json|CLAUDE\.md|CONVERSION\.md|INTEGRATION\.md|README\.md)$/.test(p) ||
+            /^\/(scripts|node_modules)(\/|$)/.test(p);
+          if (blocked) {
+            res.statusCode = 404;
+            res.setHeader("Cache-Control", "no-store");
+            return res.end("Not found");
+          }
+          next();
+        },
+      },
       // This origin is reached through Cloudflare (madame.ohrbyte.dev), and
       // with no Cache-Control from the origin Cloudflare edge-caches static
       // extensions — including 404s (it held api.js's 404 for 4h once). A
