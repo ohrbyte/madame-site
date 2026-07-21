@@ -14,7 +14,16 @@
   const scriptSrc = document.currentScript?.src;
 
   function resolveBase() {
-    const fromQuery = new URLSearchParams(location.search).get("api");
+    // Security F3: the `?api=` override points the client at an API origin taken
+    // from the URL — a magic-link email carrying `?api=https://evil.tld` would
+    // otherwise send the one-time sign-in token there. It's a dev convenience,
+    // so honour it ONLY on localhost. On the dev tunnel use the localStorage
+    // override below instead (an attacker can't set another origin's storage).
+    const onLocalhost =
+      location.hostname === "localhost" || location.hostname === "127.0.0.1";
+    const fromQuery = onLocalhost
+      ? new URLSearchParams(location.search).get("api")
+      : null;
     if (fromQuery) return fromQuery.replace(/\/$/, "");
     const fromStorage = localStorage.getItem("madame_api_base");
     if (fromStorage) return fromStorage.replace(/\/$/, "");
