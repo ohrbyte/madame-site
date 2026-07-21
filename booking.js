@@ -1932,7 +1932,7 @@
   // built as with the served one; if behind, reload once. The sessionStorage
   // guard means a mis-bumped version file costs one reload per wake, never a
   // loop. scripts/bump-version.sh keeps the three markers in step.
-  const SITE_VERSION = "45";
+  const SITE_VERSION = "46";
   let hiddenAt = 0;
   async function healIfStale() {
     try {

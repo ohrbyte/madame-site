@@ -38,6 +38,17 @@ body[data-page="index"] .headline {
   font-weight: 500;
 }
 
+/* The drawn "s" of Choose sits between heavy sans letters. Neulis Cursive is a
+   single weight — font-weight does nothing — and renders lighter than the sans,
+   so it looked underweight next to "Choo…e". A same-colour text-stroke fattens
+   just this letter to match the sans strokes (the design's s is as heavy as its
+   neighbours). Scoped to this one letter so "lady" keeps its lighter script. */
+body[data-page="index"] .headline .drawn-heavy {
+  -webkit-text-stroke: 1px currentColor;
+  text-stroke: 1px currentColor;
+  paint-order: stroke fill;
+}
+
 /* Wide frames swap in the design's own hand (see index.html's <picture> and
    the wide-mode dials in src/input.css). --stripe-down: -1 above was fitted
    to hand-landing.webp's wrist; the design photo at its PSD box needs the
