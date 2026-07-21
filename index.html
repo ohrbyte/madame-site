@@ -8,9 +8,9 @@
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>M</text></svg>">
   <!-- The engine + every shared component. -->
-  <link rel="stylesheet" href="dist/styles.css?v=49">
+  <link rel="stylesheet" href="dist/styles.css?v=50">
   <!-- This page's dials only. Loaded second so it wins on cascade order. -->
-  <link rel="stylesheet" href="css/pages/index.css?v=49">
+  <link rel="stylesheet" href="css/pages/index.css?v=50">
   <!-- Marks JS as available BEFORE first paint, so the entrance animation
        can hide the copy. Without this the page would render blank if app.js
        ever failed to load. Must stay inline and in <head>. -->
@@ -82,9 +82,10 @@
          so the y has the design's straight sans descender, not a cursive loop. -->
     <h1 class="headline anim" style="--d:.15s">Choo<span class="script drawn-heavy">s</span>e a <span class="mark underline"><span
           class="script">l</span>ady<svg viewBox="0 0 200 22" preserveAspectRatio="none">
-          <!-- Follows the word neatly: one clean, gentle downward tilt tracking
-               the letters toward the y (design shape), no mid-word knee. -->
-          <path class="accent" style="--len:210;stroke-width:4.7" d="M2 8 L198 14" />
+          <!-- Follows the word: rises to a subtle crest under the belly of the
+               "a", then falls away to the "y" — a shallow, asymmetric arc, not a
+               straight tilt. Highest (min y) ~1/3 in, lowest at the descender. -->
+          <path class="accent" style="--len:220;stroke-width:4.7" d="M2 11 C 36 6, 60 6, 82 9 C 132 13, 175 16, 198 16" />
         </svg></span><br>like a <span class="script">l</span>ady.</h1>
   </div>
 
@@ -98,9 +99,9 @@
     </nav>
   </footer>
 
-  <script src="api.js?v=49"></script>
-  <script src="app.js?v=49"></script>
-  <script src="booking.js?v=49"></script>
+  <script src="api.js?v=50"></script>
+  <script src="app.js?v=50"></script>
+  <script src="booking.js?v=50"></script>
 </body>
 
 </html>
