@@ -197,3 +197,34 @@ body[data-page="my-bookings"] .bookings,
 body[data-page="my-bookings"] .content--fill {
   overscroll-behavior: contain;
 }
+
+/* The quiet way through to the dedicated /payments page — a small link under
+   the primary button, revealed by booking.js only when signed in. Quiet by
+   default; the letters go pink on hover like the other in-panel links. */
+body[data-page="my-bookings"] .paylink {
+  align-self: center;
+  margin-top: .9rem;
+  color: #fff;
+  font-weight: 600;
+  font-size: clamp(.72rem, .95vw, .85rem);
+  text-decoration: underline;
+  text-underline-offset: .25em;
+  text-decoration-thickness: 1.5px;
+  opacity: .8;
+  transition: color .25s ease, opacity .25s ease;
+}
+
+body[data-page="my-bookings"] .paylink:hover,
+body[data-page="my-bookings"] .paylink:focus-visible {
+  opacity: 1;
+  color: var(--pink-soft);
+}
+
+@media (max-width: 760px) {
+  body[data-page="my-bookings"] .paylink {
+    font-size: 14px;
+    min-height: 34px;
+    display: inline-flex;
+    align-items: center;
+  }
+}

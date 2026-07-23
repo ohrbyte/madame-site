@@ -145,6 +145,9 @@
     giftConfirm: (input) => call("/public/giftcards/confirm", { method: "POST", body: input }),
 
     // Payments
+    // The signed-in client's own charges, fees and credits (newest first). The
+    // backend scopes it to the token's client and pre-formats each date Eastern.
+    paymentHistory: (limit) => call("/public/payments/history", { query: limit ? { limit } : undefined, auth: true }),
     paymentMethods: () => call("/public/payments/methods", { auth: true }),
     createSetupIntent: () => call("/public/payments/setup-intent", { method: "POST", body: {}, auth: true }),
     addPaymentMethod: (paymentMethodId) => call("/public/payments/methods/add", { method: "POST", body: { payment_method_id: paymentMethodId }, auth: true }),

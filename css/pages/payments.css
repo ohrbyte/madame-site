@@ -1,0 +1,155 @@
+/* =========================================================
+   MY PAYMENTS — the account ledger on its own page. No hand;
+   the swirl carries it (same as my-bookings / about). Each
+   row reads like a receipt: date on the left, amount on the
+   right, a muted description under, and the card (when one
+   was charged) under the amount.
+   ========================================================= */
+body[data-page="payments"] {
+  --cw: 44%;
+  --cleft: 5.9%;
+  /* --ctop unused — the block is centred by .content--fill */
+}
+
+body[data-page="payments"] .swirl-back {
+  opacity: .45;
+}
+
+/* The list is the whole payment history — it can outgrow a short viewport, so
+   the panel is a shrinkable flex column and the LIST scrolls internally; the
+   heading, the back link and sign-out always stay on screen. */
+body[data-page="payments"] .panel {
+  display: flex;
+  flex-direction: column;
+  max-height: 100%;
+  min-height: 0;
+}
+
+body[data-page="payments"] .payments {
+  list-style: none;
+  margin: 0 0 1.1rem;
+  padding: 0;
+  display: grid;
+  gap: .55rem;
+  flex: 0 1 auto;
+  min-height: 6rem;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(237, 227, 198, .55) transparent;
+  overscroll-behavior: contain;
+}
+
+body[data-page="payments"] .payment {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: .12em .8em;
+  align-items: baseline;
+  background: rgba(255, 255, 255, .1);
+  border-radius: 12px;
+  padding: .75em .9em;
+  font-size: clamp(.72rem, 1vw, .88rem);
+}
+
+body[data-page="payments"] .payment-when {
+  grid-column: 1;
+  grid-row: 1;
+  font-weight: 600;
+}
+
+/* Right-aligned, tabular so the amounts line up on the decimal. */
+body[data-page="payments"] .payment-amt {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: end;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* A credit or refund is money in the customer's favour — pink, like every
+   other "this counts for you" mark on the site. */
+body[data-page="payments"] .payment-amt--credit {
+  color: var(--pink-soft);
+}
+
+body[data-page="payments"] .payment-what {
+  grid-column: 1;
+  grid-row: 2;
+  opacity: .72;
+  font-size: .9em;
+}
+
+body[data-page="payments"] .payment-card {
+  grid-column: 2;
+  grid-row: 2;
+  justify-self: end;
+  align-self: baseline;
+  opacity: .6;
+  font-size: .82em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Loading / empty / error — one quiet full-width line, no receipt chrome. */
+body[data-page="payments"] .payment--empty {
+  grid-template-columns: 1fr;
+  opacity: .85;
+}
+
+body[data-page="payments"] .payment--err {
+  color: var(--pink-soft);
+  opacity: 1;
+}
+
+/* Honest-about-the-cap footer — spans the row, sits quiet. */
+body[data-page="payments"] .payments-note {
+  grid-column: 1 / -1;
+  padding: .2rem .2rem 0;
+  font-size: clamp(.66rem, .85vw, .78rem);
+  opacity: .55;
+}
+
+/* Back to bookings — quiet, pink on hover, like the other in-panel links. */
+body[data-page="payments"] .backlink {
+  align-self: center;
+  color: #fff;
+  font-weight: 600;
+  font-size: clamp(.72rem, .95vw, .85rem);
+  text-decoration: underline;
+  text-underline-offset: .25em;
+  text-decoration-thickness: 1.5px;
+  opacity: .8;
+  transition: color .25s ease, opacity .25s ease;
+}
+
+body[data-page="payments"] .backlink:hover,
+body[data-page="payments"] .backlink:focus-visible {
+  opacity: 1;
+  color: var(--pink-soft);
+}
+
+/* ---- short viewports (landscape phones): the fixed column must scroll ----
+   Same escape hatch as my-bookings / about: below this height the panel can't
+   fit even shrunk, so let the whole (position:fixed) column scroll instead. */
+@media (max-height: 480px) {
+  body[data-page="payments"] .content--fill {
+    justify-content: center;
+    justify-content: safe center;
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+
+  body[data-page="payments"] .panel {
+    max-height: none;
+  }
+}
+
+/* ---- phones: comfortable tap target on the back link ---- */
+@media (max-width: 760px) {
+  body[data-page="payments"] .backlink {
+    font-size: 14px;
+    min-height: 34px;
+    display: inline-flex;
+    align-items: center;
+  }
+}

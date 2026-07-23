@@ -259,6 +259,10 @@
     const status = $(".formnote", form);
 
     let pendingPhone = "";
+    // Remembers the code that just auto-submitted, so a completed six digits
+    // can't fire the verify twice (re-armed only when the field is edited back
+    // below six — see the code field's input handler).
+    let autoSubmittedCode = "";
 
     /* Stage visibility rides on the hidden attribute, not the stylesheet: the
        phone/email crossfade is driven by :has(#mode-…:checked), whose ID-level
@@ -310,8 +314,27 @@
       if (focus) focus.focus();
     }
 
-    [emailField, codeField, nameField].forEach((el) => {
+    [emailField, nameField].forEach((el) => {
       if (el) el.addEventListener("input", refreshSubmit);
+    });
+
+    // The verification code submits itself the moment all six digits are in —
+    // typed or autofilled from the SMS text — so there's no separate press.
+    // Double-verify is prevented two ways: the just-fired code is remembered
+    // (autoSubmittedCode) and re-arms only when the field is edited back below
+    // six; and the submit still runs through the form-level busy() lock, which
+    // refuses re-entry while a verify is in flight (a stray Enter, a second
+    // autofill, a fast double keystroke).
+    if (codeField) codeField.addEventListener("input", () => {
+      const code = digits(codeField.value).slice(0, 6);
+      if (codeField.value !== code) codeField.value = code; // keep it to digits
+      refreshSubmit();
+      if ((form.dataset.stage || "start") !== "code") return;
+      if (code.length < 6) { autoSubmittedCode = ""; return; }
+      if (code === autoSubmittedCode) return;
+      autoSubmittedCode = code;
+      if (typeof form.requestSubmit === "function") form.requestSubmit();
+      else form.dispatchEvent(new Event("submit", { cancelable: true }));
     });
     form.querySelectorAll('input[name="mode"]').forEach((radio) => {
       radio.addEventListener("change", refreshSubmit);
@@ -324,7 +347,7 @@
       const next = new URLSearchParams(window.location.search).get("next");
       // Mid-flow pages bounce here when a session dies; flow state survives
       // in sessionStorage, so landing back on the same step just works.
-      return ["my-bookings", "day", "time", "review"].includes(next) ? next : "address";
+      return ["my-bookings", "payments", "day", "time", "review"].includes(next) ? next : "address";
     }
 
     async function afterAuth() {
@@ -417,6 +440,7 @@
       e.preventDefault();
       pendingPhone = "";
       if (codeField) codeField.value = "";
+      autoSubmittedCode = "";
       if (authresend) authresend.hidden = true;
       stage("start");
     });
@@ -437,6 +461,7 @@
           await api.sendSmsOtp(pendingPhone);
           lastResendAt = Date.now();
           if (codeField) codeField.value = "";
+          autoSubmittedCode = "";
           refreshSubmit();
           note(status, "New code sent — use the newest text.", false);
         } catch (err) {
@@ -1650,6 +1675,11 @@
       return;
     }
 
+    // Signed in — reveal the quiet link through to the full payment history
+    // (its own /payments page, so this panel stays about upcoming cleans).
+    const payLink = $(".paylink");
+    if (payLink) payLink.hidden = false;
+
     // Fallback for when the account list can't be fetched: the device records
     // are all we have, so ask the backend for each one's real status and mark
     // the ones that moved on (an office-side cancellation never reached them).
@@ -1719,6 +1749,92 @@
       }
     })();
 
+  }
+
+  /* ================================================================
+     PAYMENTS — the account's own charges, fees and credits, newest
+     first, on their own page (linked from my-bookings so that panel
+     stays about upcoming cleans). Signed-in only: a direct hit while
+     signed out bounces to sign-in and returns here. The backend scopes
+     the list to the token's client and pre-formats each date Eastern,
+     so nothing here parses a timestamp (the bug that once blanked a
+     date-filtered list).
+     ================================================================ */
+  function initPayments() {
+    const list = $(".payments");
+    if (!list) return;
+
+    // Money needs a live session; without one, sign in and come back here.
+    if (!hasLiveSession()) { goto("sign-in?next=payments"); return; }
+
+    function paymentRow(p) {
+      const li = document.createElement("li");
+      li.className = "payment";
+      // A credit (gift balance applied) or a refund is money in the customer's
+      // favour — mark it, and read the amount as coming back to them.
+      const inFavour = p.type === "credit" || p.type === "refund";
+
+      const when = document.createElement("span");
+      when.className = "payment-when";
+      when.textContent = p.date;
+
+      const amt = document.createElement("span");
+      amt.className = "payment-amt" + (inFavour ? " payment-amt--credit" : "");
+      // abs() so the sign is driven only by type — a stray negative can never
+      // double-negate into "−$-25".
+      amt.textContent = (inFavour ? "−" : "") + money(Math.abs(Number(p.amount)));
+      if (inFavour) amt.title = p.type === "refund" ? "Refunded to your card" : "Account credit";
+
+      const what = document.createElement("span");
+      what.className = "payment-what";
+      what.textContent = p.description || (inFavour ? "Account credit" : "Payment");
+
+      li.append(when, amt, what);
+
+      if (p.card_last4) {
+        const card = document.createElement("span");
+        card.className = "payment-card";
+        const brand = p.card_brand
+          ? p.card_brand.charAt(0).toUpperCase() + p.card_brand.slice(1)
+          : "Card";
+        card.textContent = `${brand} ••${p.card_last4}`;
+        li.append(card);
+      }
+      return li;
+    }
+
+    function message(cls, text) {
+      list.innerHTML = "";
+      const li = document.createElement("li");
+      li.className = "payment payment--empty" + (cls ? ` ${cls}` : "");
+      li.textContent = text;
+      list.appendChild(li);
+    }
+
+    (async () => {
+      let payments = [];
+      try {
+        const resp = await api.paymentHistory(50);
+        payments = (resp && resp.payments) || [];
+      } catch (err) {
+        if (err && err.status === 401) { goto("sign-in?next=payments"); return; }
+        message("payment--err", "We couldn't load your payments just now — reload the page to try again.");
+        return;
+      }
+      if (!payments.length) {
+        message("", "No payments yet — your charges will show up here after your first clean.");
+        return;
+      }
+      list.innerHTML = "";
+      payments.forEach((p) => list.appendChild(paymentRow(p)));
+      // Honest about the cap: a very active account has more than we show.
+      if (payments.length >= 50) {
+        const note = document.createElement("li");
+        note.className = "payments-note";
+        note.textContent = "Showing your 50 most recent payments.";
+        list.appendChild(note);
+      }
+    })();
   }
 
   /* ================================================================
@@ -1932,7 +2048,7 @@
   // built as with the served one; if behind, reload once. The sessionStorage
   // guard means a mis-bumped version file costs one reload per wake, never a
   // loop. scripts/bump-version.sh keeps the three markers in step.
-  const SITE_VERSION = "52";
+  const SITE_VERSION = "53";
   let hiddenAt = 0;
   async function healIfStale() {
     try {
@@ -2013,6 +2129,7 @@
     "step-5": initStep5,
     "step-6": initStep6,
     "my-bookings": initMyBookings,
+    "payments": initPayments,
     "purchase-a-gift": initGift,
   };
 

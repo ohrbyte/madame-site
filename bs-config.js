@@ -31,6 +31,7 @@ const ROUTES = {
   "/review": "/step-5.html",
   "/all-set": "/step-6.html",
   "/my-bookings": "/my-bookings.html",
+  "/payments": "/payments.html",
   "/purchase-a-gift": "/purchase-a-gift.html",
   "/about": "/about.html",
   "/terms": "/terms.html",

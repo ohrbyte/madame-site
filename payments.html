@@ -4,11 +4,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Madame — All set</title>
+  <title>Madame — My payments</title>
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>M</text></svg>">
   <link rel="stylesheet" href="dist/styles.css?v=53">
-  <link rel="stylesheet" href="css/pages/step-6.css?v=53">
+  <link rel="stylesheet" href="css/pages/payments.css?v=53">
   <!-- Marks JS as available BEFORE first paint, so the entrance animation
        can hide the copy. Without this the page would render blank if app.js
        ever failed to load. Must stay inline and in <head>. -->
@@ -24,11 +24,11 @@
   <script>document.documentElement.classList.add("js")</script>
 </head>
 
-<body data-page="step-6">
+<body data-page="payments">
+  <!-- Info page: swirl only (no hand, no front pass, no glow) — same as
+       about.html / my-bookings.html. -->
   <main class="stage">
     <img class="swirl swirl-back" src="assets/swirl.webp" alt="" aria-hidden="true">
-    <img class="layer layer-hand" src="assets/step6-hand.webp" alt="Gloved hand giving a thumbs up">
-    <img class="swirl swirl-front" src="assets/swirl.webp" alt="" aria-hidden="true">
   </main>
 
   <!-- Corner bleed (wide frames): a self-clipped window continues the art
@@ -42,29 +42,21 @@
         src="assets/madame-logo.png" alt="Madame"></a>
   </header>
 
-  <!-- The end of the flow, so no panel: just the good news and a way onward. -->
   <div class="content content--fill">
-    <!-- Same traced ring as step-2.html — see the note there. -->
-    <!-- Per the design: ONE mark on this page — a level stroke under "All",
-         and "set!" left plain. It used to carry a ring around "All" AND an
-         underline under "set", two marks where the design has one. The whole
-         line is hand-lettered here (see step-6.css); "All" sits flat, so the
-         stroke stays level — same rule as About. -->
-    <h1 class="headline anim" style="--d:.1s"><span class="mark underline">All<svg viewBox="0 0 200 22" preserveAspectRatio="none">
-          <path class="accent" style="--len:210;stroke-width:4.7" d="M2 9 C 65 7, 135 11, 198 12" />
-        </svg></span> set!</h1>
+    <h1 class="headline anim" style="--d:.1s">Your <span class="mark underline"><span
+          class="script">payments</span><svg viewBox="0 0 200 22" preserveAspectRatio="none">
+          <path class="accent" style="--len:210;stroke-width:4.7" d="M2 8 L198 14" />
+        </svg></span>.</h1>
 
-    <!-- No-JS / pre-JS fallback: NEVER claim success here. booking.js swaps
-         in the real confirmation (date, time, cadence) from the completed
-         flow; if this text is still visible, nothing was verified as booked. -->
-    <p class="subhead anim" style="--d:.3s">One moment — we're pulling up your booking details.
-      If this line doesn't change, your booking may <strong>not</strong> have gone through:
-      check <a class="inkline" href="my-bookings">my bookings</a> or call
-      <a class="inkline" href="tel:+18452124444">845-212-4444</a>.</p>
-
-    <div class="actions anim" style="--d:.42s">
-      <a class="btn" href="my-bookings">See my bookings</a>
-      <a class="btn ghost" href="sign-in">Book another lady</a>
+    <div class="panel anim" style="--d:.3s">
+      <!-- The charges, fees and credits on this account, newest first — filled
+           by booking.js (initPayments). Signed-out hits bounce to sign-in, so
+           this loading line is only ever a brief flash for a signed-in visitor;
+           it never invents a row. -->
+      <ul class="payments">
+        <li class="payment payment--empty">Loading your payments…</li>
+      </ul>
+      <a class="backlink" href="my-bookings">← Back to bookings</a>
     </div>
   </div>
 

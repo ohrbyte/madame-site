@@ -7,8 +7,8 @@
   <title>Madame — My bookings</title>
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>M</text></svg>">
-  <link rel="stylesheet" href="dist/styles.css?v=52">
-  <link rel="stylesheet" href="css/pages/my-bookings.css?v=52">
+  <link rel="stylesheet" href="dist/styles.css?v=53">
+  <link rel="stylesheet" href="css/pages/my-bookings.css?v=53">
   <!-- Marks JS as available BEFORE first paint, so the entrance animation
        can hide the copy. Without this the page would render blank if app.js
        ever failed to load. Must stay inline and in <head>. -->
@@ -62,12 +62,17 @@
           refresh the page — or call 845-212-4444 and we'll check for you.</li>
       </ul>
       <a class="btn" href="sign-in">Book another clean</a>
+
+      <!-- Payment history lives on its own /payments page so this panel stays
+           about upcoming cleans. booking.js reveals this quiet link only for a
+           signed-in visitor. -->
+      <a class="paylink" href="payments" hidden>Payment history →</a>
     </div>
   </div>
 
-  <script src="api.js?v=52"></script>
-  <script src="app.js?v=52"></script>
-  <script src="booking.js?v=52"></script>
+  <script src="api.js?v=53"></script>
+  <script src="app.js?v=53"></script>
+  <script src="booking.js?v=53"></script>
 </body>
 
 </html>
