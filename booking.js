@@ -1627,7 +1627,10 @@
         no.type = "button";
         no.className = "booking-act";
         no.textContent = "Keep it";
-        no.addEventListener("click", () => strip.remove());
+        // "Keep it" closes the prompt and brings the trigger back. (Inline style,
+        // not [hidden], because .booking-act is display:inline-flex under 760px,
+        // which would beat the hidden attribute.)
+        no.addEventListener("click", () => { strip.remove(); cancel.style.display = ""; });
 
         if (r.recurring) {
           strip.append(q,
@@ -1639,6 +1642,10 @@
             cancelBtn(feeLine ? "Yes, cancel & pay the fee" : "Yes, cancel", undefined),
             no);
         }
+        // Tuck the trigger "Cancel" away while its own confirmation is open — a
+        // second "Cancel" sitting next to "Yes, cancel" is dead (this handler
+        // no-ops once the strip exists) and reads as a duplicate.
+        cancel.style.display = "none";
         actions.appendChild(strip);
         strip.scrollIntoView({ block: "nearest" });
       });
@@ -2048,7 +2055,7 @@
   // built as with the served one; if behind, reload once. The sessionStorage
   // guard means a mis-bumped version file costs one reload per wake, never a
   // loop. scripts/bump-version.sh keeps the three markers in step.
-  const SITE_VERSION = "53";
+  const SITE_VERSION = "54";
   let hiddenAt = 0;
   async function healIfStale() {
     try {
