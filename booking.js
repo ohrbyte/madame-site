@@ -227,10 +227,10 @@
   const STRIPE_APPEARANCE = {
     theme: "stripe",
     variables: {
-      colorPrimary: "#D93A92",
+      colorPrimary: "#DB3694",
       colorBackground: "#EDE3C7",
-      colorText: "#045BA7",
-      colorDanger: "#D93A92",
+      colorText: "#175AAA",
+      colorDanger: "#DB3694",
       borderRadius: "12px",
       fontFamily: 'Poppins, "Avenir Next", "Segoe UI", system-ui, sans-serif',
     },
@@ -1805,11 +1805,11 @@
       card = elements.create("card", {
         style: {
           base: {
-            color: "#045BA7",
+            color: "#175AAA",
             fontFamily: 'Poppins, "Segoe UI", sans-serif',
-            "::placeholder": { color: "rgba(4, 91, 167, .45)" },
+            "::placeholder": { color: "rgba(23, 90, 170, .45)" },
           },
-          invalid: { color: "#D93A92" },
+          invalid: { color: "#DB3694" },
         },
       });
       card.mount(cardBox);
@@ -1932,7 +1932,7 @@
   // built as with the served one; if behind, reload once. The sessionStorage
   // guard means a mis-bumped version file costs one reload per wake, never a
   // loop. scripts/bump-version.sh keeps the three markers in step.
-  const SITE_VERSION = "51";
+  const SITE_VERSION = "52";
   let hiddenAt = 0;
   async function healIfStale() {
     try {

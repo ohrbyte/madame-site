@@ -83,14 +83,19 @@
    =========================================================== */
 
 :root {
-  /* Brand palette (sampled from brand colors.pdf) */
-  --pink: #D93A92;
+  /* Brand palette — matched to the delivered design render (flat-interior
+     samples of the poster PNG: pill + underline both #DB3694, headline +
+     wordmark both #175AAA). brand colors.pdf says #D93A92 / #045BA7; the
+     design export shifted every element consistently (profile conversion),
+     and the site matches the ARTWORK. Revert to the pdf values if brand
+     governance ever wins that argument. */
+  --pink: #DB3694;
   /* bright pink — buttons, accents   */
   --pink-soft: #ED9CC3;
   /* light pink                       */
   --cream: #EDE3C7;
   /* canvas background                */
-  --blue: #045BA7;
+  --blue: #175AAA;
   /* headings, forms, hover state     */
   --ink: #0c2a4a;
 
