@@ -7,8 +7,8 @@
   <title>Madame — Ready to roll</title>
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>M</text></svg>">
-  <link rel="stylesheet" href="dist/styles.css?v=54">
-  <link rel="stylesheet" href="css/pages/step-1.css?v=54">
+  <link rel="stylesheet" href="dist/styles.css?v=55">
+  <link rel="stylesheet" href="css/pages/step-1.css?v=55">
   <!-- Marks JS as available BEFORE first paint, so the entrance animation
        can hide the copy. Without this the page would render blank if app.js
        ever failed to load. Must stay inline and in <head>. -->
@@ -97,6 +97,21 @@
         <input class="authfield authfield--name" id="signin-name" name="name" type="text" autocomplete="name" hidden>
       </div>
 
+      <!-- The "connect an existing phone-booked account" stage. Shown by booking.js
+           only when a magic link proves an email that isn't on any account yet:
+           the customer enters the phone + PIN they use when they call, which links
+           the two so email becomes their everyday sign-in. Its own container (not
+           .authfields) because both fields show at once — .authfields overlaps its
+           children in one grid cell for the phone/email crossfade. -->
+      <div class="authconnect" hidden>
+        <label class="visually-hidden" for="connect-phone">Phone number on your account</label>
+        <input class="authfield" id="connect-phone" name="connect_phone" type="tel" inputmode="tel"
+          autocomplete="tel" placeholder="Phone on your account">
+        <label class="visually-hidden" for="connect-pin">Account PIN</label>
+        <input class="authfield" id="connect-pin" name="connect_pin" type="password" inputmode="numeric"
+          autocomplete="off" maxlength="8" placeholder="Your PIN">
+      </div>
+
       <p class="formnote" hidden></p>
 
       <p class="authnote">We sent a login link to —<br>Check your inbox and click the link to sign in.</p>
@@ -117,9 +132,9 @@
     </form>
   </div>
 
-  <script src="api.js?v=54"></script>
-  <script src="app.js?v=54"></script>
-  <script src="booking.js?v=54"></script>
+  <script src="api.js?v=55"></script>
+  <script src="app.js?v=55"></script>
+  <script src="booking.js?v=55"></script>
 </body>
 
 </html>

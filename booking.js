@@ -179,6 +179,9 @@
      Returns "ok" (signed in), "failed" (link dead — say so), "no-account"
      (link valid but the email matches no client), or false. */
   let magicLinkNoAccount = false;
+  // The email-proven magic-link token for an account-less session, kept in memory
+  // (never stored) so the phone+PIN connect stage can link an existing account to it.
+  let connectToken = null;
   async function handleMagicLinkReturn() {
     const params = new URLSearchParams(location.search);
     const token = params.get("token");
@@ -200,6 +203,9 @@
       const c = api.claims();
       if (c && c.type === "client" && !c.client_id) {
         magicLinkNoAccount = true;
+        // Keep the proven-email token in memory for the connect stage, but drop
+        // the stored session so no other page rides an account-less token.
+        connectToken = api.getToken();
         api.setToken(null);
         return "no-account";
       }
@@ -256,6 +262,10 @@
     const emailField = $("#signin-email", form);
     const codeField = $("#signin-code", form);
     const nameField = $("#signin-name", form);
+    const authfieldsBox = $(".authfields", form);
+    const connectBox = $(".authconnect", form);
+    const connectPhone = $("#connect-phone", form);
+    const connectPin = $("#connect-pin", form);
     const status = $(".formnote", form);
 
     let pendingPhone = "";
@@ -285,6 +295,10 @@
       }
       if (st === "code") return digits(codeField.value).length >= 6;
       if (st === "name") return nameField.value.trim().length > 0;
+      if (st === "connect")
+        return !!connectPhone && !!connectPin
+          && digits(connectPhone.value).replace(/^1/, "").length === 10
+          && digits(connectPin.value).length >= 4;
       return false; // "sent" — the inbox is the next step, not this card
     }
 
@@ -294,6 +308,7 @@
       submitBtn.textContent =
         st === "code" ? "Sign in"
         : st === "name" ? "Continue"
+        : st === "connect" ? "Connect my account"
         : emailMode() ? "Email me a sign-in link"
         : "Text me a sign-in code";
       submitBtn.hidden = !stageValid();
@@ -303,14 +318,17 @@
       form.dataset.stage = name;
       form.dataset.sent = name === "code" || name === "sent" ? "true" : "false";
       const inStart = name === "start";
+      const inConnect = name === "connect";
       if (phoneField) phoneField.hidden = !inStart;
       if (emailField) emailField.hidden = !inStart;
       if (codeField) codeField.hidden = name !== "code";
       if (nameField) nameField.hidden = name !== "name";
       if (authswap) authswap.hidden = !inStart;
+      if (authfieldsBox) authfieldsBox.hidden = inConnect;
+      if (connectBox) connectBox.hidden = !inConnect;
       note(status, "");
       refreshSubmit();
-      const focus = { start: null, code: codeField, name: nameField }[name];
+      const focus = { start: null, code: codeField, name: nameField, connect: connectPhone }[name];
       if (focus) focus.focus();
     }
 
@@ -373,6 +391,23 @@
       refreshSubmit();
     });
 
+    // The connect stage's own phone field wears the same live mask; the PIN is
+    // clamped to digits. Both gate the submit button.
+    if (connectPhone) connectPhone.addEventListener("input", () => {
+      const d = digits(connectPhone.value).replace(/^1/, "").slice(0, 10);
+      connectPhone.value =
+        d.length > 6 ? `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`
+        : d.length > 3 ? `(${d.slice(0, 3)}) ${d.slice(3)}`
+        : d.length > 0 ? `(${d}`
+        : "";
+      refreshSubmit();
+    });
+    if (connectPin) connectPin.addEventListener("input", () => {
+      const p = digits(connectPin.value).slice(0, 8);
+      if (connectPin.value !== p) connectPin.value = p;
+      refreshSubmit();
+    });
+
     const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
     // Came back via a magic link — walk straight on (or say the link is dead).
@@ -382,7 +417,17 @@
         return;
       }
       if (result === "no-account") {
-        note(status, "That email isn't linked to any account yet — sign in with the phone number you used when booking.", true);
+        // Email proven but on no account yet. If they've booked by phone before,
+        // let them connect that account with phone + PIN (email stays primary).
+        if (connectBox && connectToken) {
+          if (lede) lede.textContent = "Connect your account";
+          if (authnote) authnote.hidden = true;
+          stage("connect");
+          note(status, "We couldn't find an account for that email. If you've booked with us by phone, enter that number and your PIN to connect it.");
+          if (authalt) { authalt.textContent = "Sign in a different way"; authalt.hidden = false; }
+        } else {
+          note(status, "That email isn't linked to any account yet — sign in with the phone number you used when booking.", true);
+        }
         return;
       }
       if (result === "ok" || hasLiveSession()) afterAuth();
@@ -430,6 +475,17 @@
           if (!res) return;
           if (res.access_token) api.setToken(res.access_token);
           goto(authDestination());
+        } else if (st === "connect") {
+          const phone = toE164(connectPhone.value);
+          if (digits(phone).length !== 11) return note(status, "That phone number doesn't look complete — we need all ten digits.", true);
+          const pin = digits(connectPin.value);
+          if (pin.length < 4) return note(status, "Enter the PIN you use when you call us.", true);
+          if (!connectToken) return note(status, "Your sign-in link expired — request a new one to connect your account.", true);
+          const res = await submitBusy(null, () => api.linkByPin(phone, pin, connectToken));
+          if (!res) return; // busy() refused re-entry — a link is already in flight
+          if (res.access_token) api.setToken(res.access_token);
+          connectToken = null;
+          goto(authDestination());
         }
       } catch (err) {
         note(status, formatErr(err), true);
@@ -442,6 +498,11 @@
       if (codeField) codeField.value = "";
       autoSubmittedCode = "";
       if (authresend) authresend.hidden = true;
+      // Reset any connect-stage chrome back to the default sign-in card.
+      if (connectPin) connectPin.value = "";
+      if (lede) lede.textContent = "Sign in or create an account to get started.";
+      if (authnote) authnote.hidden = false;
+      authalt.textContent = "Use a different email";
       stage("start");
     });
 
@@ -2055,7 +2116,7 @@
   // built as with the served one; if behind, reload once. The sessionStorage
   // guard means a mis-bumped version file costs one reload per wake, never a
   // loop. scripts/bump-version.sh keeps the three markers in step.
-  const SITE_VERSION = "54";
+  const SITE_VERSION = "55";
   let hiddenAt = 0;
   async function healIfStale() {
     try {

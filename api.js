@@ -49,12 +49,17 @@
     } catch { return null; }
   }
 
-  async function call(path, { method = "GET", body, auth = false, query } = {}) {
+  async function call(path, { method = "GET", body, auth = false, authToken, query } = {}) {
     const url = new URL(API_BASE + path);
     if (query) Object.entries(query).forEach(([k, v]) => v != null && url.searchParams.set(k, v));
     const headers = { Accept: "application/json" };
     if (body !== undefined) headers["Content-Type"] = "application/json";
-    if (auth) {
+    if (authToken) {
+      // Explicit bearer — used by the phone+PIN "connect" flow, which carries the
+      // email-proven magic-link token WITHOUT storing it in public_client_token
+      // (an account-less session left in storage would look signed-in elsewhere).
+      headers.Authorization = `Bearer ${authToken}`;
+    } else if (auth) {
       const token = getToken();
       if (!token) throw new ApiError(401, "Not signed in", { code: "MissingToken" });
       headers.Authorization = `Bearer ${token}`;
@@ -118,6 +123,11 @@
 
     // Registration / profile / address
     register: (data) => call("/public/clients/register", { method: "POST", body: data, auth: true }),
+    // Connect an existing phone-booked account to an email-proven session. The
+    // email token is passed explicitly (not from storage) — see call()'s authToken.
+    linkByPin: (phone, pin, emailToken) => call("/public/clients/link-by-pin", {
+      method: "POST", body: { phone, pin, tos_accepted: true }, authToken: emailToken,
+    }),
     me: () => call("/public/clients/me", { auth: true }),
     updateAddress: (address) => call("/public/clients/address", { method: "PUT", body: address, auth: true }),
     clientAddresses: () => call("/public/clients/addresses", { auth: true }),

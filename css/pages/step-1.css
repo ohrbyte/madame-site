@@ -144,6 +144,20 @@ body[data-page="step-1"] .panel:has(#mode-email:checked) .authfield--phone {
   }
 }
 
+/* the connect-an-existing-account stage: both fields at once, so a flex column
+   rather than the .authfields grid (which overlaps its children in one cell for
+   the phone/email crossfade). .authfield's cream styling is reused; its
+   grid-area is inert outside a grid parent. */
+body[data-page="step-1"] .authconnect {
+  display: flex;
+  flex-direction: column;
+  gap: .55rem;
+}
+body[data-page="step-1"] .authconnect .authfield::placeholder {
+  color: var(--blue);
+  opacity: .45;
+}
+
 /* ---- the sent state ----
    Present in the design, so built — but it is the AFTER state, so it stays
    hidden until the form says a link went out. Nothing flips data-sent yet. */
