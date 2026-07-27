@@ -23,13 +23,17 @@ const API_ORIGIN = "admin.cleanmadame.com";
    Links in the HTML are RELATIVE ("address", not "/address") so the same
    pages also work mounted under a sub-path (nginx :8083 and the
    /docs/madame-site/ mount carry the same rewrites). */
+// Files are now named for their clean route (sign-in.html, address.html, …) so
+// GitHub Pages serves them extensionless at /sign-in, /address, … with no
+// rewriter. This dev server still needs the map because browser-sync's static
+// server does NOT do extensionless lookups — /sign-in → /sign-in.html here.
 const ROUTES = {
-  "/sign-in": "/step-1.html",
-  "/address": "/step-2.html",
-  "/day": "/step-3.html",
-  "/time": "/step-4.html",
-  "/review": "/step-5.html",
-  "/all-set": "/step-6.html",
+  "/sign-in": "/sign-in.html",
+  "/address": "/address.html",
+  "/day": "/day.html",
+  "/time": "/time.html",
+  "/review": "/review.html",
+  "/all-set": "/all-set.html",
   "/my-bookings": "/my-bookings.html",
   "/payments": "/payments.html",
   "/purchase-a-gift": "/purchase-a-gift.html",

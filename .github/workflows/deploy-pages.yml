@@ -1,0 +1,79 @@
+name: Deploy to GitHub Pages
+
+# The static booking site. Tailwind compiles src/input.css → dist/styles.css
+# (gitignored, so it's built here fresh), then the deliverables are published to
+# GitHub Pages. Custom domain (apex cleanmadame.com) is carried by the CNAME file
+# in the artifact; api.js already routes API calls to admin.cleanmadame.com when
+# served from that host.
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+# Least privilege for the Pages deployment.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One in-flight Pages deploy at a time; newer pushes supersede older runs.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Tailwind CSS
+        run: npm run build:css
+
+      - name: Assemble published site
+        # Copy the working tree into _site, keeping only deliverables. Everything
+        # excluded is either internal (git/CI/config/docs), a build input
+        # (src, node_modules, scripts), or dead legacy (index.legacy.html, the
+        # pre-Tailwind styles.css). dist/ (just built) and CNAME/.nojekyll ARE
+        # included.
+        run: |
+          mkdir -p _site
+          rsync -a \
+            --exclude '.git' \
+            --exclude '.github' \
+            --exclude '.claude' \
+            --exclude 'node_modules' \
+            --exclude 'scripts' \
+            --exclude 'src' \
+            --exclude '_site' \
+            --exclude '*.md' \
+            --exclude 'bs-config.js' \
+            --exclude 'package.json' \
+            --exclude 'package-lock.json' \
+            --exclude '.gitignore' \
+            --exclude 'index.legacy.html' \
+            --exclude 'styles.css' \
+            ./ _site/
+          echo "Published files:" && ls -A _site
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
