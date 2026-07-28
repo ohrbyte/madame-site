@@ -27,7 +27,14 @@
     if (fromQuery) return fromQuery.replace(/\/$/, "");
     const fromStorage = localStorage.getItem("madame_api_base");
     if (fromStorage) return fromStorage.replace(/\/$/, "");
-    if (location.hostname === "beta.cleanmadame.com" || location.hostname === "cleanmadame.com") {
+    // Any cleanmadame.com host talks to the API host directly (CORS allows the
+    // apex, www and beta). SUFFIX match, not a list of exact names: GitHub Pages
+    // 301s the apex to www.cleanmadame.com, so every real visitor arrives on a
+    // hostname the old exact-match list didn't cover. It then fell through to
+    // the same-origin derivation below and POSTed to Pages — which is static and
+    // answers 405 Method Not Allowed, breaking sign-in for everyone. (Chrome on
+    // Android hides the "www." prefix, so the address bar still read as the apex.)
+    if (/(^|\.)cleanmadame\.com$/i.test(location.hostname)) {
       return "https://admin.cleanmadame.com/api/v1";
     }
     // Derive from this file's URL: "<…>/api.js" → "<…>/api/v1".
