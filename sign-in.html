@@ -7,8 +7,8 @@
   <title>Madame — Ready to roll</title>
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>M</text></svg>">
-  <link rel="stylesheet" href="dist/styles.css?v=65">
-  <link rel="stylesheet" href="css/pages/step-1.css?v=65">
+  <link rel="stylesheet" href="dist/styles.css?v=66">
+  <link rel="stylesheet" href="css/pages/step-1.css?v=66">
   <!-- Marks JS as available BEFORE first paint, so the entrance animation
        can hide the copy. Without this the page would render blank if app.js
        ever failed to load. Must stay inline and in <head>. -->
@@ -95,12 +95,6 @@
           autocomplete="one-time-code" maxlength="6" hidden>
         <label class="visually-hidden" for="signin-name">Your name</label>
         <input class="authfield authfield--name" id="signin-name" name="name" type="text" autocomplete="name" hidden>
-        <!-- New-client signup: pick a PIN so the phone account can later be
-             linked to an email (the connect step matches on this PIN). type=text
-             + inputmode numeric, not password, so no login field triggers autofill. -->
-        <label class="visually-hidden" for="signin-pin">Create a 4-digit PIN</label>
-        <input class="authfield authfield--newpin" id="signin-pin" name="new_pin" type="text" inputmode="numeric"
-          autocomplete="off" maxlength="4" placeholder="4-digit PIN" hidden>
         <!-- New-client signup: OPTIONAL email so they can also sign in on the web
              by email later. Blank is fine — the "Finish" button creates the account
              either way. -->
@@ -109,16 +103,18 @@
           autocomplete="off" placeholder="you@example.com (optional)" hidden>
       </div>
 
-      <!-- The "connect an existing phone-booked account" stage. Shown by booking.js
-           only when a magic link proves an email that isn't on any account yet:
-           the customer enters the phone + PIN they use when they call, which links
-           the two so email becomes their everyday sign-in. Its own container (not
-           .authfields) because both fields show at once — .authfields overlaps its
-           children in one grid cell for the phone/email crossfade. -->
+      <!-- Shown by booking.js when a magic link proves an email that isn't on any
+           account yet. PRIMARY route: enter a phone, we text a code — that code
+           both connects an existing phone-booked account and finishes signup for
+           a brand-new customer, so one field serves both without revealing which.
+           The PIN below is the SECONDARY route, for customers who booked by phone
+           on a line that can't receive texts. Its own container (not .authfields)
+           because fields show at once — .authfields overlaps its children in one
+           grid cell for the phone/email crossfade. -->
       <div class="authconnect" hidden>
         <label class="visually-hidden" for="connect-phone">Phone number on your account</label>
         <input class="authfield" id="connect-phone" name="connect_phone" type="tel" inputmode="tel"
-          autocomplete="tel" placeholder="Phone on your account">
+          autocomplete="tel" placeholder="Your mobile number">
         <!-- NOT type="password": a password field anywhere on the page makes
              Safari treat the whole card as a login and offer a saved email on
              the "what should we call you?" name field. This is type="text" with
@@ -126,7 +122,9 @@
              PIN still shows as dots but no login field exists to trigger autofill. -->
         <label class="visually-hidden" for="connect-pin">Account PIN</label>
         <input class="authfield authfield--pin" id="connect-pin" name="connect_pin" type="text" inputmode="numeric"
-          autocomplete="off" maxlength="8" placeholder="Your PIN">
+          autocomplete="off" maxlength="8" placeholder="Your PIN" hidden>
+        <!-- Revealed by booking.js; hidden once the PIN route is showing. -->
+        <a class="authalt" id="connect-pin-toggle" href="#">Can't receive texts? Use your PIN instead</a>
       </div>
 
       <p class="formnote" hidden></p>
@@ -149,9 +147,9 @@
     </form>
   </div>
 
-  <script src="api.js?v=65"></script>
-  <script src="app.js?v=65"></script>
-  <script src="booking.js?v=65"></script>
+  <script src="api.js?v=66"></script>
+  <script src="app.js?v=66"></script>
+  <script src="booking.js?v=66"></script>
 </body>
 
 </html>

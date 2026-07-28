@@ -135,6 +135,18 @@
     linkByPin: (phone, pin, emailToken) => call("/public/clients/link-by-pin", {
       method: "POST", body: { phone, pin, tos_accepted: true }, authToken: emailToken,
     }),
+    // Email-first signup: text a code to the number the customer gives us, then
+    // confirm it. Same explicit-token rule as linkByPin — the magic-link token
+    // lives in a JS var, not storage, so it must be passed in. confirm's reply
+    // carries `linked`: true = an account owned that phone and now has our
+    // verified email (full session); false = nobody did, carry on to register.
+    sendPhoneOtp: (phone, emailToken) => call("/public/clients/verify-phone", {
+      method: "POST", body: { phone }, authToken: emailToken,
+    }),
+    confirmPhoneOtp: (phone, code, emailToken, tosAccepted = true) =>
+      call("/public/clients/verify-phone/confirm", {
+        method: "POST", body: { phone, code, tos_accepted: tosAccepted }, authToken: emailToken,
+      }),
     me: () => call("/public/clients/me", { auth: true }),
     updateAddress: (address) => call("/public/clients/address", { method: "PUT", body: address, auth: true }),
     clientAddresses: () => call("/public/clients/addresses", { auth: true }),

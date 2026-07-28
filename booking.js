@@ -262,19 +262,21 @@
     const emailField = $("#signin-email", form);
     const codeField = $("#signin-code", form);
     const nameField = $("#signin-name", form);
-    const pinField = $("#signin-pin", form);
     const optEmailField = $("#signin-optemail", form);
     const authfieldsBox = $(".authfields", form);
     const connectBox = $(".authconnect", form);
     const connectPhone = $("#connect-phone", form);
     const connectPin = $("#connect-pin", form);
+    const connectPinToggle = $("#connect-pin-toggle", form);
     const status = $(".formnote", form);
 
     let pendingPhone = "";
     // The new client's name + PIN, held across the name -> PIN -> (optional) email
     // stages so they all land in one register() call.
     let pendingName = "";
-    let pendingPin = "";
+    // True while the code stage is verifying a phone for the email-first CONNECT
+    // flow (rather than a plain SMS sign-in) — the confirm endpoint differs.
+    let connectOtpMode = false;
     // Remembers the code that just auto-submitted, so a completed six digits
     // can't fire the verify twice (re-armed only when the field is edited back
     // below six — see the code field's input handler).
@@ -301,9 +303,10 @@
       }
       if (st === "code") return digits(codeField.value).length >= 6;
       if (st === "name") return nameField.value.trim().length > 0;
-      if (st === "pin") { const p = digits(pinField.value); return p.length === 4 && p !== "0000"; }
       if (st === "addemail") return true; // email is optional — Finish works blank or filled
       if (st === "connect")
+        return !!connectPhone && digits(connectPhone.value).replace(/^1/, "").length === 10;
+      if (st === "connectpin")
         return !!connectPhone && !!connectPin
           && digits(connectPhone.value).replace(/^1/, "").length === 10
           && digits(connectPin.value).length >= 4;
@@ -316,9 +319,9 @@
       submitBtn.textContent =
         st === "code" ? "Sign in"
         : st === "name" ? "Continue"
-        : st === "pin" ? "Continue"
         : st === "addemail" ? "Finish"
-        : st === "connect" ? "Connect my account"
+        : st === "connect" ? "Text me a code"
+        : st === "connectpin" ? "Connect my account"
         : emailMode() ? "Email me a sign-in link"
         : "Text me a sign-in code";
       submitBtn.hidden = !stageValid();
@@ -328,12 +331,15 @@
       form.dataset.stage = name;
       form.dataset.sent = name === "code" || name === "sent" ? "true" : "false";
       const inStart = name === "start";
-      const inConnect = name === "connect";
+      // Two stages share the .authconnect box: `connect` (phone only — text me a
+      // code) and `connectpin` (phone + PIN, for customers who booked by phone and
+      // can't receive texts). PINs are a voice-channel credential now, so the PIN
+      // route is the secondary one behind a disclosure.
+      const inConnect = name === "connect" || name === "connectpin";
       if (phoneField) phoneField.hidden = !inStart;
       if (emailField) emailField.hidden = !inStart;
       if (codeField) codeField.hidden = name !== "code";
       if (nameField) nameField.hidden = name !== "name";
-      if (pinField) pinField.hidden = name !== "pin";
       if (optEmailField) optEmailField.hidden = name !== "addemail";
       if (authswap) authswap.hidden = !inStart;
       if (authfieldsBox) authfieldsBox.hidden = inConnect;
@@ -349,25 +355,22 @@
       if (emailField) emailField.disabled = !inStart;
       if (codeField) codeField.disabled = name !== "code";
       if (nameField) nameField.disabled = name !== "name";
-      if (pinField) pinField.disabled = name !== "pin";
       if (optEmailField) optEmailField.disabled = name !== "addemail";
       if (connectPhone) connectPhone.disabled = !inConnect;
-      if (connectPin) connectPin.disabled = !inConnect;
+      // The PIN field only exists on the connectpin stage — keeping it enabled on
+      // `connect` would put a login-shaped field back on the card and revive the
+      // Safari autofill problem the disable pass exists to prevent.
+      if (connectPin) connectPin.hidden = name !== "connectpin";
+      if (connectPin) connectPin.disabled = name !== "connectpin";
+      if (connectPinToggle) connectPinToggle.hidden = name !== "connect";
       note(status, "");
       refreshSubmit();
-      const focus = { start: null, code: codeField, name: nameField, pin: pinField, addemail: optEmailField, connect: connectPhone }[name];
+      const focus = { start: null, code: codeField, name: nameField, addemail: optEmailField, connect: connectPhone, connectpin: connectPin }[name];
       if (focus) focus.focus();
     }
 
     [emailField, nameField].forEach((el) => {
       if (el) el.addEventListener("input", refreshSubmit);
-    });
-
-    // The signup PIN: hold it to four digits and refresh the button as it fills.
-    if (pinField) pinField.addEventListener("input", () => {
-      const p = digits(pinField.value).slice(0, 4);
-      if (pinField.value !== p) pinField.value = p;
-      refreshSubmit();
     });
 
     // The verification code submits itself the moment all six digits are in —
@@ -456,8 +459,12 @@
         if (connectBox && connectToken) {
           if (lede) lede.textContent = "Connect your account";
           if (authnote) authnote.hidden = true;
+          if (lede) lede.textContent = "Almost there — what's your phone number?";
           stage("connect");
-          note(status, "We couldn't find an account for that email. If you've booked with us by phone, enter that number and your PIN to connect it.");
+          // Deliberately covers BOTH outcomes: we don't yet know (and must not
+          // reveal, before they prove the number is theirs) whether an account
+          // already exists for it.
+          note(status, "We couldn't find an account for that email yet. Enter your mobile number and we'll text you a code — we'll connect your bookings if you've cleaned with us before, or finish setting up your account.");
           if (authalt) { authalt.textContent = "Sign in a different way"; authalt.hidden = false; }
         } else {
           note(status, "That email isn't linked to any account yet — sign in with the phone number you used when booking.", true);
@@ -493,6 +500,29 @@
         } else if (st === "code") {
           const code = digits(codeField.value);
           if (code.length < 4) return note(status, "Enter the code from the text message.", true);
+
+          if (connectOtpMode) {
+            // Email-first: this code proves the phone. The server decides what it
+            // means — an existing account gets our verified email attached and we
+            // are signed in; no account means we carry on and create one.
+            const res = await submitBusy(null, () => api.confirmPhoneOtp(pendingPhone, code, connectToken, true));
+            if (!res) return;
+            if (res.access_token) api.setToken(res.access_token);
+            connectToken = null;
+            connectOtpMode = false;
+            if (res.linked) {
+              magicLinkNoAccount = false;
+              return goto(authDestination());
+            }
+            // No account owned that number — the refreshed token now carries the
+            // proven email AND phone, so registration can finish without asking
+            // for either again.
+            if (lede) lede.textContent = "Lovely to meet you — what should we call you?";
+            if (authnote) authnote.hidden = true;
+            if (authresend) authresend.hidden = true;
+            return stage("name");
+          }
+
           const res = await submitBusy(null, () => api.verifySmsOtp(pendingPhone, code));
           // undefined = a second press while the first verify is in flight
           // (busy() refuses re-entry). Walking on regardless navigated away
@@ -504,16 +534,20 @@
         } else if (st === "name") {
           const name = nameField.value.trim();
           if (!name) return note(status, "We do need something to call you.", true);
-          // Hold the name and collect a PIN before creating the account, so a
-          // phone-signup account has a real PIN it can be linked to an email with.
           pendingName = name;
-          if (lede) lede.textContent = "Almost done — pick a 4-digit PIN you'll use to sign in.";
-          stage("pin");
-        } else if (st === "pin") {
-          const pin = digits(pinField.value);
-          if (pin.length !== 4 || pin === "0000") return note(status, "Pick a 4-digit PIN — anything but 0000.", true);
-          // Hold the PIN and offer an optional email before creating the account.
-          pendingPin = pin;
+          // No PIN step: the SMS code already proved this phone. PINs are a
+          // voice-channel credential now, created during a call.
+          // If the token carries a magic-link-PROVEN email we already have it —
+          // don't ask again, just create the account.
+          if ((api.claims() || {}).email) {
+            const res = await submitBusy(null, () => api.register({
+              name: pendingName, phone: (api.claims() || {}).phone || undefined, tos_accepted: true,
+            }));
+            if (!res) return;
+            if (res.access_token) api.setToken(res.access_token);
+            magicLinkNoAccount = false;
+            return goto(authDestination());
+          }
           if (lede) lede.textContent = "Want to add your email? You'll be able to sign in with it too — optional.";
           stage("addemail");
         } else if (st === "addemail") {
@@ -522,7 +556,7 @@
             return note(status, "That doesn't look like an email — leave it blank to skip.", true);
           const claims = api.claims() || {};
           const res = await submitBusy(null, () => api.register({
-            name: pendingName, pin: pendingPin,
+            name: pendingName,
             email: optEmail || claims.email || undefined,
             phone: claims.phone || undefined, tos_accepted: true,
           }));
@@ -530,6 +564,27 @@
           if (res.access_token) api.setToken(res.access_token);
           goto(authDestination());
         } else if (st === "connect") {
+          // Email proven, no account yet: text a code to the number they give us.
+          // Whether an account already owns it is decided AFTER the code checks
+          // out — never before, or this would answer "does X have an account?".
+          const phone = toE164(connectPhone.value);
+          if (digits(phone).length !== 11) return note(status, "That phone number doesn't look complete — we need all ten digits.", true);
+          if (!connectToken) return note(status, "Your sign-in link expired — request a new one to connect your account.", true);
+          const res = await submitBusy(null, () => api.sendPhoneOtp(phone, connectToken));
+          if (!res) return; // busy() refused re-entry
+          pendingPhone = phone;
+          connectOtpMode = true;
+          stage("code");
+          // stage() wipes the status line and both of these are hidden on the
+          // connect arrival — re-show them AFTER it or the caller gets no
+          // "we sent a code" line and, worse, no resend link, which strands
+          // anyone whose text never arrives or whose code expires.
+          if (authnote) {
+            authnote.textContent = `We sent a code to ${connectPhone.value.trim()}.`;
+            authnote.hidden = false;
+          }
+          if (authresend) authresend.hidden = false;
+        } else if (st === "connectpin") {
           const phone = toE164(connectPhone.value);
           if (digits(phone).length !== 11) return note(status, "That phone number doesn't look complete — we need all ten digits.", true);
           const pin = digits(connectPin.value);
@@ -539,11 +594,42 @@
           if (!res) return; // busy() refused re-entry — a link is already in flight
           if (res.access_token) api.setToken(res.access_token);
           connectToken = null;
+          magicLinkNoAccount = false;
           goto(authDestination());
         }
       } catch (err) {
+        const code = err && err.code;   // ApiError exposes .code directly (api.js)
+        // LinkBlocked / EmailInUse are terminal for this attempt: the OTP was
+        // already consumed server-side, so retyping the code can only fail and
+        // resending burns the per-phone cap. Get them off the code stage and
+        // point at the way out instead of looping.
+        if (code === "LinkBlocked" || code === "EmailInUse") {
+          connectOtpMode = false;
+          if (authresend) authresend.hidden = true;
+          if (authnote) authnote.hidden = true;
+          if (lede) lede.textContent = "Let's try that another way.";
+          stage("connect");
+          note(status, formatErr(err), true);
+          if (authalt) { authalt.textContent = "Sign in a different way"; authalt.hidden = false; }
+          return;
+        }
+        // Couldn't text that number (landline / unreachable): offer the phone
+        // route rather than dead-ending, and reveal the PIN option.
+        if (code === "SmsSendFailed" || code === "InvalidPhone") {
+          if (connectPinToggle) connectPinToggle.hidden = false;
+          note(status, "We couldn't text that number. If it can't receive texts, call us and we'll book you by phone — or if you've booked with us before, connect with your PIN.", true);
+          return;
+        }
         note(status, formatErr(err), true);
       }
+    });
+
+    // "Can't receive texts?" — reveal the PIN route for phone-booked customers.
+    if (connectPinToggle) connectPinToggle.addEventListener("click", (e) => {
+      e.preventDefault();
+      if (lede) lede.textContent = "Connect your account";
+      stage("connectpin");
+      note(status, "Enter the phone number you booked with and the PIN you use when you call us.");
     });
 
     if (authalt) authalt.addEventListener("click", (e) => {
@@ -554,10 +640,9 @@
       if (authresend) authresend.hidden = true;
       // Reset any connect-stage chrome back to the default sign-in card.
       if (connectPin) connectPin.value = "";
-      if (pinField) pinField.value = "";
       if (optEmailField) optEmailField.value = "";
       pendingName = "";
-      pendingPin = "";
+      connectOtpMode = false;
       if (lede) lede.textContent = "Sign in or create an account to get started.";
       if (authnote) authnote.hidden = false;
       authalt.textContent = "Use a different email";
@@ -577,7 +662,8 @@
       }
       await busy(authresend, "Sending…", async () => {
         try {
-          await api.sendSmsOtp(pendingPhone);
+          if (connectOtpMode) await api.sendPhoneOtp(pendingPhone, connectToken);
+          else await api.sendSmsOtp(pendingPhone);
           lastResendAt = Date.now();
           if (codeField) codeField.value = "";
           autoSubmittedCode = "";
@@ -2210,7 +2296,7 @@
   // built as with the served one; if behind, reload once. The sessionStorage
   // guard means a mis-bumped version file costs one reload per wake, never a
   // loop. scripts/bump-version.sh keeps the three markers in step.
-  const SITE_VERSION = "64";
+  const SITE_VERSION = "66";
   let hiddenAt = 0;
   async function healIfStale() {
     try {
