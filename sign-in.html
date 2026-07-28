@@ -7,8 +7,8 @@
   <title>Madame — Ready to roll</title>
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>M</text></svg>">
-  <link rel="stylesheet" href="dist/styles.css?v=58">
-  <link rel="stylesheet" href="css/pages/step-1.css?v=58">
+  <link rel="stylesheet" href="dist/styles.css?v=59">
+  <link rel="stylesheet" href="css/pages/step-1.css?v=59">
   <!-- Marks JS as available BEFORE first paint, so the entrance animation
        can hide the copy. Without this the page would render blank if app.js
        ever failed to load. Must stay inline and in <head>. -->
@@ -101,6 +101,12 @@
         <label class="visually-hidden" for="signin-pin">Create a 4-digit PIN</label>
         <input class="authfield authfield--newpin" id="signin-pin" name="new_pin" type="text" inputmode="numeric"
           autocomplete="off" maxlength="4" placeholder="4-digit PIN" hidden>
+        <!-- New-client signup: OPTIONAL email so they can also sign in on the web
+             by email later. Blank is fine — the "Finish" button creates the account
+             either way. -->
+        <label class="visually-hidden" for="signin-optemail">Email (optional)</label>
+        <input class="authfield authfield--optemail" id="signin-optemail" name="opt_email" type="email"
+          autocomplete="off" placeholder="you@example.com (optional)" hidden>
       </div>
 
       <!-- The "connect an existing phone-booked account" stage. Shown by booking.js
@@ -143,9 +149,9 @@
     </form>
   </div>
 
-  <script src="api.js?v=58"></script>
-  <script src="app.js?v=58"></script>
-  <script src="booking.js?v=58"></script>
+  <script src="api.js?v=59"></script>
+  <script src="app.js?v=59"></script>
+  <script src="booking.js?v=59"></script>
 </body>
 
 </html>
