@@ -140,9 +140,15 @@
     // lives in a JS var, not storage, so it must be passed in. confirm's reply
     // carries `linked`: true = an account owned that phone and now has our
     // verified email (full session); false = nobody did, carry on to register.
+    // Resolves to a TRUTHY value on success. The endpoint replies 200 with an
+    // EMPTY body, so call() yields null — and callers use `if (!res) return` to
+    // detect busy()'s re-entry refusal (also falsy). Without this sentinel a
+    // successful send is indistinguishable from "already in flight", and the
+    // caller silently does nothing: press "Text me a code", no code stage, no
+    // error. Don't return the raw call() result here.
     sendPhoneOtp: (phone, emailToken) => call("/public/clients/verify-phone", {
       method: "POST", body: { phone }, authToken: emailToken,
-    }),
+    }).then(() => ({ sent: true })),
     confirmPhoneOtp: (phone, code, emailToken, tosAccepted = true) =>
       call("/public/clients/verify-phone/confirm", {
         method: "POST", body: { phone, code, tos_accepted: tosAccepted }, authToken: emailToken,
