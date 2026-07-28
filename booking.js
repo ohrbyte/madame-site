@@ -262,6 +262,7 @@
     const emailField = $("#signin-email", form);
     const codeField = $("#signin-code", form);
     const nameField = $("#signin-name", form);
+    const pinField = $("#signin-pin", form);
     const authfieldsBox = $(".authfields", form);
     const connectBox = $(".authconnect", form);
     const connectPhone = $("#connect-phone", form);
@@ -269,6 +270,9 @@
     const status = $(".formnote", form);
 
     let pendingPhone = "";
+    // The new client's name, held between the name stage and the PIN stage so
+    // both land in one register() call.
+    let pendingName = "";
     // Remembers the code that just auto-submitted, so a completed six digits
     // can't fire the verify twice (re-armed only when the field is edited back
     // below six — see the code field's input handler).
@@ -295,6 +299,7 @@
       }
       if (st === "code") return digits(codeField.value).length >= 6;
       if (st === "name") return nameField.value.trim().length > 0;
+      if (st === "pin") { const p = digits(pinField.value); return p.length === 4 && p !== "0000"; }
       if (st === "connect")
         return !!connectPhone && !!connectPin
           && digits(connectPhone.value).replace(/^1/, "").length === 10
@@ -308,6 +313,7 @@
       submitBtn.textContent =
         st === "code" ? "Sign in"
         : st === "name" ? "Continue"
+        : st === "pin" ? "Create account"
         : st === "connect" ? "Connect my account"
         : emailMode() ? "Email me a sign-in link"
         : "Text me a sign-in code";
@@ -323,6 +329,7 @@
       if (emailField) emailField.hidden = !inStart;
       if (codeField) codeField.hidden = name !== "code";
       if (nameField) nameField.hidden = name !== "name";
+      if (pinField) pinField.hidden = name !== "pin";
       if (authswap) authswap.hidden = !inStart;
       if (authfieldsBox) authfieldsBox.hidden = inConnect;
       if (connectBox) connectBox.hidden = !inConnect;
@@ -337,16 +344,24 @@
       if (emailField) emailField.disabled = !inStart;
       if (codeField) codeField.disabled = name !== "code";
       if (nameField) nameField.disabled = name !== "name";
+      if (pinField) pinField.disabled = name !== "pin";
       if (connectPhone) connectPhone.disabled = !inConnect;
       if (connectPin) connectPin.disabled = !inConnect;
       note(status, "");
       refreshSubmit();
-      const focus = { start: null, code: codeField, name: nameField, connect: connectPhone }[name];
+      const focus = { start: null, code: codeField, name: nameField, pin: pinField, connect: connectPhone }[name];
       if (focus) focus.focus();
     }
 
     [emailField, nameField].forEach((el) => {
       if (el) el.addEventListener("input", refreshSubmit);
+    });
+
+    // The signup PIN: hold it to four digits and refresh the button as it fills.
+    if (pinField) pinField.addEventListener("input", () => {
+      const p = digits(pinField.value).slice(0, 4);
+      if (pinField.value !== p) pinField.value = p;
+      refreshSubmit();
     });
 
     // The verification code submits itself the moment all six digits are in —
@@ -483,8 +498,16 @@
         } else if (st === "name") {
           const name = nameField.value.trim();
           if (!name) return note(status, "We do need something to call you.", true);
+          // Hold the name and collect a PIN before creating the account, so a
+          // phone-signup account has a real PIN it can be linked to an email with.
+          pendingName = name;
+          if (lede) lede.textContent = "Almost done — pick a 4-digit PIN you'll use to sign in.";
+          stage("pin");
+        } else if (st === "pin") {
+          const pin = digits(pinField.value);
+          if (pin.length !== 4 || pin === "0000") return note(status, "Pick a 4-digit PIN — anything but 0000.", true);
           const claims = api.claims() || {};
-          const res = await submitBusy(null, () => api.register({ name, phone: claims.phone || undefined, email: claims.email || undefined, tos_accepted: true }));
+          const res = await submitBusy(null, () => api.register({ name: pendingName, pin, phone: claims.phone || undefined, email: claims.email || undefined, tos_accepted: true }));
           if (!res) return;
           if (res.access_token) api.setToken(res.access_token);
           goto(authDestination());
@@ -513,6 +536,8 @@
       if (authresend) authresend.hidden = true;
       // Reset any connect-stage chrome back to the default sign-in card.
       if (connectPin) connectPin.value = "";
+      if (pinField) pinField.value = "";
+      pendingName = "";
       if (lede) lede.textContent = "Sign in or create an account to get started.";
       if (authnote) authnote.hidden = false;
       authalt.textContent = "Use a different email";
@@ -2129,7 +2154,7 @@
   // built as with the served one; if behind, reload once. The sessionStorage
   // guard means a mis-bumped version file costs one reload per wake, never a
   // loop. scripts/bump-version.sh keeps the three markers in step.
-  const SITE_VERSION = "57";
+  const SITE_VERSION = "58";
   let hiddenAt = 0;
   async function healIfStale() {
     try {
