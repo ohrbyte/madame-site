@@ -775,6 +775,9 @@
     const today = avail.todayKey();
     let [year, month] = today.split("-").map(Number);
     let selected = flow.read().date || "";
+    // The earliest self-serve bookable date (launch blackout), yyyy-mm-dd. Filled
+    // from booking rules after the first paint; days before it are then disabled.
+    let bookableFrom = "";
     // A date picked in an earlier session that has since gone by is stale.
     if (selected && selected < today) { selected = ""; flow.patch({ date: "" }); }
     const monthsAhead = 3; // rolling window — matches how far dispatch plans
@@ -795,6 +798,8 @@
         b.className = "choice";
         b.textContent = cell.day;
         if (cell.isPast) b.disabled = true;
+        // Launch blackout — days before the earliest bookable date are unpickable.
+        if (bookableFrom && cell.dateKey < bookableFrom) b.disabled = true;
         if (cell.dateKey === selected) { b.classList.add("is-on"); b.setAttribute("aria-pressed", "true"); }
         b.addEventListener("click", () => {
           selected = cell.dateKey;
@@ -827,6 +832,20 @@
     });
 
     render();
+
+    // Launch blackout: pull the earliest bookable date from booking rules, disable
+    // earlier days, drop a now-too-early selection, and open on the first bookable
+    // month so the calendar doesn't land on a month with nothing to pick.
+    api.bookingRules().then((r) => {
+      const bf = r && r.bookable_from;
+      if (!bf) return;
+      bookableFrom = bf;
+      if (selected && selected < bookableFrom) { selected = ""; flow.patch({ date: "" }); }
+      if (bf.slice(0, 7) > `${year}-${String(month).padStart(2, "0")}`) {
+        [year, month] = bf.split("-").slice(0, 2).map(Number);
+      }
+      render();
+    }).catch(() => {});
   }
 
   /* ================================================================
@@ -2174,7 +2193,7 @@
   // built as with the served one; if behind, reload once. The sessionStorage
   // guard means a mis-bumped version file costs one reload per wake, never a
   // loop. scripts/bump-version.sh keeps the three markers in step.
-  const SITE_VERSION = "59";
+  const SITE_VERSION = "60";
   let hiddenAt = 0;
   async function healIfStale() {
     try {
