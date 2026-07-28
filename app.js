@@ -27,6 +27,11 @@
        data-map-src   : selector for the field that drives it
        data-map-param : which parameter carries the place (Static uses `center`,
                         the Embed API used `q`)
+       data-map-zoom  : zoom once a REAL place drives the map. The markup ships
+                        the wide default view (town at zoom=13); a typed/picked
+                        address is a street, so we tighten to this and pin a
+                        brand-pink marker on it — at street zoom an unmarked
+                        centre is unreadable.
      Debounced, because every change is a fresh image request: typing an address
      should cost one request when you stop, not one per keystroke. Progressive —
      with no JS the map just shows whatever the markup shipped with. */
@@ -44,6 +49,10 @@
       const q = field.value.trim();
       if (!q || q === url.searchParams.get(param)) return;
       url.searchParams.set(param, q);
+      if (el.dataset.mapZoom) {
+        url.searchParams.set("zoom", el.dataset.mapZoom);
+        url.searchParams.set("markers", "color:0xDB3694|" + q);
+      }
       el.src = url.toString();
     };
     field.addEventListener("input", () => {
