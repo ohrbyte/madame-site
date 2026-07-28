@@ -1,6 +1,10 @@
 node_modules/
 dist/
 
+# Local copy of the Google Maps API key (window.MAPS_KEY). In CI this file is
+# generated into _site/ from the GOOGLE_MAPS_API_KEY repo secret.
+maps-key.js
+
 # Large binary intermediates — regenerable / not used by the running site.
 # (kept on disk as deliverables; layers rebuild via scripts/delayer.py)
 claude-export/
@@ -22,3 +26,6 @@ scripts/_*.mjs
 
 # scratch diagnostic pages
 _*.html
+
+# Per-machine Claude Code permissions — not shared, was mistakenly tracked
+.claude/settings.local.json

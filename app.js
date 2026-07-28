@@ -19,8 +19,11 @@
   });
 
   /* Live map preview (step 2). The element already carries a full Maps URL — we
-     only ever swap one query parameter — so the API key stays in the markup and
-     this stays a dumb string edit.
+     only ever swap one query parameter — so this stays a dumb string edit. The
+     key= parameter ships as the __GOOGLE_MAPS_API_KEY__ placeholder: the Pages
+     build substitutes the real key into the HTML, so in production this branch
+     is a no-op; on local mounts (which serve the raw tree) it is patched here
+     from window.MAPS_KEY (gitignored maps-key.js).
        data-map-src   : selector for the field that drives it
        data-map-param : which parameter carries the place (Static uses `center`,
                         the Embed API used `q`)
@@ -32,6 +35,10 @@
     if (!field) return;
     const param = el.dataset.mapParam || "center";
     const url = new URL(el.src);
+    if (url.searchParams.get("key") === "__GOOGLE_MAPS_API_KEY__" && window.MAPS_KEY) {
+      url.searchParams.set("key", window.MAPS_KEY);
+      el.src = url.toString();
+    }
     let timer = null;
     const update = () => {
       const q = field.value.trim();

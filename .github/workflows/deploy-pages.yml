@@ -64,6 +64,24 @@ jobs:
             ./ _site/
           echo "Published files:" && ls -A _site
 
+      - name: Inject Google Maps API key
+        # The markup ships a __GOOGLE_MAPS_API_KEY__ placeholder so the literal
+        # key stays out of the repo. Bake the real value into the published HTML
+        # (keeps the map working without JS, exactly as before), and emit
+        # maps-key.js — the file local dev serves from a gitignored copy — so
+        # the <script> tag doesn't 404 in production. The key is still public
+        # by nature (client key); referrer restriction is what protects it.
+        env:
+          MAPS_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
+        run: |
+          if [ -z "$MAPS_KEY" ]; then
+            echo "GOOGLE_MAPS_API_KEY repo secret is not set" >&2
+            exit 1
+          fi
+          grep -rl --include='*.html' '__GOOGLE_MAPS_API_KEY__' _site \
+            | xargs -r sed -i "s/__GOOGLE_MAPS_API_KEY__/$MAPS_KEY/g"
+          printf 'window.MAPS_KEY = "%s";\n' "$MAPS_KEY" > _site/maps-key.js
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site

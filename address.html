@@ -122,16 +122,25 @@
              logo and "Map data" baked into the image are required attribution
              and must stay.
 
-             The key is visible here because a Maps key IS a client key — it goes
-             out in every page that shows a map and cannot be hidden in a static
-             site. What protects it is RESTRICTION, not secrecy: it is already
-             locked to an HTTP-referrer allowlist (localhost:3001 + the deploy
-             domains). Note that restriction stops the key working on OTHER
-             sites; it can't stop a script sending a spoofed Referer, so the hard
-             cap is the API restriction plus a billing quota. -->
+             A Maps key IS a client key — it goes out in every page that shows a
+             map and cannot be hidden in a static site. What protects it is
+             RESTRICTION, not secrecy: it is locked to an HTTP-referrer allowlist
+             (localhost:3001 + the deploy domains). Restriction stops the key
+             working on OTHER sites; it can't stop a script sending a spoofed
+             Referer, so the hard cap is the API restriction plus a billing
+             quota.
+
+             The literal key still stays out of the REPO: the src ships the
+             __GOOGLE_MAPS_API_KEY__ placeholder, which the Pages workflow
+             substitutes from the GOOGLE_MAPS_API_KEY repo secret at build time.
+             Local mounts serve the raw tree, so there app.js patches the
+             placeholder from window.MAPS_KEY, set by the gitignored
+             maps-key.js below (CI generates that file too, so the tag never
+             404s in production). Consequence: on local mounts the map needs JS;
+             the published site keeps the key baked into the HTML as before. -->
         <img class="addr-map" alt="Map of the address entered above" loading="lazy"
           referrerpolicy="no-referrer-when-downgrade" data-map-src="#addr" data-map-param="center"
-          src="https://maps.googleapis.com/maps/api/staticmap?center=Monroe,NY+10950&zoom=13&size=640x460&scale=2&key=AIzaSyDtSx1fzr1XvYfXTSaTWuIxxIFORV5Ed8k">
+          src="https://maps.googleapis.com/maps/api/staticmap?center=Monroe,NY+10950&zoom=13&size=640x460&scale=2&key=__GOOGLE_MAPS_API_KEY__">
       </div>
 
       <p class="formnote" hidden></p>
@@ -142,6 +151,7 @@
     <a class="btn anim" style="--d:.4s" href="day">Book Now</a>
   </div>
 
+  <script src="maps-key.js?v=60"></script>
   <script src="api.js?v=60"></script>
   <script src="app.js?v=60"></script>
   <script src="booking.js?v=60"></script>
