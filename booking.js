@@ -326,6 +326,19 @@
       if (authswap) authswap.hidden = !inStart;
       if (authfieldsBox) authfieldsBox.hidden = inConnect;
       if (connectBox) connectBox.hidden = !inConnect;
+      // Autofill hygiene. Because the card shares one <form> with a password
+      // field (#connect-pin), Safari treats the whole thing as a login and
+      // offers a SAVED EMAIL on the name field ("what should we call you?").
+      // Disable every input not in the current stage: browsers skip disabled
+      // fields for autofill, they can't be submitted or focused off-stage, and
+      // their .value is still readable in code. So on the name stage nothing
+      // login-shaped remains and the browser stops suggesting an email.
+      if (phoneField) phoneField.disabled = !inStart;
+      if (emailField) emailField.disabled = !inStart;
+      if (codeField) codeField.disabled = name !== "code";
+      if (nameField) nameField.disabled = name !== "name";
+      if (connectPhone) connectPhone.disabled = !inConnect;
+      if (connectPin) connectPin.disabled = !inConnect;
       note(status, "");
       refreshSubmit();
       const focus = { start: null, code: codeField, name: nameField, connect: connectPhone }[name];
@@ -2116,7 +2129,7 @@
   // built as with the served one; if behind, reload once. The sessionStorage
   // guard means a mis-bumped version file costs one reload per wake, never a
   // loop. scripts/bump-version.sh keeps the three markers in step.
-  const SITE_VERSION = "55";
+  const SITE_VERSION = "56";
   let hiddenAt = 0;
   async function healIfStale() {
     try {
