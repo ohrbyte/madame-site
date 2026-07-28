@@ -59,8 +59,8 @@ jobs:
             --exclude 'package.json' \
             --exclude 'package-lock.json' \
             --exclude '.gitignore' \
-            --exclude 'index.legacy.html' \
-            --exclude 'styles.css' \
+            --exclude '/index.legacy.html' \
+            --exclude '/styles.css' \
             ./ _site/
           echo "Published files:" && ls -A _site
 
