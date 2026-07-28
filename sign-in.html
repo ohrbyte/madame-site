@@ -7,8 +7,8 @@
   <title>Madame — Ready to roll</title>
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>M</text></svg>">
-  <link rel="stylesheet" href="dist/styles.css?v=56">
-  <link rel="stylesheet" href="css/pages/step-1.css?v=56">
+  <link rel="stylesheet" href="dist/styles.css?v=57">
+  <link rel="stylesheet" href="css/pages/step-1.css?v=57">
   <!-- Marks JS as available BEFORE first paint, so the entrance animation
        can hide the copy. Without this the page would render blank if app.js
        ever failed to load. Must stay inline and in <head>. -->
@@ -107,8 +107,13 @@
         <label class="visually-hidden" for="connect-phone">Phone number on your account</label>
         <input class="authfield" id="connect-phone" name="connect_phone" type="tel" inputmode="tel"
           autocomplete="tel" placeholder="Phone on your account">
+        <!-- NOT type="password": a password field anywhere on the page makes
+             Safari treat the whole card as a login and offer a saved email on
+             the "what should we call you?" name field. This is type="text" with
+             CSS masking (.authfield--pin → -webkit-text-security) instead, so the
+             PIN still shows as dots but no login field exists to trigger autofill. -->
         <label class="visually-hidden" for="connect-pin">Account PIN</label>
-        <input class="authfield" id="connect-pin" name="connect_pin" type="password" inputmode="numeric"
+        <input class="authfield authfield--pin" id="connect-pin" name="connect_pin" type="text" inputmode="numeric"
           autocomplete="off" maxlength="8" placeholder="Your PIN">
       </div>
 
@@ -132,9 +137,9 @@
     </form>
   </div>
 
-  <script src="api.js?v=56"></script>
-  <script src="app.js?v=56"></script>
-  <script src="booking.js?v=56"></script>
+  <script src="api.js?v=57"></script>
+  <script src="app.js?v=57"></script>
+  <script src="booking.js?v=57"></script>
 </body>
 
 </html>

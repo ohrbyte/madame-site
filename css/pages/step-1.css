@@ -202,3 +202,12 @@ body[data-page="step-1"] .authresend:hover,
 body[data-page="step-1"] .authresend:focus-visible {
   color: #fff;
 }
+
+/* The account PIN is type="text" (not password) so that no password field
+   exists on the page — a password field makes Safari classify the whole
+   sign-in card as a login and offer a saved email on the name field. Mask
+   the characters in CSS instead; the PIN still renders as dots. */
+body[data-page="step-1"] .authfield--pin {
+  -webkit-text-security: disc;
+  letter-spacing: 0.15em;
+}
