@@ -775,9 +775,13 @@
     const today = avail.todayKey();
     let [year, month] = today.split("-").map(Number);
     let selected = flow.read().date || "";
-    // The earliest self-serve bookable date (launch blackout), yyyy-mm-dd. Filled
-    // from booking rules after the first paint; days before it are then disabled.
+    // Blackout dates from booking rules, filled after the first paint. `bookableFrom`
+    // is the earliest open day (yyyy-mm-dd) — days before it are disabled and the
+    // calendar opens on its month. `blockedRanges` are the office's closed spans
+    // ({start,end} inclusive); any day inside one is disabled too.
     let bookableFrom = "";
+    let blockedRanges = [];
+    const isBlocked = (k) => blockedRanges.some((r) => r.start <= k && k <= r.end);
     // A date picked in an earlier session that has since gone by is stale.
     if (selected && selected < today) { selected = ""; flow.patch({ date: "" }); }
     const monthsAhead = 3; // rolling window — matches how far dispatch plans
@@ -798,8 +802,10 @@
         b.className = "choice";
         b.textContent = cell.day;
         if (cell.isPast) b.disabled = true;
-        // Launch blackout — days before the earliest bookable date are unpickable.
+        // Blackout — days before the earliest bookable date, or inside a closed
+        // range, are unpickable.
         if (bookableFrom && cell.dateKey < bookableFrom) b.disabled = true;
+        if (isBlocked(cell.dateKey)) b.disabled = true;
         if (cell.dateKey === selected) { b.classList.add("is-on"); b.setAttribute("aria-pressed", "true"); }
         b.addEventListener("click", () => {
           selected = cell.dateKey;
@@ -833,16 +839,27 @@
 
     render();
 
-    // Launch blackout: pull the earliest bookable date from booking rules, disable
-    // earlier days, drop a now-too-early selection, and open on the first bookable
-    // month so the calendar doesn't land on a month with nothing to pick.
+    // Blackout: pull the closed ranges + earliest bookable date from booking rules,
+    // disable those days, drop a now-invalid selection, and open on the first
+    // bookable month so the calendar doesn't land on a month with nothing to pick.
     api.bookingRules().then((r) => {
-      const bf = r && r.bookable_from;
-      if (!bf) return;
-      bookableFrom = bf;
-      if (selected && selected < bookableFrom) { selected = ""; flow.patch({ date: "" }); }
-      if (bf.slice(0, 7) > `${year}-${String(month).padStart(2, "0")}`) {
-        [year, month] = bf.split("-").slice(0, 2).map(Number);
+      if (!r) return;
+      blockedRanges = Array.isArray(r.blocked_dates)
+        ? r.blocked_dates.filter((x) => x && x.start && x.end)
+        : [];
+      // min_bookable_date is the general-feature field; bookable_from is its alias
+      // for older responses.
+      const bf = r.min_bookable_date || r.bookable_from;
+      if (bf) {
+        bookableFrom = bf;
+        if (bf.slice(0, 7) > `${year}-${String(month).padStart(2, "0")}`) {
+          [year, month] = bf.split("-").slice(0, 2).map(Number);
+        }
+      }
+      // Drop a selection that's now before the floor or inside a closed range.
+      if (selected && ((bookableFrom && selected < bookableFrom) || isBlocked(selected))) {
+        selected = "";
+        flow.patch({ date: "" });
       }
       render();
     }).catch(() => {});
@@ -2193,7 +2210,7 @@
   // built as with the served one; if behind, reload once. The sessionStorage
   // guard means a mis-bumped version file costs one reload per wake, never a
   // loop. scripts/bump-version.sh keeps the three markers in step.
-  const SITE_VERSION = "60";
+  const SITE_VERSION = "61";
   let hiddenAt = 0;
   async function healIfStale() {
     try {
