@@ -7,8 +7,8 @@
   <title>Madame — Ready to roll</title>
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>M</text></svg>">
-  <link rel="stylesheet" href="dist/styles.css?v=68">
-  <link rel="stylesheet" href="css/pages/step-1.css?v=68">
+  <link rel="stylesheet" href="dist/styles.css?v=69">
+  <link rel="stylesheet" href="css/pages/step-1.css?v=69">
   <!-- Marks JS as available BEFORE first paint, so the entrance animation
        can hide the copy. Without this the page would render blank if app.js
        ever failed to load. Must stay inline and in <head>. -->
@@ -125,6 +125,10 @@
           autocomplete="off" maxlength="8" placeholder="Your PIN" hidden>
         <!-- Revealed by booking.js; hidden once the PIN route is showing. -->
         <a class="authalt" id="connect-pin-toggle" href="#">Can't receive texts? Use your PIN instead</a>
+        <!-- New customer whose phone can't take a text and has no account yet, so
+             there's no PIN to fall back on. Email is already proven; we just
+             finish with the phone stored unverified. -->
+        <a class="authalt" id="connect-no-texts" href="#">New here and can't get texts? Continue without a code</a>
       </div>
 
       <p class="formnote" hidden></p>
@@ -147,9 +151,9 @@
     </form>
   </div>
 
-  <script src="api.js?v=68"></script>
-  <script src="app.js?v=68"></script>
-  <script src="booking.js?v=68"></script>
+  <script src="api.js?v=69"></script>
+  <script src="app.js?v=69"></script>
+  <script src="booking.js?v=69"></script>
 </body>
 
 </html>

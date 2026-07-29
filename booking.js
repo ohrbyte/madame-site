@@ -268,6 +268,7 @@
     const connectPhone = $("#connect-phone", form);
     const connectPin = $("#connect-pin", form);
     const connectPinToggle = $("#connect-pin-toggle", form);
+    const connectNoTexts = $("#connect-no-texts", form);
     const status = $(".formnote", form);
 
     let pendingPhone = "";
@@ -277,6 +278,7 @@
     // True while the code stage is verifying a phone for the email-first CONNECT
     // flow (rather than a plain SMS sign-in) — the confirm endpoint differs.
     let connectOtpMode = false;
+    let unverifiedPhoneMode = false; // no-texts new customer: email proven, phone stored as-is
     // Remembers the code that just auto-submitted, so a completed six digits
     // can't fire the verify twice (re-armed only when the field is edited back
     // below six — see the code field's input handler).
@@ -363,6 +365,10 @@
       if (connectPin) connectPin.hidden = name !== "connectpin";
       if (connectPin) connectPin.disabled = name !== "connectpin";
       if (connectPinToggle) connectPinToggle.hidden = name !== "connect";
+      if (connectNoTexts) connectNoTexts.hidden = name !== "connect";
+      // The unverified-phone intent only survives connect -> name. Any other
+      // stage change (back to start, etc.) drops it.
+      if (name !== "connect" && name !== "name") unverifiedPhoneMode = false;
       note(status, "");
       refreshSubmit();
       const focus = { start: null, code: codeField, name: nameField, addemail: optEmailField, connect: connectPhone, connectpin: connectPin }[name];
@@ -535,6 +541,27 @@
           const name = nameField.value.trim();
           if (!name) return note(status, "We do need something to call you.", true);
           pendingName = name;
+
+          // No-texts new customer: email already proven, phone typed but never
+          // verified. Finish here — send the phone with allow_unverified_phone so
+          // the account is created with it as-is. The backend refuses if that
+          // number already belongs to an account (that would need real proof).
+          if (unverifiedPhoneMode) {
+            const res = await submitBusy(null, () => api.register({
+              name: pendingName,
+              phone: pendingPhone,
+              allow_unverified_phone: true,
+              tos_accepted: true,
+            }));
+            if (!res) {
+              return; // busy refused, OR a handled error (e.g. number on an account)
+            }
+            if (res.access_token) api.setToken(res.access_token);
+            unverifiedPhoneMode = false;
+            magicLinkNoAccount = false;
+            return goto(authDestination());
+          }
+
           // No PIN step: the SMS code already proved this phone. PINs are a
           // voice-channel credential now, created during a call.
           // If the token carries a magic-link-PROVEN email we already have it —
@@ -630,6 +657,22 @@
       if (lede) lede.textContent = "Connect your account";
       stage("connectpin");
       note(status, "Enter the phone number you booked with and the PIN you use when you call us.");
+    });
+
+    // "New here and can't get texts?" — keep the phone they typed, skip the code
+    // entirely, and go collect a name. The account is created at the name step
+    // with the phone stored unverified (email is the credential).
+    if (connectNoTexts) connectNoTexts.addEventListener("click", (e) => {
+      e.preventDefault();
+      const phone = toE164(connectPhone.value);
+      if (digits(phone).length !== 11)
+        return note(status, "First enter the phone number you'd like on your account — all ten digits.", true);
+      if (!connectToken)
+        return note(status, "Your sign-in link expired — request a new one to set up your account.", true);
+      pendingPhone = phone;
+      unverifiedPhoneMode = true;
+      if (lede) lede.textContent = "Lovely to meet you — what should we call you?";
+      stage("name");
     });
 
     if (authalt) authalt.addEventListener("click", (e) => {
@@ -2334,7 +2377,7 @@
   // built as with the served one; if behind, reload once. The sessionStorage
   // guard means a mis-bumped version file costs one reload per wake, never a
   // loop. scripts/bump-version.sh keeps the three markers in step.
-  const SITE_VERSION = "68";
+  const SITE_VERSION = "69";
   let hiddenAt = 0;
   async function healIfStale() {
     try {
