@@ -765,6 +765,19 @@ body>.content--fill {
   outline: none;
 }
 
+/* The confirm action once it has been armed for a double booking. It keeps the
+   brand pink — this is a legitimate thing to do, not a failure — but stops
+   sitting flat: a ring lifts it off the panel so the customer registers that the
+   button changed under them rather than pressing the same one twice. Paired with
+   the relabel ("Yes — send both"), which is what actually carries the meaning. */
+.btn--confirm-double {
+  box-shadow: 0 0 0 3px rgba(219, 54, 148, .28), 0 6px 18px -8px rgba(217, 58, 146, .7);
+}
+
+.btn--confirm-double:hover,
+.btn--confirm-double:focus-visible {
+  box-shadow: 0 0 0 3px rgba(4, 91, 167, .3), 0 8px 22px -8px rgba(4, 91, 167, .75);
+}
 .btn.small {
   padding: .5em 1.1em;
   font-size: clamp(.72rem, 1.1vw, .95rem);

@@ -1324,6 +1324,10 @@
     }
 
     async function loadEstimate() {
+      // Re-pricing means something about the booking moved (time, length, credit,
+      // cleaner). Whatever was confirmed a moment ago was confirmed about the OLD
+      // booking, so the confirmation doesn't carry over.
+      disarmDoubleBooking();
       const est = await api.estimate({ date: state.date, start_time: state.slot.start_time, hours: state.hours, address_id: state.address_id, preferred_cleaner_id: state.preferred_cleaner_id, use_credit: useCredit, language: state.language || undefined });
       review.innerHTML = "";
       review.removeAttribute("aria-busy");
@@ -1599,8 +1603,7 @@
           // The same-client overlap gate: surface the clash and arm a second
           // press to book anyway (mirrors the busy-cleaner heads-up).
           if (err && err.code === "ClientBookingOverlap" && !overlapOk) {
-            overlapOk = true;
-            note(status, `${err.message} Press again to book it anyway.`, true);
+            armDoubleBooking(err.message);
             return;
           }
           note(status, formatErr(err), true);
@@ -1609,6 +1612,41 @@
     }
 
     let overlapOk = false;
+
+    /* Booking on top of a cleaning you already have is legitimate — two cleaners
+       at once is a real thing people want — but it is never what someone means by
+       accident, so it takes a second, deliberate press.
+
+       The confirmation lives on the BUTTON, not only in a line of text. A status
+       note under the control is easy to skim past on a phone, and the earlier
+       wording ("press again to book it anyway") asked for a second press without
+       ever saying what the first one had run into. Relabelling the action states
+       the unusual thing it is about to do, right where the thumb is going. */
+    const confirmLabel = confirmBtn ? confirmBtn.textContent : "";
+
+    function armDoubleBooking(clash) {
+      overlapOk = true;
+      if (confirmBtn) {
+        confirmBtn.textContent = "Yes — send both";
+        confirmBtn.classList.add("btn--confirm-double");
+      }
+      // Says the consequence in the customer's terms — two cleaners in their
+      // home — rather than the system's word for it ("overlap").
+      note(status, `${clash} Booking this one means two cleaners at your home at the same time.`, true);
+    }
+
+    /* Any change to WHAT is being booked disarms it. Otherwise a customer who
+       armed the confirmation, then went back and moved the time, would silently
+       double-book the new slot without ever being asked about it. */
+    function disarmDoubleBooking() {
+      if (!overlapOk) return;
+      overlapOk = false;
+      if (confirmBtn) {
+        confirmBtn.textContent = confirmLabel;
+        confirmBtn.classList.remove("btn--confirm-double");
+      }
+      note(status, "");
+    }
     let useCredit = true;
     let creditAvailable = 0;
 
@@ -2296,7 +2334,7 @@
   // built as with the served one; if behind, reload once. The sessionStorage
   // guard means a mis-bumped version file costs one reload per wake, never a
   // loop. scripts/bump-version.sh keeps the three markers in step.
-  const SITE_VERSION = "67";
+  const SITE_VERSION = "68";
   let hiddenAt = 0;
   async function healIfStale() {
     try {
