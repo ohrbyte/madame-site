@@ -5,11 +5,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Madame — Ready to roll</title>
-  <link rel="icon" href="assets/favicon-32.png?v=70" sizes="32x32" type="image/png">
-  <link rel="icon" href="assets/favicon-16.png?v=70" sizes="16x16" type="image/png">
-  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png?v=70">
-  <link rel="stylesheet" href="dist/styles.css?v=70">
-  <link rel="stylesheet" href="css/pages/step-1.css?v=70">
+  <link rel="icon" href="assets/favicon-32.png?v=71" sizes="32x32" type="image/png">
+  <link rel="icon" href="assets/favicon-16.png?v=71" sizes="16x16" type="image/png">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png?v=71">
+  <link rel="stylesheet" href="dist/styles.css?v=71">
+  <link rel="stylesheet" href="css/pages/step-1.css?v=71">
   <!-- Marks JS as available BEFORE first paint, so the entrance animation
        can hide the copy. Without this the page would render blank if app.js
        ever failed to load. Must stay inline and in <head>. -->
@@ -30,15 +30,15 @@
        blob is no longer hidden behind the sponge and reads as a hard pink halo on
        the right. Steps 2-6 dropped it for the same reason. -->
   <main class="stage">
-    <img class="swirl swirl-back" src="assets/swirl.webp" alt="" aria-hidden="true">
+    <img class="swirl swirl-back" src="assets/swirl.webp?v=71" alt="" aria-hidden="true">
     <img class="layer layer-hand" src="assets/landing-hand.webp" alt="Gloved hand squeezing a soapy sponge">
-    <img class="swirl swirl-front" src="assets/swirl.webp" alt="" aria-hidden="true">
+    <img class="swirl swirl-front" src="assets/swirl.webp?v=71" alt="" aria-hidden="true">
   </main>
 
   <!-- Corner bleed (wide frames): a self-clipped window continues the art
        past the frame's bottom-right — see index.html for the full note. -->
   <div class="corner-bleed" aria-hidden="true">
-    <img class="cb-swirl" src="assets/swirl.webp" alt="">
+    <img class="cb-swirl" src="assets/swirl.webp?v=71" alt="">
     <img class="cb-hand" src="assets/landing-hand.webp" alt="">
   </div>
 
@@ -95,7 +95,7 @@
         <input class="authfield authfield--code" id="signin-code" name="code" type="text" inputmode="numeric"
           autocomplete="one-time-code" maxlength="6" hidden>
         <label class="visually-hidden" for="signin-name">Your name</label>
-        <input class="authfield authfield--name" id="signin-name" name="name" type="text" autocomplete="name" hidden>
+        <input class="authfield authfield--name" id="signin-name" name="name" type="text" autocomplete="name" placeholder="Name" hidden>
         <!-- New-client signup: OPTIONAL email so they can also sign in on the web
              by email later. Blank is fine — the "Finish" button creates the account
              either way. -->
@@ -139,7 +139,7 @@
            without this, the only escape was "use a different number", which
            restarts the whole dance. The server honours the NEWEST code. -->
       <a class="authresend" href="#" hidden>Didn't get the text? Send a new code</a>
-      <a class="authalt" href="#">Use a different email</a>
+      <a class="authalt" id="auth-restart" href="#">Use a different email</a>
 
       <!-- The submit. Hidden until the field holds something sendable (a full
            phone, a real email, the whole code) — then it appears with a label
@@ -152,9 +152,9 @@
     </form>
   </div>
 
-  <script src="api.js?v=70"></script>
-  <script src="app.js?v=70"></script>
-  <script src="booking.js?v=70"></script>
+  <script src="api.js?v=71"></script>
+  <script src="app.js?v=71"></script>
+  <script src="booking.js?v=71"></script>
 </body>
 
 </html>

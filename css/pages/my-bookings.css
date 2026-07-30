@@ -20,19 +20,28 @@ body[data-page="my-bookings"] .bookings {
   gap: .55rem;
 }
 
+/* One card, stacked: the date anchors the top (full width, never squeezed
+   into a one-word-per-line column), the details sit under it, and the
+   Change / Cancel actions get their own full-width row below (see
+   .booking-actions). The old two-column grid let a wide cancel-confirm strip
+   in column 2 crush the date column to a vertical sliver. */
 body[data-page="my-bookings"] .booking {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: .1em .8em;
-  align-items: baseline;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: .15rem;
   background: rgba(255, 255, 255, .1);
   border-radius: 12px;
-  padding: .75em .9em;
+  padding: .8em 1em;
   font-size: clamp(.72rem, 1vw, .88rem);
 }
 
+/* the date + time — the thing they scan for, so it leads at a touch larger */
+body[data-page="my-bookings"] .booking-when {
+  font-size: 1.05em;
+}
+
 body[data-page="my-bookings"] .booking-what {
-  grid-column: 1;
   opacity: .75;
   font-size: .9em;
 }

@@ -93,10 +93,20 @@ body[data-page="step-5"] .creditpick {
    the Confirm button simply fell off the page. The panel caps itself to the
    column's height and scrolls INTERNALLY; its children keep their natural
    height (flex:none) so nothing squashes. */
+body[data-page="step-5"] .headline {
+  /* keep the headline at its natural size — only the panel below may shrink,
+     so the tall scrollable card can never ride up over the headline */
+  flex: none;
+}
+
 body[data-page="step-5"] .panel {
   display: flex;
   flex-direction: column;
-  max-height: 100%;
+  /* was max-height:100% — that let the panel be as tall as the WHOLE column,
+     leaving no room for the headline, so "Review & confirm" pushed up against
+     it. As a shrinkable flex item it caps at the space left under the headline
+     and scrolls internally instead. */
+  flex: 0 1 auto;
   min-height: 0;
   overflow-y: auto;
   scrollbar-width: thin;

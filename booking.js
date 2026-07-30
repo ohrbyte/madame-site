@@ -256,7 +256,12 @@
     if (flow.read().edit) flow.patch({ edit: undefined });
     const lede = $(".panel-lede", form);
     const authnote = $(".authnote", form);
-    const authalt = $(".authalt", form);
+    // The restart link ("Use a different email/number"). Selected by id, NOT
+    // by .authalt: the connect-PIN feature added #connect-pin-toggle and
+    // #connect-no-texts, which also carry .authalt, so a bare $(".authalt")
+    // bound this handler to the (hidden) PIN toggle and left the visible
+    // restart link dead.
+    const authalt = $("#auth-restart", form);
     const authresend = $(".authresend", form);
     const phoneField = $("#signin-phone", form);
     const emailField = $("#signin-email", form);
@@ -495,6 +500,7 @@
             if (authalt) authalt.textContent = "Use a different number";
             if (authresend) authresend.hidden = false;
             stage("code");
+            if (lede) lede.textContent = "Almost there — enter the code we texted you.";
           } else {
             const email = emailField.value.trim();
             if (!EMAIL_RE.test(email)) return note(status, "That doesn't look like an email address yet.", true);
@@ -602,6 +608,7 @@
           pendingPhone = phone;
           connectOtpMode = true;
           stage("code");
+          if (lede) lede.textContent = "Almost there — enter the code we texted you.";
           // stage() wipes the status line and both of these are hidden on the
           // connect arrival — re-show them AFTER it or the caller gets no
           // "we sent a code" line and, worse, no resend link, which strands
@@ -897,7 +904,7 @@
     const continueBtn = $(".btn", panel);
     const status = $(".formnote", panel);
 
-    if (flow.read().edit) note(status, "Changing your clean — pick the new day.");
+    if (flow.read().edit) note(status, "Changing your cleaning — pick the new day.");
     const prevBtn = $(".cal-nav-prev", panel);
     const nextBtn = $(".cal-nav-next", panel);
 
@@ -1313,7 +1320,7 @@
       // card as its date approaches. Say so where the card is picked.
       const payNote = document.createElement("p");
       payNote.className = "paynote";
-      payNote.textContent = "Nothing is charged today — each visit is billed to this card around the time of the clean.";
+      payNote.textContent = "Nothing is charged today — each visit is billed to this card around the time of the cleaning.";
       stripeBox.after(payNote);
     }
 
@@ -1381,7 +1388,7 @@
       if (freq > 0) reviewRow("Repeats", freq === 1 ? `Every ${weekdayName(state.date)}` : `Every ${freq} weeks on ${weekdayName(state.date)}s`);
       if (state.preferred_cleaner_name) reviewRow("Your lady", state.preferred_cleaner_name);
       reviewRow("Where", formatAddress(state.address) || "Your saved address");
-      reviewRow("What", `Home clean · ${est.hours || state.hours} hours (${money(est.rate_per_hour)}/hr)`);
+      reviewRow("What", `Home cleaning · ${est.hours || state.hours} hours (${money(est.rate_per_hour)}/hr)`);
       if (state.language && state.language !== "English") reviewRow("She speaks", state.language);
       if (est.taxi_fee > 0) reviewRow("Travel fee", money(est.taxi_fee));
       // Gift credit spends before the card BY DEFAULT — one-time cleans at
@@ -1410,7 +1417,7 @@
         if (!coveredNote) {
           const covered = document.createElement("p");
           covered.className = "paynote";
-          covered.textContent = "No card needed — your gift credit covers this clean.";
+          covered.textContent = "No card needed — your gift credit covers this cleaning.";
           payList.before(covered);
         }
       } else {
@@ -1807,7 +1814,7 @@
     const sub = $(".subhead");
     if (state.booking && sub) {
       sub.innerHTML = state.booking.recurring
-        ? `Your regular clean is booked — <strong>${freqPhrase(state.booking.recurring)}</strong>, starting <strong>${designDate(state.booking.date)}</strong> at <strong>${state.booking.start}</strong>. We've sent the details to your phone.`
+        ? `Your regular cleaning is booked — <strong>${freqPhrase(state.booking.recurring)}</strong>, starting <strong>${designDate(state.booking.date)}</strong> at <strong>${state.booking.start}</strong>. We've sent the details to your phone.`
         : `Your booking is confirmed. We've sent the details to your phone — your cleaner will be there <strong>${designDate(state.booking.date)}</strong> at <strong>${state.booking.start}</strong>.`;
     } else if (sub) {
       // Landed here without a just-completed flow (direct visit, stale tab)
@@ -1843,7 +1850,7 @@
       const what = document.createElement("span");
       what.className = "booking-what";
       const lenH = r.minutes ? (r.minutes % 60 ? (r.minutes / 60).toFixed(1).replace(/\.0$/, "") : r.minutes / 60) : r.hours;
-      what.textContent = `Home clean · ${lenH}h${r.amount ? ` · ${money(r.amount)}` : ""}${r.recurring ? ` · ${freqPhrase(r.recurring)}` : ""}`;
+      what.textContent = `Home cleaning · ${lenH}h${r.amount ? ` · ${money(r.amount)}` : ""}${r.recurring ? ` · ${freqPhrase(r.recurring)}` : ""}`;
       li.append(when, what);
       return li;
     }
@@ -1865,7 +1872,7 @@
     // heading until (or unless) the reconcile hid them.
     const localTodayKey = easternTodayKey();
     records = records.filter((r) => r.date >= localTodayKey);
-    renderList(records, "No bookings on this device yet — your next clean will show up here.");
+    renderList(records, "No bookings on this device yet — your next cleaning will show up here.");
 
     /* A future one-time clean can be changed or cancelled right here. The
        backend previews the 24h late fees (cancellation / hour-removal) and
@@ -1912,7 +1919,7 @@
         const q = document.createElement("span");
         q.textContent = r.recurring
           ? `Cancel just this visit, or the whole series from here?${feeLine}`
-          : `Cancel this clean?${feeLine}`;
+          : `Cancel this cleaning?${feeLine}`;
 
         // One cancel per press: the chosen scope goes to the backend, which
         // owns the semantics (selected_only = exception on that date;
@@ -1992,8 +1999,8 @@
       const [lead, act] = magicLinkNoAccount
         ? ["That email isn't linked to any account yet — ", "sign in with the phone number you used when booking."]
         : records.length
-          ? ["", "Sign back in to change or cancel a clean."]
-          : ["Have cleans booked? ", "Sign in to see them."];
+          ? ["", "Sign back in to change or cancel a cleaning."]
+          : ["Have cleanings booked? ", "Sign in to see them."];
       btn.textContent = act;
       p.append(lead, btn);
       list.before(p);
@@ -2055,7 +2062,7 @@
           recurring: b.frequency_weeks || 0,
           status: b.status,
         })).filter((r) => r.status === "scheduled" && r.date >= todayKey);
-        renderList(ordered, "No upcoming cleans — book your next one below.");
+        renderList(ordered, "No upcoming cleanings — book your next one below.");
         // Every row is ONE visit, so per-row actions are unambiguous: a
         // recurring row's Change/Cancel touches that visit only (the backend
         // scopes synthetic ids to selected_only) — the series itself stays.
@@ -2151,7 +2158,7 @@
         return;
       }
       if (!payments.length) {
-        message("", "No payments yet — your charges will show up here after your first clean.");
+        message("", "No payments yet — your charges will show up here after your first cleaning.");
         return;
       }
       list.innerHTML = "";
@@ -2377,7 +2384,7 @@
   // built as with the served one; if behind, reload once. The sessionStorage
   // guard means a mis-bumped version file costs one reload per wake, never a
   // loop. scripts/bump-version.sh keeps the three markers in step.
-  const SITE_VERSION = "70";
+  const SITE_VERSION = "71";
   let hiddenAt = 0;
   async function healIfStale() {
     try {

@@ -235,6 +235,53 @@
   box-sizing: border-box;
 }
 
+/* Thin, arrow-free scrollbars everywhere. WebKit/Blink draw increment and
+   decrement buttons ("those pesky little arrows") on styled scrollbars — kill
+   them, and keep the bar itself slim. Firefox uses the standard properties.
+   Blue thumb reads on the cream page; the blue .panel cards override to cream
+   below so the thumb stays visible there. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(23, 90, 170, .35) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(23, 90, 170, .35);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(23, 90, 170, .55);
+}
+
+/* the blue cards scroll internally — a cream thumb reads on them */
+.panel {
+  scrollbar-color: rgba(237, 227, 198, .55) transparent;
+}
+
+.panel::-webkit-scrollbar-thumb {
+  background: rgba(237, 227, 198, .5);
+}
+
+.panel::-webkit-scrollbar-thumb:hover {
+  background: rgba(237, 227, 198, .7);
+}
+
 /* Hidden from sight, kept for screen readers. For fields the design gives no
    visible label — the copy above says what to type — but the input still has to
    announce itself to anyone not looking at it. */

@@ -5,11 +5,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Madame — Ready to book</title>
-  <link rel="icon" href="assets/favicon-32.png?v=70" sizes="32x32" type="image/png">
-  <link rel="icon" href="assets/favicon-16.png?v=70" sizes="16x16" type="image/png">
-  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png?v=70">
-  <link rel="stylesheet" href="dist/styles.css?v=70">
-  <link rel="stylesheet" href="css/pages/step-5.css?v=70">
+  <link rel="icon" href="assets/favicon-32.png?v=71" sizes="32x32" type="image/png">
+  <link rel="icon" href="assets/favicon-16.png?v=71" sizes="16x16" type="image/png">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png?v=71">
+  <link rel="stylesheet" href="dist/styles.css?v=71">
+  <link rel="stylesheet" href="css/pages/step-5.css?v=71">
   <!-- Marks JS as available BEFORE first paint, so the entrance animation
        can hide the copy. Without this the page would render blank if app.js
        ever failed to load. Must stay inline and in <head>. -->
@@ -30,15 +30,15 @@
 
 <body data-page="step-5">
   <main class="stage">
-    <img class="swirl swirl-back" src="assets/swirl.webp" alt="" aria-hidden="true">
+    <img class="swirl swirl-back" src="assets/swirl.webp?v=71" alt="" aria-hidden="true">
     <img class="layer layer-hand" src="assets/step5-hand.webp" alt="Gloved hand holding a scrub brush">
-    <img class="swirl swirl-front" src="assets/swirl.webp" alt="" aria-hidden="true">
+    <img class="swirl swirl-front" src="assets/swirl.webp?v=71" alt="" aria-hidden="true">
   </main>
 
   <!-- Corner bleed (wide frames): a self-clipped window continues the art
        past the frame's bottom-right — see index.html for the full note. -->
   <div class="corner-bleed" aria-hidden="true">
-    <img class="cb-swirl" src="assets/swirl.webp" alt="">
+    <img class="cb-swirl" src="assets/swirl.webp?v=71" alt="">
   </div>
 
   <header class="topbar">
@@ -50,7 +50,6 @@
     <h1 class="headline anim" style="--d:.1s">Ready to <span class="mark underline"><span
           class="script">b</span>ook<svg viewBox="0 0 200 26" preserveAspectRatio="none">
           <path class="accent" style="--len:240" d="M5 11 C 55 3, 150 3, 196 9" />
-          <path class="accent blue" style="--len:240;--draw-delay:1.55s" d="M6 21 C 60 14, 150 14, 195 18" />
         </svg></span>?</h1>
 
     <!-- Wired (booking.js): the summary renders the backend's estimate — the
@@ -70,7 +69,7 @@
         <dt>Where</dt>
         <dd>Your saved address</dd>
         <dt>What</dt>
-        <dd>Home clean</dd>
+        <dd>Home cleaning</dd>
         <dt>Total</dt>
         <dd class="review-total">—</dd>
       </dl>
@@ -97,9 +96,9 @@
     </div>
   </div>
 
-  <script src="api.js?v=70"></script>
-  <script src="app.js?v=70"></script>
-  <script src="booking.js?v=70"></script>
+  <script src="api.js?v=71"></script>
+  <script src="app.js?v=71"></script>
+  <script src="booking.js?v=71"></script>
 </body>
 
 </html>
