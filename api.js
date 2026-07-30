@@ -136,8 +136,10 @@
     callVerificationStatus: (attemptToken) =>
       call("/public/auth/call/status", { query: { attempt_token: attemptToken } }),
 
-    // Registration / profile / address
-    register: (data) => call("/public/clients/register", { method: "POST", body: data, auth: true }),
+    // Registration / profile / address. authToken (optional) is the explicit
+    // bearer for flows whose credential never touches storage — the email-first
+    // "call me instead" finish registers with the email-proven magic-link token.
+    register: (data, authToken) => call("/public/clients/register", { method: "POST", body: data, auth: !authToken, authToken }),
     // Connect an existing phone-booked account to an email-proven session. The
     // email token is passed explicitly (not from storage) — see call()'s authToken.
     linkByPin: (phone, pin, emailToken) => call("/public/clients/link-by-pin", {

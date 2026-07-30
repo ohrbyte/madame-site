@@ -274,6 +274,7 @@
     const connectPin = $("#connect-pin", form);
     const connectPinToggle = $("#connect-pin-toggle", form);
     const connectNoTexts = $("#connect-no-texts", form);
+    const codeCallMe = $("#code-call-me", form);
     const smsOptInRow = $("#signin-smsoptin-row", form);
     const smsOptInBox = $("#signin-smsoptin", form);
     const status = $(".formnote", form);
@@ -387,6 +388,9 @@
       if (connectPin) connectPin.disabled = name !== "connectpin";
       if (connectPinToggle) connectPinToggle.hidden = name !== "connect";
       if (connectNoTexts) connectNoTexts.hidden = name !== "connect";
+      // Phone-first twin of connect-no-texts: only on the plain sign-in code
+      // stage — the email-first connect flow offered call-me one screen back.
+      if (codeCallMe) codeCallMe.hidden = name !== "code" || connectOtpMode;
       // The call-me intent (and its attempt token) only survives connect -> name.
       // Any other stage change (back to start, etc.) drops it.
       if (name !== "connect" && name !== "name") { callMeMode = false; callAttemptToken = ""; }
@@ -538,6 +542,7 @@
             if (res.access_token) api.setToken(res.access_token);
             connectToken = null;
             connectOtpMode = false;
+            callAttemptToken = "";
             if (res.linked) {
               magicLinkNoAccount = false;
               return goto(authDestination());
@@ -558,6 +563,7 @@
           // code — the customer typed the right code and still got dumped.
           if (!res) return;
           if (res.access_token) api.setToken(res.access_token);
+          callAttemptToken = ""; // a texted code that raced the call-me poll won
           await afterAuth();
         } else if (st === "name") {
           const name = nameField.value.trim();
@@ -569,18 +575,24 @@
           // the keypad PIN via the attempt token (it never travels through here)
           // and creates the account.
           if (callMeMode) {
+            // register requires a bearer either way — the attempt token only
+            // proves the phone. Email-first arrives with the email-proven
+            // connectToken (storage was deliberately cleared at magic-link
+            // time); phone-first registers with the phone-proven session the
+            // answered call issued, which the poll put in storage.
             const res = await submitBusy(null, () => api.register({
               name: pendingName,
               phone: pendingPhone,
               call_attempt_token: callAttemptToken,
               tos_accepted: true,
-            }));
+            }, connectToken || undefined));
             if (!res) {
               return; // busy refused, OR a handled error (e.g. expired verification)
             }
             if (res.access_token) api.setToken(res.access_token);
             callMeMode = false;
             callAttemptToken = "";
+            connectToken = null;
             magicLinkNoAccount = false;
             return goto(authDestination());
           }
@@ -698,15 +710,31 @@
         try { s = await api.callVerificationStatus(callAttemptToken); } catch { continue; }
         if (!s) continue;
         if (s.state === "verified") {
+          // Phone-first (no proven email in hand): the status hands back the
+          // phone-proven session the call earned. An existing account on that
+          // number means we're simply signed in; a new one authenticates the
+          // register that finishes signup. Email-first keeps its email-proven
+          // connectToken as the register credential instead.
+          if (s.token && !connectToken) {
+            api.setToken(s.token);
+            const c = api.claims() || {};
+            if (c.client_id) {
+              callMeMode = false;
+              callAttemptToken = "";
+              return goto(authDestination());
+            }
+          }
           callMeMode = true;
           note(status, "");
           if (lede) lede.textContent = "Lovely to meet you — what should we call you?";
+          if (authnote) authnote.hidden = true;
+          if (authresend) authresend.hidden = true;
           return stage("name");
         }
         if (s.state === "expired" || s.state === "unknown") break;
       }
       callAttemptToken = "";
-      note(status, "That call timed out before a PIN was set. Enter your number and we'll call you again.", true);
+      note(status, "That call timed out before a PIN was set — use the call-me link again and we'll ring you once more.", true);
     }
 
     if (connectNoTexts) connectNoTexts.addEventListener("click", async (e) => {
@@ -722,6 +750,20 @@
       pendingPhone = phone;
       callAttemptToken = res.attempt_token;
       note(status, `Calling ${connectPhone.value.trim()} now — answer and choose a 4-digit PIN on the keypad. This page continues on its own.`);
+      pollCallVerification();
+    });
+
+    // Phone-first "call me": the customer asked for a texted code that will
+    // never arrive (landline, no-SMS VoIP). Same verification call as the
+    // connect-stage link; the poll stores the phone-proven session it earns.
+    if (codeCallMe) codeCallMe.addEventListener("click", async (e) => {
+      e.preventDefault();
+      if (!pendingPhone) return;
+      const res = await busy(form, null, () => api.startCallVerification(pendingPhone).catch(() => null));
+      if (!res || !res.attempt_token)
+        return note(status, "We couldn't place the call just now. Please try again in a moment.", true);
+      callAttemptToken = res.attempt_token;
+      note(status, `Calling ${phoneField.value.trim() || pendingPhone} now — answer and choose a 4-digit PIN on the keypad. This page continues on its own.`);
       pollCallVerification();
     });
 
@@ -2427,7 +2469,7 @@
   // built as with the served one; if behind, reload once. The sessionStorage
   // guard means a mis-bumped version file costs one reload per wake, never a
   // loop. scripts/bump-version.sh keeps the three markers in step.
-  const SITE_VERSION = "74";
+  const SITE_VERSION = "75";
   let hiddenAt = 0;
   async function healIfStale() {
     try {
