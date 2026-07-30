@@ -158,6 +158,29 @@ body[data-page="step-1"] .authconnect .authfield::placeholder {
   opacity: .45;
 }
 
+/* ---- SMS opt-in (name stage) ----
+   Quiet consent line under the name field — cream on blue like the notes,
+   the checkbox itself is the only control. [hidden] wins over display. */
+body[data-page="step-1"] .authoptin {
+  display: flex;
+  align-items: flex-start;
+  gap: .55em;
+  margin: 1.1em 0 0;
+  font-size: clamp(.68rem, .95vw, .8rem);
+  line-height: 1.5;
+  opacity: .85;
+  cursor: pointer;
+  text-align: left;
+}
+body[data-page="step-1"] .authoptin[hidden] {
+  display: none;
+}
+body[data-page="step-1"] .authoptin input {
+  margin-top: .25em;
+  accent-color: var(--pink, #DB3694);
+  flex: none;
+}
+
 /* ---- the sent state ----
    Present in the design, so built — but it is the AFTER state, so it stays
    hidden until the form says a link went out. Nothing flips data-sent yet. */

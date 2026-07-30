@@ -274,6 +274,8 @@
     const connectPin = $("#connect-pin", form);
     const connectPinToggle = $("#connect-pin-toggle", form);
     const connectNoTexts = $("#connect-no-texts", form);
+    const smsOptInRow = $("#signin-smsoptin-row", form);
+    const smsOptInBox = $("#signin-smsoptin", form);
     const status = $(".formnote", form);
 
     let pendingPhone = "";
@@ -284,6 +286,12 @@
     // flow (rather than a plain SMS sign-in) — the confirm endpoint differs.
     let connectOtpMode = false;
     let unverifiedPhoneMode = false; // no-texts new customer: email proven, phone stored as-is
+    // The consent that register() sends. Read at submit time (not when the row
+    // was shown): only counts when the box is visible-eligible — a phone the
+    // token proves by texted code — and actually checked.
+    const smsOptedIn = () =>
+      !!smsOptInBox && smsOptInBox.checked
+      && !unverifiedPhoneMode && !!((api.claims() || {}).phone);
     // Remembers the code that just auto-submitted, so a completed six digits
     // can't fire the verify twice (re-armed only when the field is edited back
     // below six — see the code field's input handler).
@@ -347,6 +355,13 @@
       if (emailField) emailField.hidden = !inStart;
       if (codeField) codeField.hidden = name !== "code";
       if (nameField) nameField.hidden = name !== "name";
+      // The texts opt-in rides the two finish-signup stages, but ONLY when the
+      // phone was proven by a texted code (the token carries it) — a no-texts
+      // signup can't receive them, and the backend enforces the same rule.
+      if (smsOptInRow)
+        smsOptInRow.hidden = (name !== "name" && name !== "addemail")
+          || unverifiedPhoneMode
+          || !((api.claims() || {}).phone);
       if (optEmailField) optEmailField.hidden = name !== "addemail";
       if (authswap) authswap.hidden = !inStart;
       if (authfieldsBox) authfieldsBox.hidden = inConnect;
@@ -575,6 +590,7 @@
           if ((api.claims() || {}).email) {
             const res = await submitBusy(null, () => api.register({
               name: pendingName, phone: (api.claims() || {}).phone || undefined, tos_accepted: true,
+              sms_opt_in: smsOptedIn(),
             }));
             if (!res) return;
             if (res.access_token) api.setToken(res.access_token);
@@ -592,6 +608,7 @@
             name: pendingName,
             email: optEmail || claims.email || undefined,
             phone: claims.phone || undefined, tos_accepted: true,
+            sms_opt_in: smsOptedIn(),
           }));
           if (!res) return;
           if (res.access_token) api.setToken(res.access_token);
@@ -2384,7 +2401,7 @@
   // built as with the served one; if behind, reload once. The sessionStorage
   // guard means a mis-bumped version file costs one reload per wake, never a
   // loop. scripts/bump-version.sh keeps the three markers in step.
-  const SITE_VERSION = "71";
+  const SITE_VERSION = "72";
   let hiddenAt = 0;
   async function healIfStale() {
     try {
