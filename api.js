@@ -128,6 +128,14 @@
     }),
     verifyMagicLink: (token) => call("/public/auth/email/verify", { query: { token } }),
 
+    // "Call me instead": ring a number that can't receive a text; the caller
+    // chooses a PIN on the keypad. Returns an opaque attempt token the page polls
+    // with — the ONLY way to learn the outcome, so treat it as a per-browser secret.
+    startCallVerification: (phone) => call("/public/auth/call/send", { method: "POST", body: { phone } }),
+    // Polled while the phone rings: { state: "waiting"|"verified"|"expired"|"unknown" }.
+    callVerificationStatus: (attemptToken) =>
+      call("/public/auth/call/status", { query: { attempt_token: attemptToken } }),
+
     // Registration / profile / address
     register: (data) => call("/public/clients/register", { method: "POST", body: data, auth: true }),
     // Connect an existing phone-booked account to an email-proven session. The

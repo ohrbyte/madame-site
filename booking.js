@@ -285,13 +285,14 @@
     // True while the code stage is verifying a phone for the email-first CONNECT
     // flow (rather than a plain SMS sign-in) — the confirm endpoint differs.
     let connectOtpMode = false;
-    let unverifiedPhoneMode = false; // no-texts new customer: email proven, phone stored as-is
+    let callMeMode = false;          // "call me instead": phone proven by an answered call, PIN chosen on it
+    let callAttemptToken = "";       // opaque handle from /call/send, polled then sent to register
     // The consent that register() sends. Read at submit time (not when the row
     // was shown): only counts when the box is visible-eligible — a phone the
     // token proves by texted code — and actually checked.
     const smsOptedIn = () =>
       !!smsOptInBox && smsOptInBox.checked
-      && !unverifiedPhoneMode && !!((api.claims() || {}).phone);
+      && !callMeMode && !!((api.claims() || {}).phone);
     // Remembers the code that just auto-submitted, so a completed six digits
     // can't fire the verify twice (re-armed only when the field is edited back
     // below six — see the code field's input handler).
@@ -360,7 +361,7 @@
       // signup can't receive them, and the backend enforces the same rule.
       if (smsOptInRow)
         smsOptInRow.hidden = (name !== "name" && name !== "addemail")
-          || unverifiedPhoneMode
+          || callMeMode
           || !((api.claims() || {}).phone);
       if (optEmailField) optEmailField.hidden = name !== "addemail";
       if (authswap) authswap.hidden = !inStart;
@@ -386,9 +387,9 @@
       if (connectPin) connectPin.disabled = name !== "connectpin";
       if (connectPinToggle) connectPinToggle.hidden = name !== "connect";
       if (connectNoTexts) connectNoTexts.hidden = name !== "connect";
-      // The unverified-phone intent only survives connect -> name. Any other
-      // stage change (back to start, etc.) drops it.
-      if (name !== "connect" && name !== "name") unverifiedPhoneMode = false;
+      // The call-me intent (and its attempt token) only survives connect -> name.
+      // Any other stage change (back to start, etc.) drops it.
+      if (name !== "connect" && name !== "name") { callMeMode = false; callAttemptToken = ""; }
       note(status, "");
       refreshSubmit();
       const focus = { start: null, code: codeField, name: nameField, addemail: optEmailField, connect: connectPhone, connectpin: connectPin }[name];
@@ -563,22 +564,23 @@
           if (!name) return note(status, "We do need something to call you.", true);
           pendingName = name;
 
-          // No-texts new customer: email already proven, phone typed but never
-          // verified. Finish here — send the phone with allow_unverified_phone so
-          // the account is created with it as-is. The backend refuses if that
-          // number already belongs to an account (that would need real proof).
-          if (unverifiedPhoneMode) {
+          // "Call me instead" new customer: email already proven (magic link) and
+          // the phone proven by the answered call. Finish here — register consumes
+          // the keypad PIN via the attempt token (it never travels through here)
+          // and creates the account.
+          if (callMeMode) {
             const res = await submitBusy(null, () => api.register({
               name: pendingName,
               phone: pendingPhone,
-              allow_unverified_phone: true,
+              call_attempt_token: callAttemptToken,
               tos_accepted: true,
             }));
             if (!res) {
-              return; // busy refused, OR a handled error (e.g. number on an account)
+              return; // busy refused, OR a handled error (e.g. expired verification)
             }
             if (res.access_token) api.setToken(res.access_token);
-            unverifiedPhoneMode = false;
+            callMeMode = false;
+            callAttemptToken = "";
             magicLinkNoAccount = false;
             return goto(authDestination());
           }
@@ -683,20 +685,44 @@
       note(status, "Enter the phone number you booked with and the PIN you use when you call us.");
     });
 
-    // "New here and can't get texts?" — keep the phone they typed, skip the code
-    // entirely, and go collect a name. The account is created at the name step
-    // with the phone stored unverified (email is the credential).
-    if (connectNoTexts) connectNoTexts.addEventListener("click", (e) => {
+    // "Can't get texts? Call me to set up a PIN" — ring the number; the caller
+    // chooses a PIN on the keypad. The page polls until the answered call proves
+    // the phone, then collects a name and creates the account (register consumes
+    // the PIN via the attempt token).
+    async function pollCallVerification() {
+      const deadline = Date.now() + 10 * 60 * 1000; // the server expires the call at 10 min
+      while (Date.now() < deadline) {
+        await new Promise((r) => setTimeout(r, 3000));
+        if (!callAttemptToken) return; // cancelled (e.g. "use a different email" reset the card)
+        let s;
+        try { s = await api.callVerificationStatus(callAttemptToken); } catch { continue; }
+        if (!s) continue;
+        if (s.state === "verified") {
+          callMeMode = true;
+          note(status, "");
+          if (lede) lede.textContent = "Lovely to meet you — what should we call you?";
+          return stage("name");
+        }
+        if (s.state === "expired" || s.state === "unknown") break;
+      }
+      callAttemptToken = "";
+      note(status, "That call timed out before a PIN was set. Enter your number and we'll call you again.", true);
+    }
+
+    if (connectNoTexts) connectNoTexts.addEventListener("click", async (e) => {
       e.preventDefault();
       const phone = toE164(connectPhone.value);
       if (digits(phone).length !== 11)
-        return note(status, "First enter the phone number you'd like on your account — all ten digits.", true);
+        return note(status, "First enter the phone number we should call — all ten digits.", true);
       if (!connectToken)
         return note(status, "Your sign-in link expired — request a new one to set up your account.", true);
+      const res = await busy(form, null, () => api.startCallVerification(phone).catch(() => null));
+      if (!res || !res.attempt_token)
+        return note(status, "We couldn't place the call just now. Please try again in a moment.", true);
       pendingPhone = phone;
-      unverifiedPhoneMode = true;
-      if (lede) lede.textContent = "Lovely to meet you — what should we call you?";
-      stage("name");
+      callAttemptToken = res.attempt_token;
+      note(status, `Calling ${connectPhone.value.trim()} now — answer and choose a 4-digit PIN on the keypad. This page continues on its own.`);
+      pollCallVerification();
     });
 
     if (authalt) authalt.addEventListener("click", (e) => {
@@ -2401,7 +2427,7 @@
   // built as with the served one; if behind, reload once. The sessionStorage
   // guard means a mis-bumped version file costs one reload per wake, never a
   // loop. scripts/bump-version.sh keeps the three markers in step.
-  const SITE_VERSION = "73";
+  const SITE_VERSION = "74";
   let hiddenAt = 0;
   async function healIfStale() {
     try {
