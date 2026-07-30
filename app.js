@@ -65,6 +65,164 @@
     });
   });
 
+  /* Address autocomplete (step 2). A custom cream dropdown on Google's Places
+     API (New), driven by fetch — NOT the Maps JS widget, for the same reason
+     the preview is a Static Map and not the Embed iframe: keep Google's chrome
+     out and style it ourselves. Progressive — with no JS, no key, or a blocked
+     referrer the structured fields still work by hand. On pick we fill the
+     fields and fire `input`, so booking.js's existing #addr composition and the
+     map preview react with nothing new wired in. One session token bundles the
+     keystroke lookups and the final details fetch into a single billed session.
+     Placed BEFORE the parallax early-return below so it also runs on touch /
+     reduced-motion devices — where autocomplete matters most. */
+  (function addressAutocomplete() {
+    const street = document.querySelector("#addr-street");
+    if (!street) return;
+    // The key the map already uses: window.MAPS_KEY on raw/local mounts, or the
+    // value the Pages build baked into the map image's src on the live site.
+    let key = window.MAPS_KEY;
+    const mapImg = document.querySelector(".addr-map");
+    if (!key && mapImg) { try { key = new URL(mapImg.src).searchParams.get("key"); } catch (e) { /* noop */ } }
+    if (!key || key === "__GOOGLE_MAPS_API_KEY__") return; // no usable key → manual entry stands
+
+    const apt = document.querySelector("#addr-apt");
+    const city = document.querySelector("#addr-city");
+    const state = document.querySelector("#addr-state");
+    const zip = document.querySelector("#addr-zip");
+
+    const uuid = () => (crypto.randomUUID ? crypto.randomUUID()
+      : "xxxxxxxxxxxx4xxxyxxxxxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+          const r = (Math.random() * 16) | 0; return (c === "x" ? r : (r & 3) | 8).toString(16);
+        }));
+    let token = uuid();   // one billing session; regenerated after each pick
+
+    const box = street.closest(".field") || street.parentElement;
+    box.classList.add("addr-ac");
+    const menu = document.createElement("ul");
+    menu.className = "addr-ac-menu";
+    menu.setAttribute("role", "listbox");
+    menu.hidden = true;
+    box.appendChild(menu);
+
+    street.setAttribute("role", "combobox");
+    street.setAttribute("aria-autocomplete", "list");
+    street.setAttribute("aria-expanded", "false");
+    street.setAttribute("autocomplete", "off"); // suppress the browser's own box over ours
+
+    let items = [];
+    let active = -1;
+    let timer = null;
+    let lastQuery = "";
+    let suppress = false; // guards the input event we fire ourselves on a pick
+
+    function close() {
+      menu.hidden = true; menu.innerHTML = ""; items = []; active = -1;
+      street.setAttribute("aria-expanded", "false");
+    }
+
+    async function lookup(q) {
+      const res = await fetch("https://places.googleapis.com/v1/places:autocomplete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Goog-Api-Key": key },
+        body: JSON.stringify({
+          input: q,
+          sessionToken: token,
+          includedRegionCodes: ["us"],
+          // bias toward the service area (Monroe / Hudson Valley) without
+          // hard-restricting — someone just outside it still resolves.
+          locationBias: { circle: { center: { latitude: 41.3176, longitude: -74.1868 }, radius: 45000 } },
+        }),
+      });
+      if (!res.ok) throw new Error("ac " + res.status);
+      const data = await res.json();
+      return (data.suggestions || []).map((s) => s.placePrediction).filter(Boolean);
+    }
+
+    function render() {
+      menu.innerHTML = "";
+      items.forEach((p, i) => {
+        const li = document.createElement("li");
+        li.className = "addr-ac-opt" + (i === active ? " is-active" : "");
+        li.setAttribute("role", "option");
+        li.setAttribute("aria-selected", i === active ? "true" : "false");
+        const sf = p.structuredFormat || {};
+        const main = (sf.mainText && sf.mainText.text) || (p.text && p.text.text) || "";
+        const sec = (sf.secondaryText && sf.secondaryText.text) || "";
+        const m = document.createElement("span"); m.className = "addr-ac-main"; m.textContent = main;
+        const s = document.createElement("span"); s.className = "addr-ac-sec"; s.textContent = sec;
+        li.append(m, s);
+        li.addEventListener("mousedown", (e) => { e.preventDefault(); choose(i); }); // beat blur
+        menu.appendChild(li);
+      });
+      menu.hidden = items.length === 0;
+      // sit the popover right under the input, whatever the label height
+      menu.style.top = (street.offsetTop + street.offsetHeight + 4) + "px";
+      street.setAttribute("aria-expanded", items.length ? "true" : "false");
+    }
+
+    function comp(comps, type, short) {
+      const c = comps.find((x) => (x.types || []).includes(type));
+      return c ? (short ? c.shortText : c.longText) : "";
+    }
+
+    async function choose(i) {
+      const p = items[i];
+      if (!p) return;
+      close();
+      const placeId = p.placeId || (p.place && p.place.split("/").pop());
+      if (!placeId) return;
+      try {
+        const res = await fetch(
+          "https://places.googleapis.com/v1/places/" + encodeURIComponent(placeId) +
+          "?sessionToken=" + encodeURIComponent(token),
+          { headers: { "X-Goog-Api-Key": key, "X-Goog-FieldMask": "addressComponents" } });
+        if (!res.ok) throw new Error("details " + res.status);
+        const place = await res.json();
+        const c = place.addressComponents || [];
+        const street1 = [comp(c, "street_number"), comp(c, "route")].filter(Boolean).join(" ").trim();
+        const cityV = comp(c, "locality") || comp(c, "postal_town") || comp(c, "sublocality") || comp(c, "administrative_area_level_2");
+        const stateV = comp(c, "administrative_area_level_1", true);
+        const zipV = comp(c, "postal_code");
+        suppress = true;
+        if (street1) street.value = street1;
+        if (city) city.value = cityV;
+        if (state && stateV) state.value = stateV;
+        if (zip) zip.value = zipV;
+        // one input on the street field: booking.js recomposes #addr, the map
+        // redraws, and it un-picks any saved address (this is a fresh one).
+        street.dispatchEvent(new Event("input", { bubbles: true }));
+        suppress = false;
+        if (apt) apt.focus(); // the one thing autocomplete can't know
+      } catch (e) {
+        suppress = false; // details failed — keep what they typed; manual entry stands
+      }
+      token = uuid(); // fresh billing session after a completed pick
+      lastQuery = "";
+    }
+
+    street.addEventListener("input", () => {
+      if (suppress) return;
+      const q = street.value.trim();
+      clearTimeout(timer);
+      if (q.length < 3) { close(); return; }
+      if (q === lastQuery) return;
+      lastQuery = q;
+      timer = setTimeout(() => {
+        lookup(q).then((r) => { items = r; active = -1; render(); }).catch(() => close());
+      }, 220);
+    });
+
+    street.addEventListener("keydown", (e) => {
+      if (menu.hidden || !items.length) return;
+      if (e.key === "ArrowDown") { e.preventDefault(); active = (active + 1) % items.length; render(); }
+      else if (e.key === "ArrowUp") { e.preventDefault(); active = (active - 1 + items.length) % items.length; render(); }
+      else if (e.key === "Enter" && active >= 0) { e.preventDefault(); choose(active); }
+      else if (e.key === "Escape") { close(); }
+    });
+
+    street.addEventListener("blur", () => setTimeout(close, 120)); // let a click land first
+  })();
+
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const canHover = window.matchMedia("(hover: hover)").matches;
   if (reduce || !canHover) return;

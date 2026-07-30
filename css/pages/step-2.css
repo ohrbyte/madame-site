@@ -242,3 +242,59 @@ body[data-page="step-2"] .addrlist,
 body[data-page="step-2"] form.panel {
   overscroll-behavior: contain;
 }
+
+/* ---- address autocomplete dropdown (app.js) ---------------------------
+   A custom cream popover under the street field. Google's Places API drives
+   the DATA; we draw the list, so it reads as part of the card instead of
+   Google's own widget chrome (same call as Static Maps over the Embed iframe).
+   The street .field is the positioned anchor (app.js adds .addr-ac). */
+body[data-page="step-2"] .addr-ac {
+  position: relative;
+}
+
+body[data-page="step-2"] .addr-ac-menu {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  margin: 0;
+  padding: .22rem;
+  list-style: none;
+  background: var(--cream);
+  border-radius: 8px;
+  box-shadow: 0 14px 30px -12px rgba(4, 91, 167, .55);
+  max-height: 12.5rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+body[data-page="step-2"] .addr-ac-opt {
+  display: flex;
+  flex-direction: column;
+  gap: .04rem;
+  padding: .4rem .5rem;
+  border-radius: 5px;
+  cursor: pointer;
+  color: var(--blue);
+  line-height: 1.2;
+}
+
+/* pink is "this one" everywhere else on the site; the arrow-key / hover
+   highlight follows suit */
+body[data-page="step-2"] .addr-ac-opt.is-active,
+body[data-page="step-2"] .addr-ac-opt:hover {
+  background: var(--pink-soft);
+}
+
+body[data-page="step-2"] .addr-ac-main {
+  font-weight: 600;
+  font-size: clamp(.62rem, .85vw, .78rem);
+}
+
+body[data-page="step-2"] .addr-ac-sec {
+  font-size: clamp(.54rem, .72vw, .68rem);
+  opacity: .7;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
