@@ -556,6 +556,31 @@
             return stage("name");
           }
 
+          // Same field, same six digits — only the delivery differs. The call-me
+          // branch swaps in the voice endpoint; everything after is identical,
+          // because a code read down the phone proves exactly what a texted one
+          // does.
+          if (callAttemptToken) {
+            const spoken = await submitBusy(null, () => api.verifyCallCode(callAttemptToken, code));
+            if (!spoken) return;
+            // callAttemptToken is deliberately kept: register consumes it as the
+            // phone's proof, and consuming is what spends the row.
+            if (spoken.token) api.setToken(spoken.token);
+            const c = api.claims() || {};
+            if (c.client_id) {
+              // The number already has an account — this was a sign-in.
+              callMeMode = false;
+              callAttemptToken = "";
+              return goto(authDestination());
+            }
+            callMeMode = true;
+            note(status, "");
+            if (lede) lede.textContent = "Lovely to meet you — what should we call you?";
+            if (authnote) authnote.hidden = true;
+            if (authresend) authresend.hidden = true;
+            return stage("name");
+          }
+
           const res = await submitBusy(null, () => api.verifySmsOtp(pendingPhone, code));
           // undefined = a second press while the first verify is in flight
           // (busy() refuses re-entry). Walking on regardless navigated away
@@ -571,9 +596,10 @@
           pendingName = name;
 
           // "Call me instead" new customer: email already proven (magic link) and
-          // the phone proven by the answered call. Finish here — register consumes
-          // the keypad PIN via the attempt token (it never travels through here)
-          // and creates the account.
+          // the phone proven by the code we read down it. Register consumes the
+          // attempt token as that proof and creates the account. No PIN is set
+          // here — it stays a voice credential, and the IVR offers to create one
+          // the first time they call, which is where it can actually be used.
           if (callMeMode) {
             // register requires a bearer either way — the attempt token only
             // proves the phone. Email-first arrives with the email-proven
@@ -697,44 +723,19 @@
       note(status, "Enter the phone number you booked with and the PIN you use when you call us.");
     });
 
-    // "Can't get texts? Call me to set up a PIN" — ring the number; the caller
-    // chooses a PIN on the keypad. The page polls until the answered call proves
-    // the phone, then collects a name and creates the account (register consumes
-    // the PIN via the attempt token).
-    async function pollCallVerification() {
-      const deadline = Date.now() + 10 * 60 * 1000; // the server expires the call at 10 min
-      while (Date.now() < deadline) {
-        await new Promise((r) => setTimeout(r, 3000));
-        if (!callAttemptToken) return; // cancelled (e.g. "use a different email" reset the card)
-        let s;
-        try { s = await api.callVerificationStatus(callAttemptToken); } catch { continue; }
-        if (!s) continue;
-        if (s.state === "verified") {
-          // Phone-first (no proven email in hand): the status hands back the
-          // phone-proven session the call earned. An existing account on that
-          // number means we're simply signed in; a new one authenticates the
-          // register that finishes signup. Email-first keeps its email-proven
-          // connectToken as the register credential instead.
-          if (s.token && !connectToken) {
-            api.setToken(s.token);
-            const c = api.claims() || {};
-            if (c.client_id) {
-              callMeMode = false;
-              callAttemptToken = "";
-              return goto(authDestination());
-            }
-          }
-          callMeMode = true;
-          note(status, "");
-          if (lede) lede.textContent = "Lovely to meet you — what should we call you?";
-          if (authnote) authnote.hidden = true;
-          if (authresend) authresend.hidden = true;
-          return stage("name");
-        }
-        if (s.state === "expired" || s.state === "unknown") break;
+    // "Can't get texts? We'll call you" — ring the number and READ a code out,
+    // which lands on the same code stage the texted one uses. It used to be the
+    // other way round (the caller chose a PIN and merely answering was the whole
+    // proof), which handed the session to whoever STARTED the call rather than
+    // whoever picked up the phone.
+    function awaitSpokenCode() {
+      callMeMode = true;
+      if (authnote) {
+        authnote.hidden = false;
+        authnote.innerHTML = "We're calling you now — answer and we'll read out a 6-digit code.";
       }
-      callAttemptToken = "";
-      note(status, "That call timed out before a PIN was set — use the call-me link again and we'll ring you once more.", true);
+      if (authresend) authresend.hidden = true;
+      stage("code");
     }
 
     if (connectNoTexts) connectNoTexts.addEventListener("click", async (e) => {
@@ -749,13 +750,13 @@
         return note(status, "We couldn't place the call just now. Please try again in a moment.", true);
       pendingPhone = phone;
       callAttemptToken = res.attempt_token;
-      note(status, `Calling ${connectPhone.value.trim()} now — answer and choose a 4-digit PIN on the keypad. This page continues on its own.`);
-      pollCallVerification();
+      note(status, `Calling ${connectPhone.value.trim()} now — answer and we'll read out a 6-digit code.`);
+      awaitSpokenCode();
     });
 
     // Phone-first "call me": the customer asked for a texted code that will
     // never arrive (landline, no-SMS VoIP). Same verification call as the
-    // connect-stage link; the poll stores the phone-proven session it earns.
+    // connect-stage link, landing on the same code field the text would have.
     if (codeCallMe) codeCallMe.addEventListener("click", async (e) => {
       e.preventDefault();
       if (!pendingPhone) return;
@@ -763,8 +764,8 @@
       if (!res || !res.attempt_token)
         return note(status, "We couldn't place the call just now. Please try again in a moment.", true);
       callAttemptToken = res.attempt_token;
-      note(status, `Calling ${phoneField.value.trim() || pendingPhone} now — answer and choose a 4-digit PIN on the keypad. This page continues on its own.`);
-      pollCallVerification();
+      note(status, `Calling ${phoneField.value.trim() || pendingPhone} now — answer and we'll read out a 6-digit code.`);
+      awaitSpokenCode();
     });
 
     if (authalt) authalt.addEventListener("click", (e) => {
@@ -2469,7 +2470,7 @@
   // built as with the served one; if behind, reload once. The sessionStorage
   // guard means a mis-bumped version file costs one reload per wake, never a
   // loop. scripts/bump-version.sh keeps the three markers in step.
-  const SITE_VERSION = "75";
+  const SITE_VERSION = "76";
   let hiddenAt = 0;
   async function healIfStale() {
     try {

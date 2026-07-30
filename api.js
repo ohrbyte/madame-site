@@ -128,13 +128,15 @@
     }),
     verifyMagicLink: (token) => call("/public/auth/email/verify", { query: { token } }),
 
-    // "Call me instead": ring a number that can't receive a text; the caller
-    // chooses a PIN on the keypad. Returns an opaque attempt token the page polls
-    // with — the ONLY way to learn the outcome, so treat it as a per-browser secret.
+    // "Call me instead": ring a number that can't receive a text and READ a code
+    // out. Returns an opaque attempt token; the code that comes back with it is
+    // what proves the caller. The token alone buys nothing — deliberately, since
+    // anyone can start a verification for any number.
     startCallVerification: (phone) => call("/public/auth/call/send", { method: "POST", body: { phone } }),
-    // Polled while the phone rings: { state: "waiting"|"verified"|"expired"|"unknown" }.
-    callVerificationStatus: (attemptToken) =>
-      call("/public/auth/call/status", { query: { attempt_token: attemptToken } }),
+    // The spoken code, typed back → a phone-proven session. The voice twin of
+    // verifySmsOtp.
+    verifyCallCode: (attemptToken, code) =>
+      call("/public/auth/call/verify", { method: "POST", body: { attempt_token: attemptToken, code } }),
 
     // Registration / profile / address. authToken (optional) is the explicit
     // bearer for flows whose credential never touches storage — the email-first
