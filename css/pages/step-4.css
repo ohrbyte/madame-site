@@ -113,3 +113,23 @@ body[data-page="step-4"] .timegrid,
 body[data-page="step-4"] .panel {
   overscroll-behavior: contain;
 }
+
+/* ---- the ring sits TIGHT on this page ------------------------------------
+   The design draws the ring around "time?" — question mark inside — and hard
+   against "the", where .mark.circle's global .5em leaves obvious daylight on
+   both sides. With the "?" inside the span the ring has no right-hand
+   neighbour left to clear, so a hair on the left is all it needs; measured
+   after, 2px of daylight before "the", which is what the design shows.
+
+   THIS MUST STAY PAGE-SCOPED. Globally it re-breaks /address, the only other
+   page with a circled word: "Clean" is followed by "in a click.", and the .5em
+   there is exactly what a69bf99 added to stop the ring cutting into the "i".
+   The ring spills ~16% of the word's width past the span (it is drawn at 132%
+   of it), and that spill is what the margin has to cover. */
+body[data-page="step-4"] .mark.circle {
+  margin: 0 .04em;
+}
+
+body[data-page="step-4"] .mark.circle > svg {
+  width: 118%;
+}
