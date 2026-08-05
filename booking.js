@@ -1110,6 +1110,22 @@
         refreshSlots();
       });
     }
+    // Draws the eye to the picker when the no-availability note names it —
+    // the note exists precisely because people didn't know the picker did.
+    function nudgeLanguagePicker() {
+      const field = languageEl && languageEl.closest(".field");
+      if (!field) return;
+      field.classList.remove("field--look-here");
+      void field.offsetWidth; // restart the pulse when the note repeats
+      field.classList.add("field--look-here");
+    }
+    // …and comes OFF whenever the note stops naming it. The animated pulse
+    // self-expires, but the reduced-motion fallback is a static marker that
+    // would otherwise stay pinned to the select for the rest of the session.
+    function clearLanguageNudge() {
+      const field = languageEl && languageEl.closest(".field");
+      if (field) field.classList.remove("field--look-here");
+    }
     const minus = $(".hours-step--minus", panel);
     const plus = $(".hours-step--plus", panel);
     const freqBox = $(".freq", panel);
@@ -1247,12 +1263,40 @@
         if (req !== slotsReq) return;
         slots = fresh;
         if (!slots.length) {
-          // Say only things this page can actually do: fewer hours works
-          // when the stepper isn't at minimum; another day means /day.
-          const who = lang === "English" ? "No one" : `No one who speaks ${lang}`;
-          note(status, hours > rules.min_hours
-            ? `${who} is free that day for that long — try fewer hours, or pick another day.`
-            : `${who} is free that day — pick another day.`, true);
+          // The dead-end an empty grid used to hide: with the picker sitting
+          // on its English default, a day covered only by Spanish speakers
+          // read as "no one is free" — and nobody connects that to a language
+          // dropdown they never touched. Probe each OTHER offered language
+          // (the IVR's language fallback makes the same move) so the advice
+          // can name a pick that provably works. Per-language on purpose: an
+          // unfiltered query also counts ladies with no language recorded,
+          // which would promise a switch no picker option can deliver.
+          // Skipped while editing — the modify call keeps the booking's own
+          // language, so steering to the picker there points at a dead control.
+          let betterLanguages = [];
+          if (!editing && languageEl && languageEl.options.length > 1) {
+            const others = Array.from(languageEl.options, (o) => o.value)
+              .filter((v) => v !== lang);
+            const found = await Promise.all(others.map((other) =>
+              api.availableSlots(state.date, hours, other)
+                .then((s) => ((s || []).length ? other : null))
+                .catch(() => null)));
+            if (req !== slotsReq) return;
+            betterLanguages = found.filter(Boolean);
+          }
+          // Say only things this page can actually do: another language when
+          // that provably helps; fewer hours when the stepper isn't at
+          // minimum; another day means /day.
+          if (betterLanguages.length) {
+            note(status, `No ${lang}-speaking lady is free that day — but a lady who speaks ${betterLanguages.join(" or ")} is. Choose a different language under “Your lady speaks”, or pick another day.`, true);
+            nudgeLanguagePicker();
+          } else {
+            clearLanguageNudge();
+            const who = lang === "English" ? "No one" : `No one who speaks ${lang}`;
+            note(status, hours > rules.min_hours
+              ? `${who} is free that day for that long — try fewer hours, or pick another day.`
+              : `${who} is free that day — pick another day.`, true);
+          }
           if (!$(".slots-day-link", panel || document)) {
             const back = document.createElement("button");
             back.type = "button";
@@ -1263,6 +1307,7 @@
           }
         } else {
           note(status, "");
+          clearLanguageNudge();
           const stale = $(".slots-day-link", panel || document);
           if (stale) stale.remove();
         }
@@ -2470,7 +2515,7 @@
   // built as with the served one; if behind, reload once. The sessionStorage
   // guard means a mis-bumped version file costs one reload per wake, never a
   // loop. scripts/bump-version.sh keeps the three markers in step.
-  const SITE_VERSION = "77";
+  const SITE_VERSION = "78";
   let hiddenAt = 0;
   async function healIfStale() {
     try {

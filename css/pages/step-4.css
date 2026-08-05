@@ -6,7 +6,7 @@ body[data-page="step-4"] {
   /* WEAVE — how much of the chosen strand may come forward (the sliver guard).
      scripts/_weavecut.mjs; see .swirl-front in input.css.
      url() is relative to THIS file (css/pages/), not to dist/. */
-  --front-span: url("../../assets/weave/step4.webp?v=77");
+  --front-span: url("../../assets/weave/step4.webp?v=78");
 
   /* ART — converted from --hand-l/-t/-w: 49.897% / 6.553% / 38.256% */
   --hand-nudge: 35.15cqw;
@@ -132,4 +132,40 @@ body[data-page="step-4"] .mark.circle {
 
 body[data-page="step-4"] .mark.circle > svg {
   width: 118%;
+}
+
+/* ---- "choose a different language" nudge (booking.js) --------------------
+   When no cleaner speaks the picked language that day, the status note tells
+   the customer the language picker is the fix — this pulse is how the eye
+   finds the control the words name. Pink already means "this one" everywhere
+   on the site, so the pulse borrows the focus ring's color rather than
+   inventing a new signal. The class lands on the .field wrapping the select
+   and is re-applied (with a reflow in between) on every repeat of the note. */
+body[data-page="step-4"] .field--look-here > select {
+  animation: lang-nudge 1.1s ease 2;
+}
+
+/* While focused, the border IS the focus indicator (input.css sets outline:
+   none on :focus-visible and shows focus as a pink border) — an animation
+   would override that border-color for its whole run, leaving a keyboard
+   user who tabs straight to the named control with no visible focus. Focus
+   already delivers what the pulse was for, so it simply wins. */
+body[data-page="step-4"] .field--look-here > select:focus-visible {
+  animation: none;
+}
+
+@keyframes lang-nudge {
+  0%, 100% { border-color: transparent; }
+  50% { border-color: var(--pink); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body[data-page="step-4"] .field--look-here > select {
+    /* No motion — a steady marker instead. An OUTLINE, not the border, so it
+       never impersonates the focus indicator; booking.js removes the class
+       (clearLanguageNudge) as soon as the note stops naming the picker. */
+    animation: none;
+    outline: 2px solid var(--pink);
+    outline-offset: 2px;
+  }
 }
