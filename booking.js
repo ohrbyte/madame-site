@@ -1101,12 +1101,25 @@
     const hoursLine = $("[data-hours-line]", panel);
     const hoursValue = $("[data-hours-value]", panel);
     // Language filters WHO counts as free — changing it refetches the slots.
+    // While EDITING, the picker only counts once the customer actually touches
+    // it: the flow default (English) says nothing about what language the
+    // booking was made in, and sending it unasked could swap a Spanish-speaking
+    // lady off a booking made by phone. A deliberate pick, though, rides the
+    // modify body so the backend reassigns the visit to a speaker.
+    let editLanguageChosen = null;
     const languageEl = $("#booking-language", panel);
     if (languageEl) {
       languageEl.value = flow.read().language || "English";
       flow.patch({ language: languageEl.value });
       languageEl.addEventListener("change", () => {
         flow.patch({ language: languageEl.value });
+        if (editing) {
+          editLanguageChosen = languageEl.value;
+          // The language rides the modify body, so a pending "Confirm change"
+          // must not apply a body the customer never previewed — same rule as
+          // the slot click and the hours stepper.
+          invalidatePreview();
+        }
         refreshSlots();
       });
     }
@@ -1271,10 +1284,10 @@
           // can name a pick that provably works. Per-language on purpose: an
           // unfiltered query also counts ladies with no language recorded,
           // which would promise a switch no picker option can deliver.
-          // Skipped while editing — the modify call keeps the booking's own
-          // language, so steering to the picker there points at a dead control.
+          // Applies while editing too: a deliberate pick rides the modify
+          // body (editLanguageChosen), so the advice is actionable there.
           let betterLanguages = [];
-          if (!editing && languageEl && languageEl.options.length > 1) {
+          if (languageEl && languageEl.options.length > 1) {
             const others = Array.from(languageEl.options, (o) => o.value)
               .filter((v) => v !== lang);
             const found = await Promise.all(others.map((other) =>
@@ -1346,6 +1359,7 @@
           body.duration_minutes = editing.minutes;
         }
         if (editing.recurring) body.recurring_scope = "selected_only";
+        if (editLanguageChosen) body.language = editLanguageChosen;
         if (!previewed) {
           await busy(continueBtn, "Checking…", async () => {
             try {
@@ -1356,6 +1370,7 @@
               previewed = p;
               const bits = (p.fees || []).map((f) => f.message);
               if (p.cleaner_unavailable) bits.push("Your usual lady isn't free then — another great lady will cover it.");
+              else if (p.cleaner_language_mismatch) bits.push(`Your usual lady doesn't speak ${editLanguageChosen} — if a lady who does is free, she'll take this visit.`);
               if (p.new_total != null) bits.push(`New total: ${money(p.new_total)}.`);
               bits.push("Press again to confirm.");
               note(status, bits.join(" "));
@@ -2515,7 +2530,7 @@
   // built as with the served one; if behind, reload once. The sessionStorage
   // guard means a mis-bumped version file costs one reload per wake, never a
   // loop. scripts/bump-version.sh keeps the three markers in step.
-  const SITE_VERSION = "78";
+  const SITE_VERSION = "79";
   let hiddenAt = 0;
   async function healIfStale() {
     try {
