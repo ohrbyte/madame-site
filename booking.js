@@ -126,6 +126,33 @@
     return (e && (e.message || (e.status ? `Error ${e.status}` : ""))) || "Something went wrong.";
   }
 
+  /* The office's number, in one place. Shown whenever the site has to hand the
+     customer back to a person — during the fixed-shift pilot that is the whole
+     escape hatch, so it has to be tappable rather than read out inside a note()
+     (which sets textContent and would render the markup as literal text). */
+  const OFFICE_TEL = "+18452124444";
+  const OFFICE_TEL_TEXT = "845-212-4444";
+
+  /* Puts a "call the office" line just after `afterEl`, replacing any previous
+     one. Passing no message removes it — the flows below call this on every
+     refresh, so it can't linger once the reason for it is gone. */
+  function callOffice(afterEl, message) {
+    if (!afterEl) return;
+    const existing = afterEl.parentNode && afterEl.parentNode.querySelector(".call-office");
+    if (existing) existing.remove();
+    if (!message) return;
+
+    const p = document.createElement("p");
+    p.className = "call-office";
+    p.append(document.createTextNode(message + " "));
+    const a = document.createElement("a");
+    a.className = "inkline";
+    a.href = "tel:" + OFFICE_TEL;
+    a.textContent = OFFICE_TEL_TEXT;
+    p.append(a);
+    afterEl.after(p);
+  }
+
   /* The status line. Every panel that talks to the API gets one .formnote;
      info stays quiet, errors go pink. */
   function note(el, msg, isErr) {
@@ -1242,17 +1269,72 @@
       plus.disabled = hours >= rules.max_hours;
     }
 
+    /* Fixed-shift days (the full-day / half-day pilot) come back from the API as
+       whole shifts rather than start times: each slot carries the office's name
+       for it and its own exact length. The length is the SHIFT's, not the
+       stepper's — a half day is 4h15m, which the stepper cannot even express —
+       so a shift click overrides both. */
+    function shiftMode() {
+      return slots.some((s) => s.shift_label);
+    }
+
+    /* Is the chosen day under the pilot at all? `shiftMode()` reads the slots,
+       which is no help when every shift is already taken — an empty grid then
+       has to say "they're all booked", not "nobody works that day". The rules
+       payload answers it independently of who's free. */
+    function isShiftDate(dateStr) {
+      const windows = (rules && rules.fixed_shifts) || [];
+      if (!windows.length || !dateStr) return false;
+      const day = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][
+        new Date(dateStr + "T12:00:00").getDay()
+      ];
+      return windows.some((w) =>
+        dateStr >= w.start_date &&
+        dateStr <= w.end_date &&
+        (!w.days_of_week || !w.days_of_week.length || w.days_of_week.includes(day)));
+    }
+
+    /* The stepper picks a length; a shift already has one. Showing "4 hours"
+       next to a 4h15m half day would just be wrong, so the whole line goes. */
+    function applyShiftChrome() {
+      const shifts = shiftMode() || isShiftDate(state.date);
+      if (hoursLine) hoursLine.hidden = shifts;
+      return shifts;
+    }
+
     function renderSlots() {
       grid.innerHTML = "";
+      const shifts = shiftMode();
       slots.forEach((slot) => {
         const b = document.createElement("button");
         b.type = "button";
-        b.className = "choice";
-        b.textContent = slot.start_formatted || slot.start_time;
+        b.className = shifts ? "choice choice--shift" : "choice";
+        if (shifts) {
+          const name = document.createElement("span");
+          name.className = "choice__label";
+          name.textContent = slot.shift_label;
+          const when = document.createElement("span");
+          when.className = "choice__when";
+          when.textContent = `${slot.start_formatted || slot.start_time} – ${slot.end_formatted || slot.end_time}`;
+          b.append(name, when);
+        } else {
+          b.textContent = slot.start_formatted || slot.start_time;
+        }
         if (slot.start_time === selectedStart) { b.classList.add("is-on"); b.setAttribute("aria-pressed", "true"); }
         b.addEventListener("click", () => {
           selectedStart = slot.start_time;
-          flow.patch({ slot, hours });
+          // On a shift day the booking's length comes off the slot. `hours` is
+          // kept in step so anything still reading it (the estimate line, the
+          // saved record) stays honest, but `minutes` is what gets sent.
+          if (slot.duration_minutes) {
+            hours = Math.round(slot.duration_minutes / 60);
+            renderHours();
+          }
+          flow.patch({
+            slot,
+            hours,
+            minutes: slot.duration_minutes || null,
+          });
           note(status, "");
           invalidatePreview();
           renderSlots();
@@ -1275,6 +1357,30 @@
         const fresh = (await api.availableSlots(state.date, hours, lang)) || [];
         if (req !== slotsReq) return;
         slots = fresh;
+        const onShiftDay = applyShiftChrome();
+
+        // The pilot: this day is sold as whole shifts, so say what's on offer
+        // and give anyone who wants other hours a number to ring. The office
+        // books those by hand — this is the only route to them.
+        if (onShiftDay) {
+          clearLanguageNudge();
+          const stale = $(".slots-day-link", panel || document);
+          if (stale) stale.remove();
+          note(status, slots.length
+            ? "That day we're booking full and half days only — pick one."
+            : "Every shift that day is taken.", !slots.length);
+          callOffice(grid, slots.length
+            ? "Need different hours?"
+            : "For another day, or different hours, call us on");
+          if (!slots.some((s) => s.start_time === selectedStart)) {
+            selectedStart = "";
+            flow.patch({ slot: null, minutes: null });
+          }
+          renderSlots();
+          return;
+        }
+        callOffice(grid, "");
+
         if (!slots.length) {
           // The dead-end an empty grid used to hide: with the picker sitting
           // on its English default, a day covered only by Spanish speakers
@@ -1352,6 +1458,9 @@
         const st = flow.read();
         if (!st.slot) return note(status, "Pick a start time first.", true);
         const body = { date: st.date, start_time: st.slot.start_time, hours };
+        // Moving a booking onto a fixed-shift day means taking a whole shift —
+        // send its exact minutes, not the stepper's whole hours.
+        if (st.minutes) body.duration_minutes = st.minutes;
         // A booking made by phone can be a half-hour length the stepper can't
         // express — keep its EXACT minutes unless the customer deliberately
         // changed the hours (then whole hours are what they chose).
@@ -1524,7 +1633,7 @@
       // cleaner). Whatever was confirmed a moment ago was confirmed about the OLD
       // booking, so the confirmation doesn't carry over.
       disarmDoubleBooking();
-      const est = await api.estimate({ date: state.date, start_time: state.slot.start_time, hours: state.hours, address_id: state.address_id, preferred_cleaner_id: state.preferred_cleaner_id, use_credit: useCredit, language: state.language || undefined });
+      const est = await api.estimate({ date: state.date, start_time: state.slot.start_time, hours: state.hours, duration_minutes: state.minutes || undefined, address_id: state.address_id, preferred_cleaner_id: state.preferred_cleaner_id, use_credit: useCredit, language: state.language || undefined });
       review.innerHTML = "";
       review.removeAttribute("aria-busy");
       // Remember the credit available even after toggling it off (the estimate
@@ -1758,6 +1867,9 @@
                 date: state.date,
                 start_time: state.slot.start_time,
                 hours: state.hours,
+                // A fixed shift is an exact window (a half day is 4h15m), so its
+                // minutes are what count — `hours` alone would book the wrong end.
+                duration_minutes: state.minutes || undefined,
                 payment_method_id: pmId,
                 language,
                 notes,
@@ -1800,6 +1912,16 @@
           // press to book anyway (mirrors the busy-cleaner heads-up).
           if (err && err.code === "ClientBookingOverlap" && !overlapOk) {
             armDoubleBooking(err.message);
+            return;
+          }
+          // The fixed-shift pilot. Reaching here means the hours stopped being
+          // sellable between picking them and confirming — the office changed
+          // the shifts, or the tab sat open through the change. The backend's
+          // message lists what IS on offer; the only way to the rest is a phone
+          // call, so give them a number they can press.
+          if (err && err.code === "FixedShiftRequired") {
+            note(status, err.message, true);
+            callOffice(status, "To book other hours, call us on");
             return;
           }
           note(status, formatErr(err), true);
@@ -2530,7 +2652,7 @@
   // built as with the served one; if behind, reload once. The sessionStorage
   // guard means a mis-bumped version file costs one reload per wake, never a
   // loop. scripts/bump-version.sh keeps the three markers in step.
-  const SITE_VERSION = "79";
+  const SITE_VERSION = "80";
   let hiddenAt = 0;
   async function healIfStale() {
     try {

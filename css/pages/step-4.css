@@ -6,7 +6,7 @@ body[data-page="step-4"] {
   /* WEAVE — how much of the chosen strand may come forward (the sliver guard).
      scripts/_weavecut.mjs; see .swirl-front in input.css.
      url() is relative to THIS file (css/pages/), not to dist/. */
-  --front-span: url("../../assets/weave/step4.webp?v=79");
+  --front-span: url("../../assets/weave/step4.webp?v=80");
 
   /* ART — converted from --hand-l/-t/-w: 49.897% / 6.553% / 38.256% */
   --hand-nudge: 35.15cqw;
@@ -168,4 +168,45 @@ body[data-page="step-4"] .field--look-here > select:focus-visible {
     outline: 2px solid var(--pink);
     outline-offset: 2px;
   }
+}
+
+/* ---- fixed-shift days (full-day / half-day pilot) ---------------------- */
+
+/* On these days the grid stops being a wall of start times and becomes three
+   named shifts, so it drops to one column and each cell gets room for a name
+   above its hours. Keyed off :has() rather than a class on the grid because
+   booking.js only ever rewrites the cells — the same trick step-1 uses for the
+   phone/email crossfade. */
+body[data-page="step-4"] .timegrid:has(.choice--shift) {
+  grid-template-columns: 1fr;
+}
+
+body[data-page="step-4"] .choice--shift {
+  place-items: stretch;
+  gap: .12rem;
+  padding: .6em .9em;
+  text-align: left;
+}
+
+body[data-page="step-4"] .choice--shift .choice__label {
+  font-size: 1em;
+  font-weight: 700;
+}
+
+/* The hours are the supporting fact, not the headline — the shift's NAME is
+   what the customer is choosing between. */
+body[data-page="step-4"] .choice--shift .choice__when {
+  font-size: .86em;
+  font-weight: 500;
+  opacity: .8;
+}
+
+/* The way out of the pilot: anyone who wants hours we aren't selling this week
+   rings the office, which books them by hand. Sits directly under the grid so
+   it reads as part of the choice, not as a footnote. */
+body[data-page="step-4"] .call-office {
+  margin: -.6rem 0 1.1rem;
+  font-size: clamp(.72rem, 1vw, .86rem);
+  font-weight: 500;
+  color: rgba(255, 255, 255, .82);
 }
