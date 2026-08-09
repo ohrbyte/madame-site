@@ -18,7 +18,7 @@ body[data-page="index"] {
   /* how much of that strand may come forward — stops the band also landing on
      the sponge and the suds as a stray sliver. url() is relative to THIS file
      (css/pages/), not to dist/. See --front-span in input.css. */
-  --front-span: url("../../assets/weave/landing.webp?v=80");
+  --front-span: url("../../assets/weave/landing.webp?v=81");
 
   /* COPY — the headline block. Pinned to the viewport, not the canvas, so
      these are % of the VIEWPORT. Fitted against the design. */

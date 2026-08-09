@@ -37,35 +37,35 @@
   font-family: "Poppins";
   font-weight: 400;
   font-display: swap;
-  src: url("../fonts/Poppins-Regular.ttf?v=80") format("truetype");
+  src: url("../fonts/Poppins-Regular.ttf?v=81") format("truetype");
 }
 
 @font-face {
   font-family: "Poppins";
   font-weight: 500;
   font-display: swap;
-  src: url("../fonts/Poppins-Medium.ttf?v=80") format("truetype");
+  src: url("../fonts/Poppins-Medium.ttf?v=81") format("truetype");
 }
 
 @font-face {
   font-family: "Poppins";
   font-weight: 600;
   font-display: swap;
-  src: url("../fonts/Poppins-Medium.ttf?v=80") format("truetype");
+  src: url("../fonts/Poppins-Medium.ttf?v=81") format("truetype");
 }
 
 @font-face {
   font-family: "Poppins";
   font-weight: 700;
   font-display: swap;
-  src: url("../fonts/Poppins-Bold.ttf?v=80") format("truetype");
+  src: url("../fonts/Poppins-Bold.ttf?v=81") format("truetype");
 }
 
 @font-face {
   font-family: "Poppins";
   font-weight: 800;
   font-display: swap;
-  src: url("../fonts/Poppins-Bold.ttf?v=80") format("truetype");
+  src: url("../fonts/Poppins-Bold.ttf?v=81") format("truetype");
 }
 
 /* ---------- Neulis (Sans + Cursive) ----------
@@ -217,7 +217,7 @@
      that file before changing this. Per page, because each hand meets the
      ribbon at a different place.
      url() is relative to dist/ — see the note at the top of this file. */
-  --front-span: url("../assets/weave/landing.webp?v=80");
+  --front-span: url("../assets/weave/landing.webp?v=81");
 
   /* COPY BLOCK — where this page's headline/panel column sits. --ctop/--cleft/
      --cw are % of the VIEWPORT (the chrome is pinned to the viewport, not the
@@ -312,7 +312,7 @@ body {
   margin: 0;
   /* full-bleed cream so the contained hero's letterbox is seamless (the design
      bg is cream, so the margins are indistinguishable from the canvas). */
-  background: url("../assets/cream.webp?v=80") center / cover no-repeat, var(--cream);
+  background: url("../assets/cream.webp?v=81") center / cover no-repeat, var(--cream);
   color: var(--blue);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
@@ -1530,7 +1530,7 @@ body[data-page="about"]>.topbar::before {
   }
 
   html {
-    background: url("../assets/cream.webp?v=80") center / cover no-repeat, var(--cream);
+    background: url("../assets/cream.webp?v=81") center / cover no-repeat, var(--cream);
   }
 
   body {

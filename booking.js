@@ -1125,7 +1125,10 @@
 
     const panel = $(".panel");
     const heading = $("h2", panel);
-    const hoursLine = $("[data-hours-line]", panel);
+    // Both the question and the -/+ control carry the marker: querySelector
+    // would take only the first, which is how the stepper stayed on screen
+    // under the pilot while its label disappeared.
+    const hoursLine = panel.querySelectorAll("[data-hours-line]");
     const hoursValue = $("[data-hours-value]", panel);
     // Language filters WHO counts as free — changing it refetches the slots.
     // While EDITING, the picker only counts once the customer actually touches
@@ -1298,7 +1301,7 @@
        next to a 4h15m half day would just be wrong, so the whole line goes. */
     function applyShiftChrome() {
       const shifts = shiftMode() || isShiftDate(state.date);
-      if (hoursLine) hoursLine.hidden = shifts;
+      hoursLine.forEach((el) => { el.hidden = shifts; });
       return shifts;
     }
 
@@ -2652,7 +2655,7 @@
   // built as with the served one; if behind, reload once. The sessionStorage
   // guard means a mis-bumped version file costs one reload per wake, never a
   // loop. scripts/bump-version.sh keeps the three markers in step.
-  const SITE_VERSION = "80";
+  const SITE_VERSION = "81";
   let hiddenAt = 0;
   async function healIfStale() {
     try {

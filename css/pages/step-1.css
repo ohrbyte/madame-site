@@ -9,7 +9,7 @@ body[data-page="step-1"] {
   /* WEAVE — how much of the chosen strand may come forward (the sliver guard).
      scripts/_weavecut.mjs; see .swirl-front in input.css.
      url() is relative to THIS file (css/pages/), not to dist/. */
-  --front-span: url("../../assets/weave/landing.webp?v=80");
+  --front-span: url("../../assets/weave/landing.webp?v=81");
 
   /* ART — the PSD manifest recorded this box as --hand-l/-t/-w:
      17.795% / -19.989% / 100%, but the asset (landing-hand.webp) was later
