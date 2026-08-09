@@ -32,7 +32,7 @@ body[data-page="step-2"] {
      and the white bowl, with the wrist below it sitting on top of the next band
      down. Built by scripts/_weavecut.mjs; see .swirl-front in input.css.
      url() is relative to THIS file (css/pages/), not to dist/. */
-  --front-span: url("../../assets/weave/step2.webp?v=81");
+  --front-span: url("../../assets/weave/step2.webp?v=82");
 
   /* COPY — the panel's left edge is the column edge. The headline sits 1.5%
      further in, because its pink circle oversails the text and the DESIGN lines

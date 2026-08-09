@@ -6,7 +6,7 @@ body[data-page="step-3"] {
   /* WEAVE — how much of the chosen strand may come forward (the sliver guard).
      scripts/_weavecut.mjs; see .swirl-front in input.css.
      url() is relative to THIS file (css/pages/), not to dist/. */
-  --front-span: url("../../assets/weave/step3.webp?v=81");
+  --front-span: url("../../assets/weave/step3.webp?v=82");
 
   /* ART — converted from --hand-l/-t/-w: 52.051% / 5.782% / 54.128% */
   --hand-nudge: 17.12cqw;
