@@ -180,6 +180,15 @@
 
   function goto(href) { window.location.href = href; }
 
+  /* "4 hours" for a whole one, "4h 15m" for a shift. Whole hours keep the
+     long form so ordinary bookings read exactly as they always have. */
+  function durationText(mins) {
+    const h = Math.floor(mins / 60);
+    const m = Math.round(mins % 60);
+    if (!m) return `${h} ${h === 1 ? "hour" : "hours"}`;
+    return h ? `${h}h ${m}m` : `${m}m`;
+  }
+
   /* A session is live only if the token exists AND hasn't expired — judging
      by existence alone let a stale token brick sign-in: the sign-in page
      bounced "already signed in" visitors onward while every API call 401'd.
@@ -1560,6 +1569,26 @@
     const review = $(".review", panel);
     const status = $(".formnote", panel);
     const confirmBtn = $(".btn", panel);
+
+    /* Back from all-set restores this page from the back-forward cache: the
+       DOM, `state` and an armed Confirm all return exactly as they were, and
+       initStep5 does NOT re-run — so the guard above never fires. all-set has
+       cleared the flow by then, so a press re-sent the identical booking and
+       the customer met an overlap warning about a clash with their OWN
+       booking, with nothing anywhere saying the first one had worked
+       (2026-08-09). Answer the question they actually have. */
+    window.addEventListener("pageshow", (e) => {
+      if (!e.persisted) return;
+      const live = flow.read();
+      if (live.date && live.slot && live.hours) return;
+      if (confirmBtn) {
+        confirmBtn.setAttribute("aria-disabled", "true");
+        
+        confirmBtn.textContent = "Already booked";
+      }
+      note(status, "This booking is already confirmed — you don't need to send it again.", true);
+      callOffice(status, "Something not right? Call us on");
+    });
     const payList = $(".paylist", panel);
     const stripeBox = $(".stripe-box", panel);
     const notesEl = $("#booking-notes", panel);
@@ -1646,7 +1675,11 @@
       if (freq > 0) reviewRow("Repeats", freq === 1 ? `Every ${weekdayName(state.date)}` : `Every ${freq} weeks on ${weekdayName(state.date)}s`);
       if (state.preferred_cleaner_name) reviewRow("Your lady", state.preferred_cleaner_name);
       reviewRow("Where", formatAddress(state.address) || "Your saved address");
-      reviewRow("What", `Home cleaning · ${est.hours || state.hours} hours (${money(est.rate_per_hour)}/hr)`);
+      // A fixed shift is 4h15m or 4h30m, and `hours` is a whole number — it
+      // rounded the morning DOWN to "4 hours" and the afternoon UP to "5",
+      // describing a booking the customer was not making. Minutes are the
+      // truth; the total was always the backend's and stays untouched.
+      reviewRow("What", `Home cleaning · ${durationText(state.minutes || (est.hours || state.hours) * 60)} (${money(est.rate_per_hour)}/hr)`);
       if (state.language && state.language !== "English") reviewRow("She speaks", state.language);
       if (est.taxi_fee > 0) reviewRow("Travel fee", money(est.taxi_fee));
       // Gift credit spends before the card BY DEFAULT — one-time cleans at
@@ -1814,6 +1847,16 @@
     }
 
     async function confirmBooking() {
+      // The flow is cleared the moment a booking lands (all-set does it), so an
+      // empty one here means this page is a back-navigation onto a booking that
+      // already exists. Checked in the handler, not just on the button: the
+      // button is an <a>, so `disabled` does nothing and the click listener
+      // fires regardless of how it looks.
+      const live = flow.read();
+      if (!live.date || !live.slot || !live.hours) {
+        note(status, "This booking is already confirmed — you don't need to send it again.", true);
+        return;
+      }
       if (!estimateOk) return note(status, "Hold on — still fetching your price.", true);
       await busy(confirmBtn, "Booking…", async () => {
         try {
@@ -2655,7 +2698,7 @@
   // built as with the served one; if behind, reload once. The sessionStorage
   // guard means a mis-bumped version file costs one reload per wake, never a
   // loop. scripts/bump-version.sh keeps the three markers in step.
-  const SITE_VERSION = "82";
+  const SITE_VERSION = "83";
   let hiddenAt = 0;
   async function healIfStale() {
     try {

@@ -6,7 +6,7 @@ body[data-page="step-5"] {
   /* WEAVE — how much of the chosen strand may come forward (the sliver guard).
      scripts/_weavecut.mjs; see .swirl-front in input.css.
      url() is relative to THIS file (css/pages/), not to dist/. */
-  --front-span: url("../../assets/weave/step5.webp?v=82");
+  --front-span: url("../../assets/weave/step5.webp?v=83");
 
   /* ART — converted from --hand-l/-t/-w: 53.949% / 4.405% / 34.872% */
   --hand-nudge: 34.48cqw;
@@ -116,4 +116,14 @@ body[data-page="step-5"] .panel {
 
 body[data-page="step-5"] .panel > * {
   flex: none;
+}
+
+/* Confirm, after the booking already landed. The control is an <a>, so there
+   is no :disabled to lean on — aria-disabled carries the meaning to assistive
+   tech and this makes it look the part, so nobody presses a button that has
+   nothing left to do. */
+body[data-page="step-5"] .btn[aria-disabled="true"] {
+  opacity: .55;
+  pointer-events: none;
+  cursor: default;
 }
