@@ -18,7 +18,7 @@ body[data-page="index"] {
   /* how much of that strand may come forward — stops the band also landing on
      the sponge and the suds as a stray sliver. url() is relative to THIS file
      (css/pages/), not to dist/. See --front-span in input.css. */
-  --front-span: url("../../assets/weave/landing.webp?v=84");
+  --front-span: url("../../assets/weave/landing.webp?v=85");
 
   /* COPY — the headline block. Pinned to the viewport, not the canvas, so
      these are % of the VIEWPORT. Fitted against the design. */
@@ -111,8 +111,10 @@ body[data-page="index"] {
   /* The height the masthead steps down by. It is a MINIMUM, not a cap (see
      min-height below): a readable measure keeps the message at three lines even
      on a 2560px screen, so a fixed height just clipped the last line. Sized to
-     hold four lines, which no tested width reaches. */
-  --noticebar-h: 4.6rem;
+     hold three lines, which no tested width reaches now that the copy is two.
+     It is BOTH the reserve and the distance the masthead steps down, so it must
+     stay >= the band's real height or the wordmark lands on the text. */
+  --noticebar-h: 4rem;
 }
 
 .noticebar {
@@ -175,7 +177,10 @@ body[data-page="index"]>.topbar {
    over six lines is harder to read than flush-left. */
 @media (max-width: 760px) {
   body[data-page="index"] {
-    --noticebar-h: 7.6rem;
+    /* Measured: four lines of text at 62px plus .85rem padding top and bottom
+       is ~89px, so 96px leaves room without stranding 60px of empty band above
+       the poster the way the pre-trim 7.6rem did. */
+    --noticebar-h: 6rem;
   }
 
   .noticebar {
