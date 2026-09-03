@@ -1874,6 +1874,11 @@
               date: state.date,
               start_time: state.slot.start_time,
               hours: state.hours,
+              // A fixed shift is an exact window (the afternoon half day is
+              // 4h45m = 285 min), so its minutes are what count — sending
+              // `hours` alone rounds to 5h (300 min), which matches no shift and
+              // is refused. Same field the one-time create and the estimate send.
+              duration_minutes: state.minutes || undefined,
               frequency_weeks: freq,
               language,
               payment_method_id: pmId,
