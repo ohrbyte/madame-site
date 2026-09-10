@@ -1038,6 +1038,9 @@
     // calendar opens on its month. `blockedRanges` are the office's closed spans
     // ({start,end} inclusive); any day inside one is disabled too.
     let bookableFrom = "";
+    // Upper end of the self-serve horizon (yyyy-mm-dd), from Cleaneri's booking
+    // rules. Days after it are disabled, the mirror of bookableFrom below.
+    let bookableUntil = "";
     let blockedRanges = [];
     const isBlocked = (k) => blockedRanges.some((r) => r.start <= k && k <= r.end);
     // A date picked in an earlier session that has since gone by is stale.
@@ -1063,6 +1066,7 @@
         // Blackout — days before the earliest bookable date, or inside a closed
         // range, are unpickable.
         if (bookableFrom && cell.dateKey < bookableFrom) b.disabled = true;
+        if (bookableUntil && cell.dateKey > bookableUntil) b.disabled = true;
         if (isBlocked(cell.dateKey)) b.disabled = true;
         if (cell.dateKey === selected) { b.classList.add("is-on"); b.setAttribute("aria-pressed", "true"); }
         b.addEventListener("click", () => {
@@ -1114,8 +1118,14 @@
           [year, month] = bf.split("-").slice(0, 2).map(Number);
         }
       }
-      // Drop a selection that's now before the floor or inside a closed range.
-      if (selected && ((bookableFrom && selected < bookableFrom) || isBlocked(selected))) {
+      // The horizon's far end. Absent on an older API build, in which case this
+      // stays "" and every check below is inert — the calendar behaves as before.
+      if (r.max_bookable_date) bookableUntil = r.max_bookable_date;
+      // Drop a selection that's now before the floor, past the horizon, or inside
+      // a closed range.
+      if (selected && ((bookableFrom && selected < bookableFrom)
+                       || (bookableUntil && selected > bookableUntil)
+                       || isBlocked(selected))) {
         selected = "";
         flow.patch({ date: "" });
       }
@@ -1271,6 +1281,9 @@
     renderFreq();
 
     let rules = { min_hours: 3, max_hours: 12 };
+    // Read again here rather than shared from the calendar: each step is its own
+    // PAGE, so initStep3's scope is long gone by the time this runs.
+    let bookableUntil = "";
     let hours = state.hours || 0;
     let slots = [];
     let selectedStart = state.slot ? state.slot.start_time : "";
@@ -1370,6 +1383,24 @@
         if (req !== slotsReq) return;
         slots = fresh;
         const onShiftDay = applyShiftChrome();
+
+        // Past the self-serve horizon. The API answers 200 [] here exactly as it
+        // does for a genuinely full day, so an empty grid alone cannot tell the
+        // two apart — bookableUntil can. Checked BEFORE the branches below so
+        // neither reports the day as fully booked, and so the per-language probe
+        // never fires for a date that could not be booked in any language.
+        if (bookableUntil && state.date > bookableUntil) {
+          clearLanguageNudge();
+          const staleLink = $(".slots-day-link", panel || document);
+          if (staleLink) staleLink.remove();
+          callOffice(grid, "");
+          note(status, "Bookings can only be made up to 14 days in advance. Please choose an earlier date.", true);
+          slots = [];
+          selectedStart = "";
+          flow.patch({ slot: null, minutes: null });
+          renderSlots();
+          return;
+        }
 
         // The pilot: this day is sold as whole shifts, so say what's on offer
         // and give anyone who wants other hours a number to ring. The office
@@ -1534,6 +1565,7 @@
 
     api.bookingRules().catch(() => rules).then((r) => {
       if (r && r.min_hours) rules = r;
+      if (r && r.max_bookable_date) bookableUntil = r.max_bookable_date;
       // Cleaner languages are configured in the dashboard, so the picker is
       // built from what the API reports rather than a list shipped here that
       // would drift the moment the office added one.
