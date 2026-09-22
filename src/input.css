@@ -37,35 +37,35 @@
   font-family: "Poppins";
   font-weight: 400;
   font-display: swap;
-  src: url("../fonts/Poppins-Regular.ttf?v=86") format("truetype");
+  src: url("../fonts/Poppins-Regular.ttf?v=87") format("truetype");
 }
 
 @font-face {
   font-family: "Poppins";
   font-weight: 500;
   font-display: swap;
-  src: url("../fonts/Poppins-Medium.ttf?v=86") format("truetype");
+  src: url("../fonts/Poppins-Medium.ttf?v=87") format("truetype");
 }
 
 @font-face {
   font-family: "Poppins";
   font-weight: 600;
   font-display: swap;
-  src: url("../fonts/Poppins-Medium.ttf?v=86") format("truetype");
+  src: url("../fonts/Poppins-Medium.ttf?v=87") format("truetype");
 }
 
 @font-face {
   font-family: "Poppins";
   font-weight: 700;
   font-display: swap;
-  src: url("../fonts/Poppins-Bold.ttf?v=86") format("truetype");
+  src: url("../fonts/Poppins-Bold.ttf?v=87") format("truetype");
 }
 
 @font-face {
   font-family: "Poppins";
   font-weight: 800;
   font-display: swap;
-  src: url("../fonts/Poppins-Bold.ttf?v=86") format("truetype");
+  src: url("../fonts/Poppins-Bold.ttf?v=87") format("truetype");
 }
 
 /* ---------- Neulis (Sans + Cursive) ----------
@@ -217,7 +217,7 @@
      that file before changing this. Per page, because each hand meets the
      ribbon at a different place.
      url() is relative to dist/ — see the note at the top of this file. */
-  --front-span: url("../assets/weave/landing.webp?v=86");
+  --front-span: url("../assets/weave/landing.webp?v=87");
 
   /* COPY BLOCK — where this page's headline/panel column sits. --ctop/--cleft/
      --cw are % of the VIEWPORT (the chrome is pinned to the viewport, not the
@@ -312,7 +312,7 @@ body {
   margin: 0;
   /* full-bleed cream so the contained hero's letterbox is seamless (the design
      bg is cream, so the margins are indistinguishable from the canvas). */
-  background: url("../assets/cream.webp?v=86") center / cover no-repeat, var(--cream);
+  background: url("../assets/cream.webp?v=87") center / cover no-repeat, var(--cream);
   color: var(--blue);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
@@ -1042,7 +1042,12 @@ a:focus-visible>.inkline--rest::after {
   font-weight: 700;
 }
 
-.panel p {
+/* Panel PROSE. :not(.formnote) because the status line is a primitive with its
+   own box, and a bare `.panel p` (0,1,1) outranks `.formnote` (0,1,0) — so
+   without this the note silently wore panel-prose margins, size and opacity
+   and only its colour survived. That is what welded every message to the
+   bottom edge of the field above it: `margin: 0 0 1em` means NO top gutter. */
+.panel p:not(.formnote) {
   margin: 0 0 1em;
   font-size: clamp(.72rem, 1.15vw, .92rem);
   opacity: .9;
@@ -1201,13 +1206,32 @@ a:focus-visible>.inkline--rest::after {
 
 /* The status line under a panel's controls. Quiet when it's information
    ("Checking who's free…"), pink and bolder when it's an error. [hidden]
-   keeps it out of the layout entirely between messages. */
+   keeps it out of the layout entirely between messages.
+
+   These margins only started APPLYING when `.panel p` grew its :not(.formnote)
+   — until then the note wore panel-prose `margin: 0 0 1em`, i.e. no top
+   gutter at all, which is what welded every message to the bottom edge of the
+   field above it. Keep the exclusion and this rule together.
+
+   Gutters are rem, not em: an em here is the note's OWN font-size, which
+   clamps down to .68rem, so the gap would shrink on exactly the narrow phone
+   screens that need it most. Top is smaller than bottom on purpose — the note
+   belongs to the control it is about and has to detach from whatever comes
+   next. The top gutter COLLAPSES into the 1.1rem bottom margin the control
+   groups already carry (.fields, .cal, .timegrid, .amounts, .stripe-box), so
+   it adds room only where there was none: the bare field stacks on sign-in
+   and address. */
 .formnote {
-  margin: .1em 0 .9em;
+  margin: .7rem 0 1.1rem;
   font-size: clamp(.68rem, .95vw, .8rem);
   line-height: 1.45;
   color: #fff;
   opacity: .85;
+}
+
+/* last thing in the card (address): the panel's own padding is the gutter */
+.formnote:last-child {
+  margin-bottom: 0;
 }
 
 .formnote--err {
@@ -1530,7 +1554,7 @@ body[data-page="about"]>.topbar::before {
   }
 
   html {
-    background: url("../assets/cream.webp?v=86") center / cover no-repeat, var(--cream);
+    background: url("../assets/cream.webp?v=87") center / cover no-repeat, var(--cream);
   }
 
   body {
