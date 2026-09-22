@@ -32,7 +32,7 @@ body[data-page="step-2"] {
      and the white bowl, with the wrist below it sitting on top of the next band
      down. Built by scripts/_weavecut.mjs; see .swirl-front in input.css.
      url() is relative to THIS file (css/pages/), not to dist/. */
-  --front-span: url("../../assets/weave/step2.webp?v=86");
+  --front-span: url("../../assets/weave/step2.webp?v=87");
 
   /* COPY — the panel's left edge is the column edge. The headline sits 1.5%
      further in, because its pink circle oversails the text and the DESIGN lines
@@ -96,7 +96,11 @@ body[data-page="step-2"] .panel h2 {
   margin: 0 0 .2em;
 }
 
-body[data-page="step-2"] .panel p {
+/* :not(.formnote) for the same reason as the base rule in input.css — this
+   card's prose is tighter and smaller than the default, and the status line
+   is not prose. Without the exclusion the note rendered at .72rem with no top
+   gutter, flush under the address fields. */
+body[data-page="step-2"] .panel p:not(.formnote) {
   margin: 0 0 .55em;
   font-size: clamp(.56rem, .8vw, .72rem);
   line-height: 1.35;
