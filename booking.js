@@ -2381,6 +2381,10 @@
     const payLink = $(".paylink");
     if (payLink) payLink.hidden = false;
 
+    // A payment correction the office asked this customer to repay, if any —
+    // its own block above the list, independent of the bookings fetch.
+    mountPaymentCorrections($(".panel"));
+
     // Fallback for when the account list can't be fetched: the device records
     // are all we have, so ask the backend for each one's real status and mark
     // the ones that moved on (an office-side cancellation never reached them).
@@ -2450,6 +2454,291 @@
       }
     })();
 
+  }
+
+  /* ================================================================
+     PAYMENT CORRECTION (My Bookings) — the office has asked this
+     customer to repay a fixed amount for one past visit. Shown only when
+     the account has one. The customer reads what it is for, picks a
+     saved card, ticks the agreement — the server's own words, at the
+     server's version — and pays; 3-D Secure runs here in the browser.
+     The amount is the server's: nothing here computes, edits or sends
+     one, and nothing here touches the visit's own payment (/pay is never
+     called). Walking away midway moves no money — only the server's
+     confirm, after the bank approved, completes it.
+     ================================================================ */
+  const STRIPE_JS_URL = "https://js.stripe.com/v3/";
+  let stripeJsPromise = null;
+
+  // Stripe.js is loaded only for a customer who actually has a correction to
+  // pay — My Bookings has no other use for it.
+  function loadStripeJs() {
+    if (window.Stripe) return Promise.resolve();
+    if (!stripeJsPromise) {
+      stripeJsPromise = new Promise((resolve, reject) => {
+        const s = document.createElement("script");
+        s.src = STRIPE_JS_URL;
+        s.onload = () => (window.Stripe ? resolve() : s.onerror());
+        s.onerror = () => {
+          stripeJsPromise = null; // let the next press try again
+          reject(new Error("We couldn't load the secure card check — check your connection and try again."));
+        };
+        document.head.appendChild(s);
+      });
+    }
+    return stripeJsPromise;
+  }
+
+  // "September 7, 2026" from a "yyyy-mm-dd" key (fixed name tables, no Intl).
+  function longDate(dateKey) {
+    const [y, m, d] = dateKey.split("-").map(Number);
+    return `${MONTHS[m - 1]} ${d}, ${y}`;
+  }
+
+  function mountPaymentCorrections(panel) {
+    if (!panel) return;
+
+    function para(cls, text) {
+      const el = document.createElement("p");
+      el.className = cls;
+      el.textContent = text;
+      return el;
+    }
+
+    // Fetch and draw. Never breaks the page: a dead session is the bookings
+    // list's business, and any other failure just means no panel this time.
+    async function refresh(afterNote) {
+      let corrections;
+      try {
+        corrections = (await api.paymentCorrections()) || [];
+      } catch {
+        return;
+      }
+      panel.querySelectorAll(".correction").forEach((n) => {
+        n.dataset.stale = "true";
+        n.remove();
+      });
+      const heading = panel.querySelector("h2");
+      corrections.forEach((c) => {
+        const box = render(c, afterNote);
+        if (heading) heading.before(box);
+        else panel.prepend(box);
+      });
+    }
+
+    function render(c, afterNote) {
+      const box = document.createElement("section");
+      box.className = "correction";
+      box.setAttribute("aria-label", "Payment correction");
+      box.dataset.bookingId = c.booking_id;
+
+      const title = document.createElement("h2");
+      title.textContent = "Payment correction";
+      const visitKey = c.visit_start ? String(c.visit_start).slice(0, 10) : "";
+      box.append(
+        title,
+        para("correction-visit", /^\d{4}-\d{2}-\d{2}$/.test(visitKey)
+          ? `For your cleaning on ${longDate(visitKey)}`
+          : "For a past cleaning"),
+        para("correction-reason", c.reason),
+        para("correction-amount", `Amount: ${money(c.amount)}`),
+      );
+
+      if (c.status === "collected") {
+        box.classList.add("correction--paid");
+        box.append(para("correction-paid", `Paid — thank you. We received your ${money(c.amount)} payment correction.`));
+        return box;
+      }
+
+      box.append(para("correction-new",
+        "This is a new, one-time charge — separate from your original payment for that visit, which stays as it is."));
+
+      const cardsTitle = para("correction-label", "Pay with");
+      const cards = document.createElement("div");
+      cards.className = "correction-cards";
+      cards.setAttribute("role", "group");
+      cards.setAttribute("aria-label", "Saved cards");
+
+      const consentRow = document.createElement("label");
+      consentRow.className = "correction-consent";
+      const consent = document.createElement("input");
+      consent.type = "checkbox";
+      consent.name = "correction-consent";
+      const consentText = document.createElement("span");
+      consentText.textContent = c.consent_text;
+      consentRow.append(consent, consentText);
+
+      const payBtn = document.createElement("button");
+      payBtn.type = "button";
+      payBtn.className = "btn correction-pay";
+      payBtn.textContent = `Pay ${money(c.amount)}`;
+      payBtn.disabled = true;
+
+      const status = document.createElement("p");
+      status.className = "formnote";
+      status.hidden = true;
+      status.setAttribute("aria-live", "polite");
+
+      box.append(cardsTitle, cards, consentRow, payBtn, status);
+      callOffice(status, "Questions about this? Call us at");
+
+      const ui = { box, cards, consent, payBtn, status, selected: null, methods: [] };
+      const stale = () => box.dataset.stale === "true" || !box.isConnected;
+      const update = () => { payBtn.disabled = !(ui.selected && consent.checked); };
+      consent.addEventListener("change", update);
+
+      function renderCards() {
+        cards.innerHTML = "";
+        ui.methods.forEach((m) => {
+          const b = document.createElement("button");
+          b.type = "button";
+          b.className = "choice choice--pay";
+          b.textContent = `${(m.brand || "card").toUpperCase()} ·· ${m.last4 || "····"}`;
+          const on = m.payment_method_id === ui.selected;
+          b.classList.toggle("is-on", on);
+          b.setAttribute("aria-pressed", on ? "true" : "false");
+          b.addEventListener("click", () => { ui.selected = m.payment_method_id; renderCards(); update(); });
+          cards.appendChild(b);
+        });
+      }
+
+      (async () => {
+        let methods;
+        try {
+          methods = (await api.paymentMethods()) || [];
+        } catch (err) {
+          if (stale()) return;
+          note(status, `${formatErr(err)} Reload the page to try again.`, true);
+          return;
+        }
+        if (stale()) return;
+        // Cards only: a bank account would be debited without the card check.
+        ui.methods = methods.filter((m) => m.type === "card");
+        if (!ui.methods.length) {
+          cards.hidden = true;
+          cardsTitle.hidden = true;
+          note(status, "There's no card saved on your account. Please call us and we'll help you settle this.", true);
+          return;
+        }
+        const resume = ui.methods.find((m) => m.payment_method_id === c.payment_method_id);
+        const preferred = resume || ui.methods.find((m) => m.is_default) || ui.methods[0];
+        ui.selected = preferred.payment_method_id;
+        renderCards();
+        update();
+      })();
+
+      payBtn.addEventListener("click", () => {
+        if (payBtn.disabled) return;
+        busy(payBtn, "Paying…", () => pay(c, ui, stale));
+      });
+
+      if (afterNote) note(status, afterNote, true);
+      return box;
+    }
+
+    // A reply that ends the story: paid (draw the paid box), or processing.
+    function settled(ui, res) {
+      if (res && res.payment_state === "collected" && res.correction) {
+        const paid = render(res.correction);
+        ui.box.dataset.stale = "true";
+        ui.box.replaceWith(paid);
+        return true;
+      }
+      if (res && res.payment_state === "processing") {
+        note(ui.status, "Your payment is processing with your bank — refresh this page in a minute to see it.", false);
+        return true;
+      }
+      return false;
+    }
+
+    function failed(ui, err) {
+      if (err && err.status === 401) { goto("sign-in?next=my-bookings"); return; }
+      if (err && err.status === 404) {
+        ui.box.dataset.stale = "true";
+        ui.box.replaceWith(para("correction correction--gone",
+          "This payment correction is no longer open — nothing was charged."));
+        return;
+      }
+      if (err && err.code === "ConsentRequired") {
+        // The wording changed since this page loaded: show the new words, and
+        // ask again — agreement is only ever to what the customer just read.
+        refresh("Please read the updated wording and tick the box again.");
+        return;
+      }
+      note(ui.status, formatErr(err), true);
+    }
+
+    async function pay(c, ui, stale) {
+      note(ui.status, "");
+      let res;
+      try {
+        res = await api.correctionPay(c.booking_id, ui.selected, c.consent_version);
+      } catch (err) {
+        if (!stale()) failed(ui, err);
+        return;
+      }
+      if (stale() || settled(ui, res)) return;
+
+      if (res && res.client_secret) {
+        let stripe;
+        try {
+          await loadStripeJs();
+          const config = await api.getClientConfig();
+          stripe = await getStripe(config.stripe_publishable_key);
+        } catch (err) {
+          note(ui.status, `${formatErr(err)} Nothing was charged.`, true);
+          return;
+        }
+        const { error, paymentIntent } = await stripe.confirmCardPayment(res.client_secret, undefined, { handleActions: true });
+        // A replayed secret whose check already finished comes back as an
+        // "unexpected state" error carrying the (approved) intent — judge by
+        // the intent, not the error.
+        const pi = paymentIntent || (error && error.payment_intent);
+        const approved = pi && (pi.status === "requires_capture" || pi.status === "succeeded");
+        if (!approved) {
+          note(ui.status, `${(error && error.message) || "Your bank didn't approve the payment."} Nothing was charged — you can try again or choose another card.`, true);
+          return;
+        }
+      } else if (!res || res.payment_state !== "authorized") {
+        note(ui.status, (res && res.message) || "The payment couldn't be started — nothing was charged. Please try again.", true);
+        return;
+      }
+      await finish(ui, c, stale);
+    }
+
+    // The bank approved: ask the server to verify and complete it. Safe to
+    // repeat — a correction already paid just says so.
+    async function finish(ui, c, stale) {
+      try {
+        const fin = await api.correctionConfirm(c.booking_id);
+        if (stale() || settled(ui, fin)) return;
+        note(ui.status, (fin && fin.message) || "We couldn't complete the payment — nothing was charged. Please try again.", true);
+      } catch (err) {
+        if (stale()) return;
+        if (err && err.status === 503) {
+          // Stripe could not say yet whether the money moved: never guess.
+          note(ui.status, `${formatErr(err)}`, false);
+          offerCheckAgain(ui, c, stale);
+          return;
+        }
+        failed(ui, err);
+      }
+    }
+
+    function offerCheckAgain(ui, c, stale) {
+      if (ui.box.querySelector(".correction-check")) return;
+      const again = document.createElement("button");
+      again.type = "button";
+      again.className = "booking-act correction-check";
+      again.textContent = "Check again";
+      again.addEventListener("click", () => busy(again, "Checking…", async () => {
+        await finish(ui, c, stale);
+        if (!stale()) again.remove();
+      }));
+      ui.status.after(again);
+    }
+
+    refresh();
   }
 
   /* ================================================================
@@ -2749,7 +3038,7 @@
   // built as with the served one; if behind, reload once. The sessionStorage
   // guard means a mis-bumped version file costs one reload per wake, never a
   // loop. scripts/bump-version.sh keeps the three markers in step.
-  const SITE_VERSION = "88";
+  const SITE_VERSION = "89";
   let hiddenAt = 0;
   async function healIfStale() {
     try {

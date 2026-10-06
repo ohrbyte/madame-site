@@ -207,6 +207,27 @@
     createSetupIntent: () => call("/public/payments/setup-intent", { method: "POST", body: {}, auth: true }),
     addPaymentMethod: (paymentMethodId) => call("/public/payments/methods/add", { method: "POST", body: { payment_method_id: paymentMethodId }, auth: true }),
     deletePaymentMethod: (paymentMethodId) => call(`/public/payments/methods/${encodeURIComponent(paymentMethodId)}`, { method: "DELETE", auth: true }),
+
+    // Payment corrections — an amount the office has asked this customer to
+    // repay for one past visit, which they may agree to and pay here. Scoped to
+    // the token's client. The amount is always the server's: nothing here
+    // sends one. Separate from the booking's own payment endpoints on purpose.
+    paymentCorrections: () => call("/public/portal/payment-corrections", { auth: true }),
+    // Records the customer's agreement (to the wording version they were
+    // shown) and starts — or resumes — the payment on a saved card. Returns
+    // the PaymentIntent's client_secret when the browser must confirm it.
+    correctionPay: (bookingId, paymentMethodId, consentVersion) =>
+      call(`/public/portal/bookings/${encodeURIComponent(bookingId)}/correction/pay`, {
+        method: "POST",
+        body: { payment_method_id: paymentMethodId, consent: true, consent_version: consentVersion },
+        auth: true,
+      }),
+    // After Stripe.js confirmed the card: the server verifies it with Stripe
+    // and completes it. Safe to repeat — a paid correction just says so.
+    correctionConfirm: (bookingId) =>
+      call(`/public/portal/bookings/${encodeURIComponent(bookingId)}/correction/confirm`, {
+        method: "POST", body: {}, auth: true,
+      }),
   };
 
   global.MadameApi = api;
