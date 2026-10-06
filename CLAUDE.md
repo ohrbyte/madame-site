@@ -14,7 +14,8 @@ npm run dev        # tailwind --watch + browser-sync on :3001 (config: bs-config
 npm run build      # minified dist/styles.css only — the site itself needs no build
 ```
 
-There are no tests. On the Cleaneri dev VPS this repo lives at `/root/madame-site`,
+`npm test` runs the Playwright browser tests in `tests/` (sign-in only so far; every API
+call is mocked in the browser). On the Cleaneri dev VPS this repo lives at `/root/madame-site`,
 `npm run dev` already runs as the `madame-site` systemd service, and the Cloudflare
 tunnel serves it at `https://madame.ohrbyte.dev/` — edit, save, the browser reloads.
 

@@ -52,6 +52,7 @@ jobs:
             --exclude '.claude' \
             --exclude 'node_modules' \
             --exclude 'scripts' \
+            --exclude '/tests' \
             --exclude 'src' \
             --exclude '_site' \
             --exclude '*.md' \

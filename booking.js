@@ -212,8 +212,9 @@
 
   /* A magic-link click lands back with ?token=… (on whichever page the email
      pointed at). Verify it, keep the JWT, scrub the URL. Runs on every page.
-     Returns "ok" (signed in), "failed" (link dead — say so), "no-account"
-     (link valid but the email matches no client), or false. */
+     Returns "ok" (signed in), "failed" (link dead — say so), "network" (the
+     verify got no response at all, so nothing is known about the link),
+     "no-account" (link valid but the email matches no client), or false. */
   let magicLinkNoAccount = false;
   // The email-proven magic-link token for an account-less session, kept in memory
   // (never stored) so the phone+PIN connect stage can link an existing account to it.
@@ -223,11 +224,17 @@
     const token = params.get("token");
     if (!token) return false;
     let failed = false;
+    let unreachable = false;
     try {
       const res = await api.verifyMagicLink(token);
       if (res && res.access_token) api.setToken(res.access_token);
       else failed = true;
-    } catch { failed = true; /* used or expired — fall through signed out */ }
+    } catch (err) {
+      failed = true; /* used or expired — fall through signed out */
+      // status 0 = no HTTP response came back (api.js NetworkError): nothing
+      // is known about this link, so it must not be reported as invalid/used.
+      unreachable = !!err && err.status === 0;
+    }
     params.delete("token");
     const qs = params.toString();
     history.replaceState(null, "", location.pathname + (qs ? `?${qs}` : "") + location.hash);
@@ -248,7 +255,8 @@
     }
     // "ok" only when THIS link signed us in — a failed verify with an old
     // token still stored must report the failure, not ride the corpse.
-    return failed ? "failed" : (api.getToken() ? "ok" : false);
+    if (failed) return unreachable ? "network" : "failed";
+    return api.getToken() ? "ok" : false;
   }
 
   function isNewClient() {
@@ -518,6 +526,12 @@
     handleMagicLinkReturn().then((result) => {
       if (result === "failed") {
         note(status, "That sign-in link is invalid or has already been used — request a new one below.", true);
+        return;
+      }
+      if (result === "network") {
+        // Not the link's fault: the verify never got an answer. If the request
+        // did reach us and spent the link, the second tap says so (invalid).
+        note(status, "We couldn't reach Clean Madame to finish signing you in — check your internet connection, then tap the link in your email again.", true);
         return;
       }
       if (result === "no-account") {
@@ -2735,7 +2749,7 @@
   // built as with the served one; if behind, reload once. The sessionStorage
   // guard means a mis-bumped version file costs one reload per wake, never a
   // loop. scripts/bump-version.sh keeps the three markers in step.
-  const SITE_VERSION = "87";
+  const SITE_VERSION = "88";
   let hiddenAt = 0;
   async function healIfStale() {
     try {
