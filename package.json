@@ -8,9 +8,11 @@
     "watch:css": "tailwindcss -i ./src/input.css -o ./dist/styles.css --watch",
     "serve": "browser-sync start --config bs-config.js",
     "dev": "concurrently -k -n CSS,SERVE -c cyan,magenta \"npm:watch:css\" \"npm:serve\"",
-    "build": "npm run build:css"
+    "build": "npm run build:css",
+    "test": "npm run build:css && playwright test -c tests/playwright.config.mjs"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/cli": "^4.0.0",
     "ag-psd": "^31.0.2",
     "browser-sync": "^3.0.0",

@@ -1,6 +1,9 @@
 node_modules/
 dist/
 
+# Playwright artifacts (traces of failing tests)
+tests/test-results/
+
 # Local copy of the Google Maps API key (window.MAPS_KEY). In CI this file is
 # generated into _site/ from the GOOGLE_MAPS_API_KEY repo secret.
 maps-key.js

@@ -11,6 +11,7 @@
 
 (function (global) {
   const TOKEN_KEY = "public_client_token";
+  const NETWORK_ERROR_MESSAGE = "We couldn't reach Clean Madame — check your internet connection and try again.";
   const scriptSrc = document.currentScript?.src;
 
   function resolveBase() {
@@ -79,7 +80,14 @@
         body: body !== undefined ? JSON.stringify(body) : undefined,
       });
     } catch (e) {
-      throw new ApiError(0, e.message || "Network error", { code: "NetworkError" });
+      // No HTTP response at all (offline, dropped connection, blocked request).
+      // fetch() rejects with the browser's own wording — "Failed to fetch",
+      // "Load failed", "NetworkError when attempting to fetch resource." — and
+      // pages show err.message as-is, so say it in words a customer can act on.
+      // status 0 + code NetworkError are unchanged; the raw error rides on cause.
+      const err = new ApiError(0, NETWORK_ERROR_MESSAGE, { code: "NetworkError" });
+      err.cause = e;
+      throw err;
     }
     const text = await response.text();
     const data = text ? (() => { try { return JSON.parse(text); } catch { return text; } })() : null;
