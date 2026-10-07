@@ -115,16 +115,17 @@ const keys = (calls) => calls.map((c) => c.key);
 const BOOKING_PAYMENT_ROUTES = /\/public\/portal\/bookings\/[^/]+\/(pay|pay\/confirm|payment|payment\/confirm)$|\/public\/bookings\/confirm-payment$/;
 
 test.describe("payment correction on /my-bookings", () => {
-  test("no correction: nothing is added and Stripe.js is never loaded", async ({ page }) => {
+  test("no correction: nothing is added and no card check runs", async ({ page }) => {
     await signedIn(page);
-    const { calls, stripeLoads } = await mockApi(page, account({ [LIST]: json([]) }));
+    const { calls } = await mockApi(page, account({ [LIST]: json([]) }));
 
     await page.goto("/my-bookings");
 
     await expect(page.locator(".bookings .booking--empty")).toContainText("No upcoming cleanings");
     await expect.poll(() => keys(calls)).toContain(LIST);
     await expect(box(page)).toHaveCount(0);
-    expect(stripeLoads).toHaveLength(0);
+    expect(await page.evaluate(() => window.__stripeCalls || [])).toEqual([]);
+    expect(keys(calls).filter((k) => k === PAY || k === CONFIRM)).toEqual([]);
   });
 
   test("signed out: the corrections list is never asked for", async ({ page }) => {
@@ -145,7 +146,7 @@ test.describe("payment correction on /my-bookings", () => {
 
     await expect(box(page)).toBeVisible();
     await expect(box(page).locator("h2")).toHaveText("Payment correction");
-    await expect(box(page).locator(".correction-visit")).toHaveText("For your cleaning on September 7, 2026");
+    await expect(box(page).locator(".correction-visit")).toHaveText("For your cleaning on Monday, September 7");
     await expect(box(page).locator(".correction-reason")).toHaveText(correction().reason);
     await expect(box(page).locator(".correction-amount")).toHaveText("Amount: $74.42");
     await expect(box(page).locator(".correction-new")).toContainText("new, one-time charge");
@@ -154,9 +155,10 @@ test.describe("payment correction on /my-bookings", () => {
     // Nothing to type: no amount field of any kind.
     await expect(box(page).locator("input:not([type=checkbox]), textarea, select")).toHaveCount(0);
     await expect(payButton(page)).toHaveText("Pay $74.42");
-    // The saved cards are offered, the default picked.
-    await expect(box(page).locator(".choice")).toHaveText(["VISA ·· 4242", "AMEX ·· 0005"]);
-    await expect(box(page).locator(".choice.is-on")).toHaveText("VISA ·· 4242");
+    // The saved cards are offered (the payment step's card cell), the default picked.
+    await expect(box(page).locator(".choice span")).toHaveText(["VISA ·· 4242", "AMEX ·· 0005"]);
+    await expect(box(page).locator(".choice small")).toHaveText(["exp 4/29", "exp 1/30"]);
+    await expect(box(page).locator(".choice.is-on span")).toHaveText("VISA ·· 4242");
     // Pay waits for the customer's own tick.
     await expect(payButton(page)).toBeDisabled();
     await consentBox(page).check();
@@ -171,8 +173,8 @@ test.describe("payment correction on /my-bookings", () => {
 
     await page.goto("/my-bookings");
 
-    await expect(box(page).locator(".choice")).toHaveText(["AMEX ·· 0005"]);
-    await expect(box(page).locator(".choice.is-on")).toHaveText("AMEX ·· 0005");
+    await expect(box(page).locator(".choice span")).toHaveText(["AMEX ·· 0005"]);
+    await expect(box(page).locator(".choice.is-on span")).toHaveText("AMEX ·· 0005");
   });
 
   test("no card on file: explains, offers the office, and cannot pay", async ({ page }) => {
@@ -268,7 +270,7 @@ test.describe("payment correction on /my-bookings", () => {
 
     await page.goto("/my-bookings");
     // The card the open attempt is for is preselected, so resuming reuses it.
-    await expect(box(page).locator(".choice.is-on")).toHaveText("AMEX ·· 0005");
+    await expect(box(page).locator(".choice.is-on span")).toHaveText("AMEX ·· 0005");
     await consentBox(page).check();
     await payButton(page).click();
 
@@ -279,7 +281,7 @@ test.describe("payment correction on /my-bookings", () => {
 
   test("an authorization already in place skips Stripe and goes straight to completing", async ({ page }) => {
     await signedIn(page);
-    const { calls, stripeLoads } = await mockApi(page, account({
+    const { calls } = await mockApi(page, account({
       [PAY]: json({ correction: correction({ status: "payment_pending" }), payment_state: "authorized" }),
       [CONFIRM]: json({ correction: correction({ status: "collected" }), payment_state: "collected" }),
     }));
@@ -289,7 +291,7 @@ test.describe("payment correction on /my-bookings", () => {
     await payButton(page).click();
 
     await expect(box(page).locator(".correction-paid")).toBeVisible();
-    expect(stripeLoads).toHaveLength(0);
+    expect(await page.evaluate(() => window.__stripeCalls || [])).toEqual([]);
     expect(keys(calls).filter((k) => k === PAY || k === CONFIRM)).toEqual([PAY, CONFIRM]);
   });
 

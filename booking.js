@@ -2467,34 +2467,6 @@
      called). Walking away midway moves no money — only the server's
      confirm, after the bank approved, completes it.
      ================================================================ */
-  const STRIPE_JS_URL = "https://js.stripe.com/v3/";
-  let stripeJsPromise = null;
-
-  // Stripe.js is loaded only for a customer who actually has a correction to
-  // pay — My Bookings has no other use for it.
-  function loadStripeJs() {
-    if (window.Stripe) return Promise.resolve();
-    if (!stripeJsPromise) {
-      stripeJsPromise = new Promise((resolve, reject) => {
-        const s = document.createElement("script");
-        s.src = STRIPE_JS_URL;
-        s.onload = () => (window.Stripe ? resolve() : s.onerror());
-        s.onerror = () => {
-          stripeJsPromise = null; // let the next press try again
-          reject(new Error("We couldn't load the secure card check — check your connection and try again."));
-        };
-        document.head.appendChild(s);
-      });
-    }
-    return stripeJsPromise;
-  }
-
-  // "September 7, 2026" from a "yyyy-mm-dd" key (fixed name tables, no Intl).
-  function longDate(dateKey) {
-    const [y, m, d] = dateKey.split("-").map(Number);
-    return `${MONTHS[m - 1]} ${d}, ${y}`;
-  }
-
   function mountPaymentCorrections(panel) {
     if (!panel) return;
 
@@ -2538,7 +2510,7 @@
       box.append(
         title,
         para("correction-visit", /^\d{4}-\d{2}-\d{2}$/.test(visitKey)
-          ? `For your cleaning on ${longDate(visitKey)}`
+          ? `For your cleaning on ${designDate(visitKey)}`
           : "For a past cleaning"),
         para("correction-reason", c.reason),
         para("correction-amount", `Amount: ${money(c.amount)}`),
@@ -2590,10 +2562,16 @@
       function renderCards() {
         cards.innerHTML = "";
         ui.methods.forEach((m) => {
+          // The payment step's saved-card cell (renderMethods), built with
+          // DOM text rather than innerHTML.
           const b = document.createElement("button");
           b.type = "button";
           b.className = "choice choice--pay";
-          b.textContent = `${(m.brand || "card").toUpperCase()} ·· ${m.last4 || "····"}`;
+          const label = document.createElement("span");
+          label.textContent = `${(m.brand || "card").toUpperCase()} ·· ${m.last4}`;
+          const exp = document.createElement("small");
+          exp.textContent = `exp ${m.exp_month}/${String(m.exp_year).slice(-2)}`;
+          b.append(label, exp);
           const on = m.payment_method_id === ui.selected;
           b.classList.toggle("is-on", on);
           b.setAttribute("aria-pressed", on ? "true" : "false");
@@ -2682,7 +2660,7 @@
       if (res && res.client_secret) {
         let stripe;
         try {
-          await loadStripeJs();
+          if (!window.Stripe) throw new Error("We couldn't load the secure card check — reload the page and try again.");
           const config = await api.getClientConfig();
           stripe = await getStripe(config.stripe_publishable_key);
         } catch (err) {
